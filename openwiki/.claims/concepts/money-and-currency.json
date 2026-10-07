@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:4e4c07ada3d42e535ae1ba0606b227b85e14127daa1c205d8bfc8203c7b60759",
+  "pageVersion": "sha256:88ce7be43eda6b236c76696c37b99d0ef24fa95834446b04977fe67795ee1305",
   "claims": [
     {
       "id": "claim_1fa7b469a4a341a483fe1a1fc0ed5014",
@@ -384,7 +384,7 @@
     },
     {
       "id": "claim_b82c1ab3c51f43f482717696dd41f432",
-      "statement": "`PriceModel` stores `open`, `high`, `low`, `close` and `adjusted_close` as `DECIMAL(16, 8)`, and user-entered price fields share that convention — `PriceAlertModel.target_price` and `SecurityValuationModel.lower_bound`/`upper_bound` are also `DECIMAL(16, 8)`, while their write schemas accept an unconstrained `Decimal` and the frontend `ValuationClient` types both bounds as plain `number`, so 8 fractional digits is the effective precision and the database, not validation, rounds anything more precise.",
+      "statement": "Market price columns are fixed-point: `PriceModel` and `IntradayPriceModel` store `open`, `high`, `low`, `close` (and `adjusted_close` on `PriceModel`) as `DECIMAL(16, 8)`, and user-entered price fields share that convention — `PriceAlertModel.target_price` and `SecurityValuationModel`/`SecurityValuationHistoryModel` `lower_bound`/`upper_bound` are also `DECIMAL(16, 8)` — while their write schemas (`PriceAlertWrite.target_price`, `SecurityValuationWrite.lower_bound`/`upper_bound`) accept an unconstrained `Decimal` and the frontend `ValuationClient` types both valuation bounds as plain `number`, so 8 fractional digits is the effective precision and the database, not validation, rounds anything more precise.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/valuationClient.ts#L48-L67",
@@ -395,22 +395,130 @@
           "version": "repo-lines-v1:sha256:b7dfa9bb839e3049fa9f14cdffc66554b7c24a25abf877668fcb192d04080a23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5M2MzYjZlOTg2NzU5NjJjOWU1MTJiOGZkYmQyOWE3MDZhYWJlYWUxMDQzMzZhMGUzODM3NTRmOTkxYjZlMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjYWUyZGE5Nzk1MTRmMjkwZjE3MmMyYWZkNDEzN2YyMDZkYTYxMGI5ODBlNjVkZmE0Y2Y1Yjg2NWI1YjlhMTYifQ"
         },
         {
-          "resource": "repo://src/market/model.py#L241-L256",
-          "version": "repo-lines-v1:sha256:df173aeec42cc5183c9df767a4de0addfcfad150df4dc1b0fb38fb3fe3e8c6d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZGU3OTRjMDllYWFjYmI2YzYxZjlhOWJmYjQ1ZDEzMGExNmU4YWZiYjk5ZjU4NDU2ZTkzMzlhZTVmZGExMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4ZDA3NTA5Zjk5MTk0ZjRkY2FiYWQ1MDQ3NGJjMDIyY2M5ZDFjYTQ2OGQ3NjI0ZDc1OWVhYTQ4ODI1YmFlNjUifQ"
+          "resource": "repo://src/market/model.py#L241-L282",
+          "version": "repo-lines-v1:sha256:7eff88448d8390f14db9ccdd3be7d4127e0bd3d969472ed641b78fcd5f60f8e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZGU3OTRjMDllYWFjYmI2YzYxZjlhOWJmYjQ1ZDEzMGExNmU4YWZiYjk5ZjU4NDU2ZTkzMzlhZTVmZGExMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NWI1OGY3ZWVjNmY2YTM2OGQ3ZjA0MjBiYTljYjA0ZTBjODJhMGI4YTZhMzg5ZTdmYjRlNGFiMTFjNDFkM2UifQ"
         },
         {
-          "resource": "repo://src/market/model.py#L82-L101",
-          "version": "repo-lines-v1:sha256:69e1cce80ab88d8d3cf267d0dbb835a5b64b7e28bfe8bd2733c9bcf5d4b88c76:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZGE4YTMwZDYzYzcxYTQ0NTlmNzZiZGY2ZTE0MzRhZTQ1Zjk4MGNkODk0MWM4MWU5NzliNTY1YmQyMGUwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyZTIyMzU0MWM0NjA5YzcxMTE0YWU0OWM0YWE1NTAwMGQ4ZWMwMzkyOTczMzI0NDU3NTM1MTA4YmFkNzI3OTAifQ"
+          "resource": "repo://src/market/model.py#L82-L124",
+          "version": "repo-lines-v1:sha256:7fb1df0289069b72cc512e2591677d808e85c8873d5d4edf2f010548ed0aee38:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZGE4YTMwZDYzYzcxYTQ0NTlmNzZiZGY2ZTE0MzRhZTQ1Zjk4MGNkODk0MWM4MWU5NzliNTY1YmQyMGUwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDA0NTJhYmNhZTRkZTgwNzc3ZWYxOTgzODU1ZmZhZjQ5NDcxNTk1M2MxZDE2NTgyODQxNDg4NzQwNjJmZmIifQ"
         },
         {
-          "resource": "repo://src/market/schema.py#L343-L357",
-          "version": "repo-lines-v1:sha256:5240bd3745964db406423f7b444f293e99dac32e1c779efb2d51c3f0d95cd381:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjYWZmOGRjMDA4ZDdmMTlhMmZiZjljM2JlZjVmMWQ1NjBkM2YyMzkzN2UzNWRhNjdhZTg0Nzc4YzU0MDhkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4NGM5YmM1ZGE2MmUwMzQ1ODRjZWNkZDk2MTNhZjY2ZGFlZjI2M2Q5ZWFjMzNhNWQzMWU4YzhiYmIzYjJlMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZTAyOWU3NmE0ZmVkZDFkOTFjNWNmM2ZlYjE3ZDg5YjhjNWNmZjNmZmY0NGQ3MjYzYjQ5MDkyMzVmZmVmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1ZTFhNmVmMDFjZWRkYWFmZTk1Y2Y0MmMwNjExMjZkNzNkMjVmNWFhZTgxMmM3OGE3NjdlN2MxMWQwOTA0ZTQifQ"
+          "resource": "repo://src/market/schema.py#L209-L212",
+          "version": "repo-lines-v1:sha256:2b4bc86a6d996825acb675336076adcc9c75c35b4edd400dfa693282e2c4c017:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY4MWQ0ZDEyNjBmYzdhY2M4YzBkOTRkOTAzMTk0NjBiYTk5ODU1NzE1MzE3OWQ5YjFmZWY1YjZiYjM5MDAxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjcwMDU3MjMxZjA1YzliMThkOTliNTE4OWJkZTI1OGI3YWZlNzc3MWE1MWI0ZWQ2ZjY5ZjMxMThlNmU1NDg1YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDFkN2Q2ZDRiZmMzYzA1ZDZmMzBmMDk4MDRhM2Y5NmY1MjY5YzZmZTE2NDBkNTNlOGRhYTM3ZTUzNzY5MDE2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2NlZTcwMmFhYzRjYWU5MmU3ODFjZjNiYzliYmNjY2I1N2MxM2Y3OGY4NmI5NWFkZTIxNzk3ZmQzNThjOWNhMSJ9"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L366-L368",
+          "version": "repo-lines-v1:sha256:448def75f5f94f1ee8d998e4c316cc4cce7ede44ab541958e15d9cfc91a22d22:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjRlMTdkNjk3OWQ0NTZjMWZjMzUzMTgwMWIyMGU0MGQ4YTQ2OGFlODQzMDAxNzI2Y2E2ZjU3ZmE4ZmUyYzNiOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg0YzliYzVkYTYyZTAzNDU4NGNlY2RkOTYxM2FmNjZkYWVmMjYzZDllYWMzM2E1ZDMxZThjOGJiYjNiMmUxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDFkN2Q2ZDRiZmMzYzA1ZDZmMzBmMDk4MDRhM2Y5NmY1MjY5YzZmZTE2NDBkNTNlOGRhYTM3ZTUzNzY5MDE2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzVlMWE2ZWYwMWNlZGRhYWZlOTVjZjQyYzA2MTEyNmQ3M2QyNWY1YWFlODEyYzc4YTc2N2U3YzExZDA5MDRlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d4d0af6ba6044188ee5bea63c23213a",
+      "statement": "`holdings-metrics.ts` also owns the holdings-table ratio helpers: `calculatePercentOfTotal` and `calculatePercentOfAccount` both return `0` for non-finite inputs or a non-positive denominator, and `formatHoldingPercent` renders one decimal place or `-` for null/non-finite values, so these ratios are always plain JS `number` derived from float-typed `HoldingRead` fields.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L22-L25",
+          "version": "repo-lines-v1:sha256:e37df559e9e77937abd74bef366c340d29256502530f1df8f5f1534830b1b808:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjkyNmQ1MGE3MzFiMjg5MjY3N2E0NTk2ZDk5MGViZGJjYzg4YjhmOTk0M2M0NGVhNjZkOWQzZGFhMDI0YTQwYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzZlYzkzMWU2MjY1ZGRiNDc5OWFiNGI5YWE0YmNhNTM4ZGQ3Nzc5YjJhZDQxNDAyMjliMjk2YWU0ZjA2MjNlMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmRlZjZmYjcyY2QzYjhiMjVhMDRjNjgzMGY2MjNmNzdhMjZmMzQyNDZiYzk5ZDA4N2I2YWNiMzgwMzc4MTNiYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWQ3YTJhMzVjNjU1MjE3MGRhNmY3MDBjZjU5NDA4NDI1OTg1Y2ZhNTU1NjYzZDY3ZDU1YjcxYjE2MjkxN2NlYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/holdings-metrics.ts#L185-L224",
+          "version": "repo-lines-v1:sha256:e723cd4be4172c40f0128f0ef373f22c2e4d4ca4be7a442803a7f13a3b09e546:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNzIyZjIzOTA3NGI4YzMwZjVmOTM5ZmQ1ZjlmYzI4NDdhZWU3ZDA3YTc5ZmY0ZDc5NzdhNGExNTk4OTdiZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90b58bb20b9a40b99c96387d4811b4c2",
+      "statement": "`blendedAverageCost` has three production consumers, not one: `holding-group.svelte` (the \"Average\" row, formatted `en-US`), the `holdings-modal.svelte` footer `portfolioAvgPrice`, and the security detail page's `averageBuyingPrice`, which feeds the chart's average-price overlay line via `security-chart.svelte`'s `averagePrice` prop.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L165-L168",
+          "version": "repo-lines-v1:sha256:15d9248ce1c4d20cac3940582a767ad772b0ab11e6c8911ef0826304defb404d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM2OWMwMDJjM2M2MzNlNGFiN2IwOTMzMjI3ZjU1MDdlZWVmYTJjMjFlNjY3YzBjMGY2MTUyM2Q5MWE4NDU1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDUyYjAzZTYwODMxYjM1OTkzOTRmNWMxMDJlM2VkMzgxNjQ0MWFmYjBjMTVlYzJhZDhlYTU5ZDBjM2MxMDFlMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmU4ZGE5NGQ2ZWNhYmQ4MDYyZmFiMmZkYTczNmRkNDU0ZGJlNmMwNzg4NTM5Zjg5ZTZlZjVkNjhmNTJjZWE0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTM5MGE4ZDExMjJkZWVmZDRlMDY5YzhiNjk1NjQ0MzJkM2YwYjYzNDM5NmUzNjExYmE4ZDcyNzgwNzg3MDkyNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.svelte#L220-L220",
+          "version": "repo-lines-v1:sha256:57cf96205d1fc0066aec924e57977a23ce3d24baf1f792247156fdfabd032a3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdjZjk2MjA1ZDFmYzAwNjZhZWM5MjRlNTc5NzdhMjNjZTNkMjRiYWYxZjc5MjI0NzE1NmZkZmFiZDAzMmEzYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdjZjk2MjA1ZDFmYzAwNjZhZWM5MjRlNTc5NzdhMjNjZTNkMjRiYWYxZjc5MjI0NzE1NmZkZmFiZDAzMmEzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ5OWVlYmYwMTAxYWU5N2RhMjI5ODNlYWJhNmJlZDg3MDg3OTI2OTFmNjU3YThmZGQ0ODdmZDU5NGJhMTNlMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmUyZDE1NTQ5YjJkNzQzOGIwZDU1YmVhNjliMWQ4NDMxYmM3ZjU0NTJkZjFiMGQ3ODYwYTk0ZTJkNThmZjJmZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L455-L470",
+          "version": "repo-lines-v1:sha256:4322bc050254f19b4f8e3ee7563eec360b1185ff8fbade31b6b7cff98b8388f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlOGJlODI3MzY0MGE5ZDQzMzJkNmVkMzRjMzk4Mjc3NmM2YzU0ZjAyMTUwMGE2MzMxNTU3YjMzZTNmZmU5NmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhOGVmMDEwYTdhZTE2N2I2NTg5N2Y0Y2MwY2JhNDQ4YjNlMGQ5OTU0ZDBjNzI4YjI2YzRjOWFhODZjYzMzMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyODFjZDQzNTA5ODdlY2UyMWY2MmUyNmY4MjhjYjE0MWU0Yjg3MzRkMmQ1NGVjNzg3NTFiMmYzZWY0YjczODUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L302-L302",
+          "version": "repo-lines-v1:sha256:d64d97890efac4c1ee37ceabbd4383ddb06c832dc9dc8e7d13dbea7b0743de60:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY0ZDk3ODkwZWZhYzRjMWVlMzdjZWFiYmQ0MzgzZGRiMDZjODMyZGM5ZGM4ZTdkMTNkYmVhN2IwNzQzZGU2MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY0ZDk3ODkwZWZhYzRjMWVlMzdjZWFiYmQ0MzgzZGRiMDZjODMyZGM5ZGM4ZTdkMTNkYmVhN2IwNzQzZGU2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmU5OTJjOTY2NmNhZjcyNTAwZDY1ODMwYjg5OGQ0NzczZDYxZTM5MmE1ZmY0Y2Q1OTgzNGEwZDYzNjdkZDg1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTI5MjcxMTM5ZTRkOTc0MzlkNzllNWY3NDMyODBmNzlmMGE0NTgzNzYyMjk3OGIyYzEzZjU2ZWE3Mzc1MDM5YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c13d03d0930045b4acba9ee0b609fd66",
+      "statement": "The cross-account holdings page never sums across currencies: `frontend/src/routes/holdings/+page.svelte` derives `currencyTotals` by bucketing rows on `row.currency` and accumulating `total_value`, `profit_loss` (only when non-null), and `quantity * (converted_average_cost ?? average_cost)` per bucket, deriving `returnPercent` only when a bucket's cost basis is positive — the pattern any new cross-account aggregate should copy.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L139-L181",
+          "version": "repo-lines-v1:sha256:f73c28009544186701e60d43554172e01d11bb97ad40cbc6d761898d6f8ddbd8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjg0M2YxZGRiYTBjZTU4MTg4NjRlOTI0MTYxOTRjNDkyMWM1NTFlMjI4NWI5Nzk3ODE3NjIxYTRiYjkwYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmOWJmOGRkNzcyM2FmMTEyZWM3NGUyMTkxY2JlY2M0NzkzYWNiMDg1MjUwZWUyZWMzYWRjNWQ0ZTliYTVjYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZTVlYmFhMGJiNTRhZWRhNWRhNzA4OGEzZGY2YjYxYTRkZWU1ZDhhYWJjZWM4NmJhMWI1ODdmMjkxMjUwOGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L274-L298",
+          "version": "repo-lines-v1:sha256:0e930b757dfb48b10d4c8547b1fd28ebbe540ad9e60aa00435ffdd77a01ed80c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMWM4MjZmZjMwNzkyZjBmMDkxYThhMjI5NGFhMGI4MzczNTBmMWU1N2I2Zjk5NGNmYzNjNTBmZDVjZDAyNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYmM4ZDg5NzU2ODA1NGE4NmU4MjE2MDJiMWYxZTQ4YzdmMjM3OGM1MWU2MzcwNWRmOTA0OWRmMzZiODBiZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZThhNDM2N2IyMzQyMWVlYWFkYzRlOGE1ZjE1M2QwZDU4MTM5MzFhMGM2ZDdiN2FiMmUxZWU0OWJkYjE5NzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f635523a0b54707afc2928df5318c29",
+      "statement": "The watchlist surfaces deliberately render no currency symbol: `watchlist-utils.ts` exposes `formatPrice` (2 decimals, `-` for absent or unparseable) and `formatPriceChangePercent` (signed 2 decimals, `0.00%` for zero and negative zero), and `watchlists/+page.svelte` renders `SecuritySchema.current_price` and `daily_price_change_percent` through them; the module also carries its own object-shaped `formatValuationRange` accepting `number | string` bounds, separate from the `$lib/utils/finance/valuation` variant the holdings table uses.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.test.ts#L312-L344",
+          "version": "repo-lines-v1:sha256:5146ab9a68ca9311443bdc82789d869b91e34c6bdc3bba85ec1480a9b60a01bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTAzZjFlYzM5ZmZhODdmNjljZjI0YzA1ZjkzODYyZjAwZjY2NjY0NjQ1YWVjNzAwNGQ4MDUwMDc2NjEyYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMTAwYTJmNDJkM2YwYTMwNWQ0NDYzMTI4YWY1YjA2Y2RhMzU0YWQwOGVjN2FjOWEwN2EyYzMwYzliZjZhYTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L177-L262",
+          "version": "repo-lines-v1:sha256:5d6d94ec66adc04044cae4d86d099c0c3b95179253138512ada55fa0962adf70:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L703-L719",
+          "version": "repo-lines-v1:sha256:c31f8aeb8acfaebc985808b11daf9069496d3d4663b77fe288a668db4d31ce4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNDk1MzYwZDU5Nzg5YjE2ZTM0NDc1MjM2M2YyNmJkYzVhNjAxNTA4MTgxMWQ5Y2JlNTkwMjk3ODIyOTgxNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlMTVmOGE3MDFiNDljZTdhOGE2MWM1MWExMjdkNzFkMDVhNTI2ZWQ1MGU4MDU2YmYyYzc4OGE3Nzk1NDJkMmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhYzA5YTk2ZGJmNmVkYWE2NGE1NTFlYjBiZTQxOTQ3NDg5M2ZhZjYzZTBkYzQzZTg0ZWE0Y2FjOTQ5OTc0ZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0ZmFlMDM3NDA5NTBhYzY5MTFlZTAyMGQ0OTJiYjA2ZjIwODMwODllMTA0N2ZiNWY4MjkyYWU2NzIxOWMzYWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0c6c646e13d347b9a35595a1abb4a9cb",
+      "statement": "Only the cross-account holdings table owns the valuation-range column: `frontend/src/lib/components/holdings/holdings-table.svelte` formats `row.valuation_lower`/`valuation_upper` with `formatValuationRange` from `$lib/utils/finance/valuation`, whereas the account-scoped `frontend/src/lib/components/accounts/holdings-table.svelte` has no valuation column at all — so the range-formatting contract lives on the cross-account surface.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/holdings-table.svelte#L42-L48",
+          "version": "repo-lines-v1:sha256:accf2d18bb2f3f4f27f23f681c74bec40afccad807de8ffacad667843b028aa6:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2Y0MDAwNWRlZWFhYzdjMGM2MjNkN2I3Njc0YmM1MTM3NjUyOTk0NTQzZDZhY2JjNGZjZTg2ODJmODU1OWE3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmYzNThmMDM3MWE2ZTczMmM0MzQwMzMyMjM1MTk5ZGNkOTFlYmM0NjIzOWE1ZGRjZmU2ZjlhNjNlNmViZWNmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMThlZjgxMGZhMGU3MDU1NTA2MDU1ZDM0M2M5ZmUyMWFjMDMzOGRmY2E1NDJkNGJmZGZkMzhhOTgwNWQyNjc2MCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L572-L608",
+          "version": "repo-lines-v1:sha256:8deb1cb5a26148aae4d0c00a66ab39397617101404a4a0fa90a70f9a82da0f94:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1MjQ5OTdhYzJhMzIyOTQ1ZmIzZDhlNmIxMjFiOGYwNDNhN2M3N2VlMGJkNzY0MmI3NjEzYjQ2ZGNhNWY0YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MGRhZDQxZjliYzJmN2QyMjI0MWIyNWNkYzllYjkxOTlkMWFmMmE4ZTExNTIyNDFkNGIxNjRjN2JkNTdkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZjI3NDk0MDgwNGRhZjE3NTZkZTQ0ZThjYjM0NzY0MzhkZjlkNjg4MzA1ZmNkMGM0MDcyNzYyMDBiMzRjMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4ZDI3N2QyYjhmMDJiNjM1NmUzMjg5NzVmOGQwNzZkNGFhOGM3NmY0Nzg1ZTllMGQzMTMwYTE5MmQ3ODVjZmMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/valuation.ts#L1-L24",
+          "version": "repo-lines-v1:sha256:28858352d4e2489d16e2ffd0f6de48c9cbc5bff416a9a7b86ff2535e2b9f89e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNzhhMGU0MjEwNGFiYjRkZGE5MWUzODJhNTZjZGRlZjA4Y2ZlZGFjZTkyNmNhZmEzODlmMTZiZjY2NjM2NzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxNDU4NDIwNzQxYWU4OTllZjU2OGI4NjMyOWM1YjNhNjUyYWE3M2ZkMTIyODY1MDUxYzViNzNlNjk1MzViY2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e88bdc6ff590451bbfee8fb865407437",
+      "statement": "`total-profit-loss-buttons.svelte` falls back to a signed `$x.xx` string when `Intl.NumberFormat` rejects the currency code, and although its `effectiveCurrency` derivation contains a `Money.currencyCode` fallback, the `currency` prop defaults to `'CAD'`, so the display currency is in practice whichever currency the caller passes (the account list passes `account.currency`).",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L161-L177",
+          "version": "repo-lines-v1:sha256:1a584ccf06300e7c0e2532f9323dcce957e3b9566a12d64991d903c2c92d27cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMTE2MzZhNWRmMTZhNmNiNmRmNjBmNmJkN2MxMzZlNmM4ZmQwMzM1YzhjNDAxZDFjM2RlZjA5YjllMTBiODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMmJkNTNkNDY5NWQ5ZmIzNTYwZmY3OGFkZDAzNmMzMTk3NjQ4OTFhMDVjOGUzYjI4NGRlZTI4ZTk1NGI0NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkMGY2ZjMxZGJmNGVjYzJmYmVhMThiMTdkZTQ2MTk4ZTkxZGNjZWZmODJjZTgzZjI5ZjNlZTEwNTRiMzcxN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNjI3MjI2YTgzMDYzOTdiMWJjOGJkYWZjNGJjMzkxM2E4YzAxYjgxMTg5MDVjNDk5NjQ5ZTMxMTg4NGVmMjIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/total-profit-loss-buttons.svelte#L39-L70",
+          "version": "repo-lines-v1:sha256:c33b5005140d53a8790f317394a4d5b525717b0f7ff6d8557170d8b83f1f82c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0M2RkMWY1NTk1NmJjMjZkYTJlMjY1MmVjODZlMDBhZDk5Njk4ZGZjMzYxOGRmZTU4ZTJhYWMxNjMyNjg2NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjYzk3NzdkNjA0ZTA4NjY1NTc3YzY4NzEyNTBhOTE5ODI2ZTNjMTE2YTlhN2Y5ZGVmMmQ0ZGVmMDcwYjg1N2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxZTQyOWY2OWIzMjZhMzBmMGNiZWU2YzhjODIxMTcwMzY4ZTRjZGMwY2RiYTQ3NjBlZjNiYjZjYzFkOGRhNzgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/total-profit-loss-buttons.test.ts#L100-L113",
+          "version": "repo-lines-v1:sha256:76cb03fda4e6d51dc94aae6d43c72c63401985fbd2db9a0cf967b4a6f55b477f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZWI5NjEyYjIwNmIyNzk4YzZhMGIwMWM5MGVjZDYyMDVhYzZiMDVkNGU2MDliOGRiYzdmZmM2YzRjZmQzMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3ZWVkNmUzYzc2MjgxNTBkNWUwYzFmMGY4Y2QxMWRkNjJjNDZiMzZkNGVmZmFlZmY4MjIwM2E3YTBkNmNiMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }

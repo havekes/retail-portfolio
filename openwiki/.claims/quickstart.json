@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:aa06ade04f5285816fddddd0b70e06f9a3c403e8a07f0a0fd256ddb7494bd2b8",
+  "pageVersion": "sha256:c96c2268e3387fbe2a8497c8abfaed89ab27b5a1c34746b3528b447bd98d31fc",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -530,7 +530,7 @@
     },
     {
       "id": "claim_5d0490b1c3a74686895ff3903b0f612e",
-      "statement": "The quickstart's task-routing table assigns each kind of change to the owning area of the repository: system-level work to the FastAPI app assembly and router mounting in `src/main.py`, settings/DI to `src/config/services.py`, SvelteKit HTTP structure to `frontend/src/lib/api/apiClient.ts`, the chart surface to `security-chart.svelte`, drawing tools to the chart plugins and `ChartDrawingsService.svelte.ts`, per-user persistence to `userPreferencesService.ts`, portfolios to `src/account/service/portfolio.py`, fair-value ranges to `src/market/repository_sqlalchemy.py`, the `/security/[security_id]` route composition to its page modules, CSV and market-data flows to `src/commands/seed.py` and `src/market/task.py`, and the realtime/worker surface to `src/ws/manager.py`.",
+      "statement": "The quickstart's task-routing table assigns each kind of change to the owning surface and its wiki page: system-level work to the FastAPI app assembly and router mounting in `src/main.py`, settings/DI to `src/config/services.py`, SvelteKit HTTP structure to `frontend/src/lib/api/apiClient.ts`, the chart surface to `security-chart.svelte`, drawing tools to the chart plugins and `ChartDrawingsService.svelte.ts`, per-user persistence to `userPreferencesService.ts`, portfolios to `src/account/service/portfolio.py`, fair-value ranges to the router-only `SecurityValuationRepository` contract in `src/market/repository.py` and its SQLAlchemy implementation, the `/security/[security_id]` route composition to its page modules, watchlists/sidebar/global search to the layout-owned watchlist service and the market watchlist routes, CSV and market-data flows to `src/commands/seed.py` and `src/market/task.py`, and the realtime/worker surface to `src/ws/manager.py`; every row's link resolves to a page in this wiki.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/apiClient.ts#L14-L24",
@@ -549,8 +549,12 @@
           "version": "repo-file-v1:sha256:0e9250f3b8ab90f1a7fdf7d311d869090b18d81ab64e1175ae9cc8a6d198995f"
         },
         {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L10-L22",
+          "version": "repo-lines-v1:sha256:736bf18f637ca4d737ea6b88d3257c2a3b56eeed75e974d43c24d8200b3165dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYTQ4N2QwOWE5MGNmYzE0ZTE5NjRkNGEwZDQwOTdkNjVhMDIxZDZjNjUxMjM1OWM2NjljYTk0MjBlZmY2YzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNmFkMTQ5ZWY0NWU4OTZmMDMwNmM3MmVlNjcxN2MzNTAzZjYwY2NhZDQzODE2ZWQ5YTY0OWMxMThhYjY4MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjYzc0MTE2NDZlYjI0ZDZmYjU4M2YxNzg5MDMwYWQ1MWYwMWIzNDIyY2E4ZWMyYTk1MDU2MGUyMTg0YTcwMGMifQ"
+        },
+        {
           "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts",
-          "version": "repo-file-v1:sha256:a09876199761299a801127fd3e3f99e4fffc9ac9bbad9052a9ad7f57f932a498"
+          "version": "repo-file-v1:sha256:9779759b4442bb0190285a8dec115bf28a4d9febcfd654d522eb257ca3ea8011"
         },
         {
           "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts",
@@ -573,8 +577,12 @@
           "version": "repo-lines-v1:sha256:b66ab3c7c9677095729c27f4c6b1e651b2f0c6fc24ad24ac21753223cf11dc88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
         },
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py",
-          "version": "repo-file-v1:sha256:ba95e3086b33e0234ccf928c60f43ace433b03e6d87f957785e5f861bada5630"
+          "resource": "repo://src/market/repository.py#L317-L343",
+          "version": "repo-lines-v1:sha256:16a0e670bc55bb609fdbe2d9738089d550b3b43015a69cbd56a8bc9ba933e9e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjNTMxNGU3MGVmMDg1MDFjZjgzODljYmRjMmM4ODMzOWE5YTE4NmVmODdlZmU3MGQxZGJjOGNmYjBmOGU2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1294-L1352",
+          "version": "repo-lines-v1:sha256:c391a7482c51d6feba79e9f26dc3ddf53b0a30fbab36a1fdff11af0bb11c3a6b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjZmE2ZWM3YzRmMmM5MzYyZjUwNmE4NWZjZGQ2YzUwZjI5MzhhMjRjMzA0NTAzZmY3NWM2MDIwZDI1OWRiOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4OWRiNWJlNWNmODcyNjJiMzVjMjdhNzQzMjk4OGY0NDVkYjQ1NGJkOTRmMTFmOGI3ZDliY2UyZTliOTI0ZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyYmRhNzE1OGFlYThkYzk0MDg0MmM4YjE3ZmI4NWZmMzY5OGJjYzNmMGYwODhlYTk4YjgzZDdiYjMyYTUxOTUifQ"
         },
         {
           "resource": "repo://src/market/router.py",
@@ -589,10 +597,50 @@
           "version": "repo-file-v1:sha256:9e3f4edcb0a22e84fb8f1ed1f6b5aa10867223c485d3174a70290e035d6383eb"
         }
       ]
+    },
+    {
+      "id": "claim_5b9c4e99d2dd4019b32ddf5c392c462c",
+      "statement": "The quickstart's routing table gains a row for the watchlist subsystem, pointing watchlist, sidebar-watchlist and global-search work at the Watchlists, Sidebar & Global Search page, whose single client-side state owner is the layout-instantiated `WatchlistService` and whose HTTP surface is the ten market watchlist routes.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L40-L64",
+          "version": "repo-lines-v1:sha256:9b49fc005cbacd812a6a6f86cb3d1d6cf96abdf2486882811434ab93dfff1cab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyODZlZTE1MjNjOTY2ZDJkODcxZTU1NzI5MDZmOTNkMmRhZDc1N2Q5OTc0MTA5MWQyZjJlNzQ1ZDBlOWUwNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYTAzODc0OGVlMTVjOWI1ZWQ0MTQxMjRhNDE3ZDMwYTNmNGQ0NzQ4MzEyZWUzMzA5ZGM5NWNiZDE2ZDI4NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYzVhNmQ2NmJmNWY4YmIxNDJkOGU0YjJkZjEwZGRhNWE1NzE2YzUzYTg5NGE3MGQzYTgyMDNiNDcwNjQ4YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NzEwYmRlMzk2ZjcwYWE1NDE5MDYyOTI4OThiNzFhYzNjMzg0OTI2YjEwZWZkMDZhNzk4NWQ1YzRiMmY5NTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L10-L50",
+          "version": "repo-lines-v1:sha256:bb1a946533e0763ba1f8272a950b37e7a2b6e62806f6b2913c671a013cbccae6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYTQ4N2QwOWE5MGNmYzE0ZTE5NjRkNGEwZDQwOTdkNjVhMDIxZDZjNjUxMjM1OWM2NjljYTk0MjBlZmY2YzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiNGEzZDAxNmEwN2VlYmJiYTM2MTQwYzZhYzFhMDhiZDc3NmNmZmVlMzZkOTEzYTU1NTVlZmUyY2VhZTM0ZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExNmFkMTQ5ZWY0NWU4OTZmMDMwNmM3MmVlNjcxN2MzNTAzZjYwY2NhZDQzODE2ZWQ5YTY0OWMxMThhYjY4MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0Nzk4YzliZWZjNDk0MTI5OTczNjY5NTQ1MzdhZGRjOTJjMmY3MmNmZWJkODYyZWI1ODZjOGM5YmU5M2Y3MDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L23-L59",
+          "version": "repo-lines-v1:sha256:89825d340ec9766afc00e9a3e76cc2cf2e3041b07b14acdf959fdd9c2ee1c557:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwM2Y1YzdmNmYxOGY0MzVkNTgzYWZmYTcwMTY2MTcwOGFiMjM2NGJiY2RhMmRmYmJmNDI1YWEwOGRmZTU5YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MmJlMTlmMDkwYzIxOTkyYjgyMDI5ZjA5MGUwM2JkNDgwOTlmZDg4MWIzMGUxMDE4ZThmOTA1MGUzNmNkMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkNjFhZTAzYTg4MzAyNTgzZTUxYmQwNDE0YzlmZGIzYThkMmI4ZjhjOGEwN2NjNTIxZjVhOWY5Mjc3NjUzMjUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.server.ts",
+          "version": "repo-file-v1:sha256:ef0bcd7b85e523824223fa6d51f758cb62f0c4b9d38b45d4b9c7eeb620ec0fd8"
+        },
+        {
+          "resource": "repo://src/market/router.py#L330-L502",
+          "version": "repo-lines-v1:sha256:9390d624897ca308c72b85c3f039a871325588aef04a82b52c6d02466974349b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTczLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhMzQzNTkyZDBkNTcyM2VkOGU1MDA0NDBiYzVlNmI5ZmQ1MTcxYjNmNTc5NmIzYWFlM2VkYzliMDE5MzVjNjIyIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d8f74c33d8d493b9627143b770f2072",
+      "statement": "The quickstart's repository map names `src/commands/` as holding the two CLI entrypoints `seed.py` (seeding users, accounts, portfolios, positions and securities) and `flush_market_data.py` (clearing price/intraday rows with its indicator cache), rather than describing them generically.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/flush_market_data.py#L1-L30",
+          "version": "repo-lines-v1:sha256:689739830762e91fc556343da99fdc050e60bd9d3641446f3f31549ee0d8fb0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1M2U1YTUyODYxNzJmYjBhNDc3Mjg0M2JhM2VkNjIzMzE2ODdiY2I5OTM5ZWM5YzQ5ZTkwNjZkNGVlNDI3MmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyZmU0MmE2MjFkZWVlYTUxZWNkNzNmYTcyOTAwY2RjN2U2M2QxNDgzNTM4MDI1ZGRmODU4NDRmYmM5ZTQ1ZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYWI4YTY2ZGU1NDM5OWViOTNlYzJmNzg5ZTU1NWJiYWVhYjcxYjAyNDViZmUzMjFkYTcxNmFiNzE4NTI2MDQifQ"
+        },
+        {
+          "resource": "repo://src/commands/seed.py#L1-L23",
+          "version": "repo-lines-v1:sha256:73b5e77da2b9864247153cd8f11c10f14c9428deb6d288059212ec8cc1eba821:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGM5Y2RkNDJmOGQ4OGMwNDQyNTM3M2E3MzM2MjA5ZjZiMmEyZGNlYmVjMzJiNGQ0MDU5M2Y5MGJlMmJiMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5ZmNmODYwZGExOWI5YzVhYjdlODJiODY0NzYyOTUwMGYzZTQ3MGRmOGY2N2FhZGNiMWVlNzg5MzExOTFlMDMifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }

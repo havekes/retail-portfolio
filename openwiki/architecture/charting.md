@@ -1,11 +1,8 @@
 ---
 type: architecture
 title: "Charting: Chart Surface, Panes & Indicators"
-description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the server-side indicator compute path and its out-of-order guard, chart settings, the price-alert primitive and the valuation band."
+description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the indicator pipeline through the Go sidecar with its Redis result cache and out-of-order guard, chart settings, the price-alert primitive and the rewind-aware valuation band."
 tags: [charting, lightweight-charts, indicators, panes, price-alerts, valuation-band, chart-preferences, svelte]
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -77,7 +74,14 @@ sources:
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
     resource: repo://src/market/service.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+  - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
+    resource: repo://tests/market/test_indicator_client.py
+  - id: openwiki-source-d5f24b3551e2c9a796e0c850
+    resource: repo://tests/market/test_indicator_compute_api.py
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T14:42:34.222Z
 ---
 
 This page covers the chart *surface*: the `lightweight-charts` wrapper, its data and pane lifecycle, chart preferences, the indicator pipeline, the price-alert primitive and the valuation band. Drawing tools, their series-primitive plugins, drawing persistence and the snapshot/rewind pipeline are documented on [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — this page only points at them. The fair-value range concept itself (model, routes, client, sidebar modal) lives on [Security Valuations](../concepts/security-valuation.md), the price/candle side of the indicator pipeline on [Market Data & Indicators](../workflows/market-data-and-indicators.md), and the sidecar as an outbound dependency on [External Services & Adapters](../integrations/external-services.md).
@@ -99,6 +103,7 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 - **Commands run inside Docker.** Frontend work is executed in the `frontend` service (`docker compose exec frontend ...`); the agent harness wraps that (`./scripts/agent-test frontend/src/...`).
 - **Frontend tests must mock every API client and `lightweight-charts`.** CI has no backend and no real canvas, so an unmocked client or a real chart import is a broken test by definition (see `frontend/AGENTS.md`).
 - **A new indicator type belongs in the Go sidecar, not in Python.** The chart's compute route forwards specs to `services/indicator-service`; adding a type means a new case in its `ComputeIndicator` switch plus README documentation, not new Python math.
+- **Nothing in a test dials a real dependency.** Frontend tests mock every API client and `lightweight-charts`; backend indicator tests use `httpx.MockTransport` for the sidecar and patch the cache, so no test reaches the sidecar, Redis or EODHD for real.
 
 ## Entry points
 
@@ -287,7 +292,7 @@ The toolbar offers five intervals — `1h`, `4h`, `1d`, `1w`, `1m` — and two c
 
 `changeTimeframe(interval, { persist, force })` bails out without a security id, while `isChangingTimeframe`, or when `shouldForceRefetch(selectedInterval, interval, force)` is false (it is true when `force` is set or the interval differs). It then resets pagination state, computes the window with `getChartDateWindow(new Date(), interval)` (a 30-day window for intraday intervals, a 2-year window otherwise), fetches through `MarketService.getPrices`, maps rows with `mapPriceToCandle(p, isIntraday)` (intraday rows become `UTCTimestamp` epoch seconds through their `timestamp`, daily-and-coarser rows keep their date string), sorts oldest→newest, sets `rawCandles`, recomputes `haCandles = convertToHeikinAshi(rawCandles)` and calls `refreshActiveIndicators()`. An empty response sets `timeframeError` (`No price data available for this timeframe`) and returns. The preference patch is issued **after** the fetch `try/catch` and only when `persist && fetchOk`, so a failed preference write can neither mask a fetch error nor hold `isChangingTimeframe` open.
 
-`displayCandles = displayCandlesFor(chartStyle, rawCandles, haCandles)` feeds the chart; the two style buttons set `chartStyle`, call `refreshActiveIndicators()` and PATCH `chart_style`. `chart-preferences.ts` holds the pure helpers: `mergeChartPreferences` (read-merge-write that keeps the `indicators` key), `displayCandlesFor`, `shouldForceRefetch`, `parseCandleTime` (number / `YYYY-MM-DD` / ISO string / `BusinessDay` → `Date`), `mergeCandles` and `shouldFetchMoreData`. The page imports and uses five of them; `mergeChartPreferences` is exported and unit-tested but is *not* on the live write path, because the page persists single-key patches through `patchPreferences` and lets the backend merge.
+`allDisplayCandles = displayCandlesFor(chartStyle, rawCandles, haCandles)` is the styled series, and `displayCandles` — what the chart, the locally-rendered volume histogram and the indicator payloads actually read — is `allDisplayCandles` unless the user is rewound, in which case it is the candles sliced at the playhead (the slice itself belongs to [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md)). The two style buttons set `chartStyle`, call `refreshActiveIndicators()` and PATCH `chart_style`; a `loading-indicators-spinner` sits beside the timeframe buttons while `isLoadingIndicators` is set. `chart-preferences.ts` holds the pure helpers: `mergeChartPreferences` (read-merge-write that keeps the `indicators` key), `displayCandlesFor`, `shouldForceRefetch`, `parseCandleTime` (number / `YYYY-MM-DD` / ISO string / `BusinessDay` → `Date`), `mergeCandles` and `shouldFetchMoreData`. The page imports and uses five of them; `mergeChartPreferences` is exported and unit-tested but is *not* on the live write path, because the page persists single-key patches through `patchPreferences` and lets the backend merge.
 
 `onPreferencesLoaded(prefs)` applies the persisted state in order: `show_valuation_band` into `showValuationOverlay`, the saved pane heights, the preferences object into `ChartDrawingsService`, the chart style (falling back to `heikin_ashi`), the saved timeframe via `changeTimeframe(prefs.timeframe, { persist: false })`, and finally the saved indicator toggles — each `onIndicatorToggle(id, true)` deferred through `setTimeout(..., 100)` so the chart ref is bound.
 
@@ -420,7 +425,7 @@ Wave targets produce real price alerts with `source: 'wave'`. `handleWaveSetting
 
 The fair-value range reaches the chart as one primitive on the main price scale; the concept's own page ([Security Valuations](../concepts/security-valuation.md)) owns the model, routes, client and sidebar modal.
 
-**Flow.** The page holds `valuation = $state<SecurityValuationRead | null>(null)`. It is filled twice over: `loadValuation()` calls `valuationClient.getValuation(security.id)` in the init chain's parallel wave, and the fundamentals sidebar group — bound with `bind:valuation` — fetches the same endpoint when it expands and rebinds on save. The page then passes `{valuation}`, `showValuation={showValuationOverlay}` and `showValuationBand={showValuationOverlay}` into the chart, so both gates carry the same flag.
+**Flow.** The page holds `valuation = $state<SecurityValuationRead | null>(null)` and mirrors it into `ChartDrawingsService` through a `setValuation` `$effect`. It is filled twice over: `loadValuation()` calls `valuationClient.getValuation(security.id)` in the init chain's parallel wave, and the fundamentals sidebar group — bound with `bind:valuation` and expanded by default — fetches the same endpoint through its own `$effect` and rebinds on save. The chart is **not** fed that state directly: the page passes `valuation={drawingsService.effectiveValuation}`, so the band renders the live valuation normally and the active rewind snapshot's range while rewound (the page suite asserts exactly that switch), and it passes `showValuation={showValuationOverlay}` and `showValuationBand={showValuationOverlay}`, so both gates carry the same flag. A save through the sidebar (`handleValuationSaved`) updates the page state and the service, then persists a rewind snapshot.
 
 **The gate.** `showValuationOverlay` is seeded from the `show_valuation_band` user preference (`onPreferencesLoaded` and again in the init chain when preferences are fetched there), and toggled by `FundamentalsGroup`, which persists `userPreferencesService.patchPreferences({ show_valuation_band: val })`. Inside the chart, `isValuationBandVisible` is `showValuationBand !== undefined ? showValuationBand : showValuation`, so the narrower prop wins when supplied. One `$effect` pushes the state into the primitive: `setRange(visible ? valuation.lower_bound : null, visible ? valuation.upper_bound : null, visible)`, and the constructor at mount is seeded the same way — a `null` bound or `visible: false` makes the renderer return without drawing.
 
@@ -441,7 +446,7 @@ Two consequences worth knowing when changing this area: the band's pane view dec
 ## Related rendering surfaces
 
 - `utils/date.ts` supplies the chart's time formatting: `formatLocalTime` renders epoch seconds as `YYYY-MM-DD HH:mm` and passes date strings through unchanged (and formats a `BusinessDay` object itself), while `formatLocalTickMark` returns `null` for non-numeric times and otherwise formats by `TickMarkType` (year / month / day / time / time-with-seconds). `getChartDateWindow` is the shared window helper for the initial load, every timeframe change and every pagination fetch.
-- `sparkline.svelte` is a chart-library-free SVG sparkline: it derives values from numbers or `Candle.close`, builds a Catmull-Rom smoothed line plus an area path in a fixed `0 0 100 height` view box with a gradient fill, colors by first-vs-last trend (or an explicit `isPositive`/`color`), and is used by the holdings views — it never touches `lightweight-charts`.
+- `sparkline.svelte` is a chart-library-free SVG sparkline: it derives values from numbers or `Candle.close`, builds a Catmull-Rom smoothed line plus an area path in a fixed `0 0 100 height` view box with a gradient fill, colors by first-vs-last trend (or an explicit `isPositive`/`color`), and is used by the holdings views (`holdings-modal.svelte`) — it never touches `lightweight-charts`.
 
 ## Testing conventions
 
@@ -453,6 +458,7 @@ Chart tests are colocated with their subject and follow the repository rules in 
 - `security-chart.test.ts` covers the surface directly: infinite scroll / logical-range behaviour, oscillator panes and custom price scales, `hideLabels`, the price-scale wheel zoom (linear and logarithmic, plus the "does not intercept wheel events over the canvas" case), the price-scale drag reporting `onAutoScaleChange(false)`, the drawing pan-lock and its restore rules, future whitespace, resizable indicator panes (legacy default margins, handle rendering per adjacent pair, drag bounds, restore via `setPaneHeights`, dropping a removed oscillator's height, and the reset affordance), overlay autoscale exclusion and the valuation band attachment.
 - `indicator-pane-layout.test.ts` pins the pure math: the legacy margins for 0/1/2/3 oscillators and the volume variants, custom-height normalization, min/max clamping, and the water-filling allocator. `indicator-defaults.test.ts` pins the frozen table, key order and copy independence. `valuation-band.test.ts` pins the renderer's fill/dash behaviour and its no-draw cases.
 - Page-level suites live in `routes/security/[security_id]/page.svelte.test.ts` (`Security Page - Asynchronous Indicator Integration`, `Security Page - Indicator Pane Heights`, `Security Page - Instant Shell with Async Chart Data`, `Security Page - Top Toolbar`, `Security Page - Viewport Containment & Scrolling Layout`, …), and `page.server.test.ts` asserts the load returns only `security_id` and never calls the market service.
+- The backend side of the pipeline never dials a real sidecar or Redis in tests either: `tests/market/test_indicator_client.py` drives `IndicatorServiceClient` through `httpx.MockTransport` handlers (asserting the `/compute` path and the 504/503/400 mappings), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` and `IndicatorCache.get`/`set` to cover the date-window 422, the cache hit/miss and read-write window symmetry, and the caller-supplied-candle path.
 
 Run the chart suites with `./scripts/agent-test frontend/src/lib/components/charts/...` while iterating and `./scripts/agent-test frontend` before finishing.
 

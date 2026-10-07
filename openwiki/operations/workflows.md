@@ -1,7 +1,7 @@
 ---
 type: "Reference"
 title: "Development, CI & Change Workflows"
-description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions, and the agent-tooling layout that defines how agents work in this repository."
+description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its mirrored tool definitions, and the agent guidance hierarchy that defines how agents work in this repository."
 tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees"]
 sources:
   - id: openwiki-source-2e6dfbf4fd0e1d49ac19e157
@@ -22,8 +22,14 @@ sources:
     resource: repo://.agent/workflows/opsx-explore.md
   - id: openwiki-source-cd6a33fc3b74a9a16cc85155
     resource: repo://.agent/workflows/opsx-propose.md
+  - id: openwiki-source-c9c0cef816df9d82e7843f45
+    resource: repo://.claude/agents/implementer.md
   - id: openwiki-source-a948e1c3a086ad05474c2761
     resource: repo://.claude/commands/opsx/propose.md
+  - id: openwiki-source-c604ac2c75396bb2fed15335
+    resource: repo://.claude/skills/openspec-propose/SKILL.md
+  - id: openwiki-source-70b42923e1a6b3cce8f538ae
+    resource: repo://.claude/skills/orchestration/SKILL.md
   - id: openwiki-source-715dace563ef484b6e8bd1e2
     resource: repo://.dockerignore
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
@@ -98,10 +104,10 @@ sources:
     resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-573b283ce7220c507e717dec
     resource: repo://tests/test_migrations_autogenerate.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+    at: 2026-10-06T14:42:34.222Z
 ---
 
 # Development, CI & Change Workflows
@@ -116,8 +122,10 @@ semantics of the worker belong to
 
 ## Constraints that hold for every change
 
-These five rules are global; the sections below give the operational detail.
+These rules are global; the sections below give the operational detail.
 
+- **Communication style.** `AGENTS.md` asks for sparse, filler-free writing and for asking when
+  unsure instead of inferring — surface the uncertainty rather than guess.
 - **Docker-only commands.** Every development command runs inside a container
   (`docker compose exec <backend|frontend> <command>`). CI runs the same checks, so the host
   environment is never the reference.
@@ -126,8 +134,9 @@ These five rules are global; the sections below give the operational detail.
   through `op.execute()` inside a generated revision.
 - **Tests never touch external services.** Redis, HTTP APIs and SMTP are mocked or stubbed;
   the testcontainers PostgreSQL instance is the only allowed infrastructure dependency.
-- **Non-trivial changes go through OpenSpec**, and every OpenSpec stage exists in three tool
-  mirrors (`.agent/`, `.opencode/`, `.github/`) that must be updated together.
+- **Non-trivial changes go through OpenSpec**, and every OpenSpec stage is mirrored across four
+  tool directories (`.agent/`, `.claude/`, `.opencode/`, `.github/`) that must be updated
+  together.
 - **Never merge to `main` without explicit user permission.** This is stated in `AGENTS.md` and
   restated by the `orchestration` skill, which requires presenting the PR and waiting for
   confirmation even when every check passes.
@@ -506,20 +515,21 @@ delta specs have been reconciled against the canonical capabilities. The full se
 
 ### Mirrored definitions
 
-The same four stages exist in three mirrors. `CLAUDE.md` does **not** exist in this checkout,
-so Claude Code is served by the `.claude/` directory directly:
+Each stage is defined once per agent tool, so the same four stages exist in four mirrored
+directories. `CLAUDE.md` does **not** exist in this checkout, so Claude Code is served by the
+`.claude/` directory directly:
 
 | Stage | Slash command | Skill |
 |-------|---------------|-------|
-| Propose | `.agent/workflows/opsx-propose.md`, `.opencode/command/opsx-propose.md`, `.github/prompts/opsx-propose.prompt.md` (`/opsx:propose`) | `.agent/skills/openspec-propose/`, `.opencode/skills/openspec-propose/`, `.github/skills/openspec-propose/` |
-| Explore | `…/opsx-explore.md` / `.prompt.md` | `openspec-explore/` |
-| Apply | `…/opsx-apply.md` / `.prompt.md` | `openspec-apply-change/` |
-| Archive | `…/opsx-archive.md` / `.prompt.md` | `openspec-archive-change/` |
+| Propose | `.agent/workflows/opsx-propose.md`, `.opencode/command/opsx-propose.md`, `.github/prompts/opsx-propose.prompt.md`, `.claude/commands/opsx/propose.md` (`/opsx:propose`) | `.agent/skills/openspec-propose/`, `.claude/skills/openspec-propose/`, `.opencode/skills/openspec-propose/`, `.github/skills/openspec-propose/` |
+| Explore | `opsx-explore.md` in `.agent/workflows/`, `.opencode/command/`, `.github/prompts/` (`.prompt.md`) and `.claude/commands/opsx/explore.md` | `openspec-explore/` |
+| Apply | `opsx-apply.md` / `.prompt.md` / `.claude/commands/opsx/apply.md` | `openspec-apply-change/` |
+| Archive | `opsx-archive.md` / `.prompt.md` / `.claude/commands/opsx/archive.md` | `openspec-archive-change/` |
 
-`.agent/skills/` and `.opencode/skills/` hold a wider catalogue beyond OpenSpec
-(`architecture-review`, `commit-message`, `feature-definition`, `orchestration`, `pr-review`,
-`quality-check`, `spec-writing`, `ticket-execution`). When adding an OpenSpec stage, add all
-three mirrors — a change to only one silently diverges per tool.
+`.agent/skills/`, `.claude/skills/` and `.opencode/skills/` hold a wider catalogue beyond
+OpenSpec (`architecture-review`, `commit-message`, `feature-definition`, `orchestration`,
+`pr-review`, `quality-check`, `spec-writing`, `ticket-execution`). When adding an OpenSpec
+stage, add every mirror — a change to only one silently diverges per tool.
 
 ### Rules the workflows enforce
 
@@ -545,28 +555,29 @@ three mirrors — a change to only one silently diverges per tool.
 ## Agent tooling: how agents work in this repository
 
 Beyond the OpenSpec commands, the repository carries a full agent operating manual. It is
-layered, and each layer has one owner:
+layered, and each layer has one owner: the root `AGENTS.md` is the entrypoint and delegates
+area rules to the two area guides, while each agent tool directory carries its own mirrored
+OpenSpec commands.
 
 ```mermaid
 flowchart TD
-    Root["AGENTS.md — communication style, branch/merge protection, project guides, docker-only commands, harness, worktrees, OpenWiki block"] --> BE["src/AGENTS.md — backend workflow, testing rule, DDD layering"]
-    Root --> FE["frontend/AGENTS.md — frontend workflow, testing rule, rune/class layering"]
-    Root --> T1["AGENTS.md without the OpenWiki block"]
-    T1 --> T2[".claude/commands/opsx/ — slash-command mirror for Claude Code"]
+    Root["AGENTS.md — communication style, branch and merge protection, project guides, Docker-only commands, harness, worktrees, OpenWiki block"] --> BE["src/AGENTS.md — backend workflow, testing rule, DDD layering"]
+    Root --> FE["frontend/AGENTS.md — frontend workflow, testing rule, rune and class layering"]
+    Root --> M["Mirrored opsx commands: .agent/workflows, .opencode/command, .claude/commands/opsx, .github/prompts"]
     BE --> SRC["src/ — FastAPI, SQLAlchemy, Alembic"]
     FE --> FRT["frontend/ — SvelteKit, vitest"]
 ```
 
-Caption: the guidance hierarchy — the root file delegates area rules to the two area guides,
-and each leaf tool directory mirrors the OpenSpec commands.
+Caption: the guidance hierarchy — the root file delegates area rules to the two area guides, and
+each agent tool directory mirrors the OpenSpec slash commands.
 
 | Location | Contents |
 |----------|----------|
 | `AGENTS.md` | Communication style, the never-merge-to-`main` rule, delegation to `src/AGENTS.md` and `frontend/AGENTS.md`, the Docker-only command rule, the harness and worktree instructions, then the OpenWiki block delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` |
 | `src/AGENTS.md` | Backend workflow (ruff, ty, pytest, alembic), the no-external-services testing rule, and the domain-driven layering contract (models → schemas → repositories → services → APIs) |
-| `frontend/AGENTS.md` | Frontend workflow (npm scripts), the mock-every-API-call rule, and the UI-layer vs. `.svelte.ts` rune-class layering rules |
+| `frontend/AGENTS.md` | Frontend workflow (npm scripts), the mock-every-API-call rule, and the four-layer contract: `.svelte` UI, `.svelte.ts` rune/class services, stateless `.ts` API clients, and the chart-primitive plugin layout with its `helpers/` and pure finance-math boundaries |
 | `.agent/` | `agents/` (arch-reviewer, implementer, pr-reviewer, spec-writer), `skills/` (the OpenSpec skills plus the wider catalogue), `workflows/opsx-*.md` |
-| `.claude/` | `agents/` mirror plus `commands/opsx/{propose,explore,apply,archive}.md` |
+| `.claude/` | `agents/` mirror, `skills/` (the OpenSpec skills plus the wider catalogue) and `commands/opsx/{propose,explore,apply,archive}.md` |
 | `.opencode/` | `opencode.json`, `agents/` (which adds `orchestrator`), `command/opsx-*.md`, `skills/` |
 | `.github/` | `prompts/opsx-*.prompt.md`, the four `skills/openspec-*/`, and `workflows/` |
 | `.ai/` | `features/` (product specs), `plans/` (working notes and ticket plans such as `424-plan.md`, `ARCH-T01-plan.md`), `reviews/` (`<date>-architecture[-focus].md`, e.g. `2026-08-25-architecture.md`) |
@@ -610,6 +621,11 @@ Supporting skills exist outside the pipeline: `feature-definition` shapes a raw 
 `.ai/features/<slug>.md` before it is ticketed, `quality-check` drives the fix loop over
 `./scripts/agent-test`, and `commit-message` enforces the 50/72 commit-message rule.
 
+Two habits keep the loop honest in practice: a backend model edit always ships its
+`docker compose exec backend uv run alembic revision --autogenerate -m "<msg>"` migration in
+the same change, and temporary artifacts (issue-body payloads, captured output) go to
+`.ai/scratch/` with working notes in `.ai/plans/` — never the repository root.
+
 ## Scheduled OpenWiki update
 
 `.github/workflows/openwiki-update.yml` runs daily at 08:00 UTC (`cron: "0 8 * * *"`) and on
@@ -630,9 +646,10 @@ Documentation therefore lands through review, never as a direct commit to `main`
 
 ### What the OpenWiki block in `AGENTS.md` instructs
 
-The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki block at the end of
-`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a
-**retrieval-first** consumption policy for agents:
+The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki block at the end
+of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a
+**retrieval-first** consumption policy for agents. It describes the tree as an optional,
+just-in-time evidence index rather than required startup reading:
 
 - **Do not enumerate, preload, or search wikis at task start.** `openwiki/` is just-in-time
   context, not required startup reading. Retrieval applies when the user asks for it, when
@@ -643,8 +660,9 @@ The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki b
   `workspace_required` response means asking which listed workspace to use and retrying with its
   ID; `openwiki_list_workspaces` / `openwiki_list_wikis` exist for discovering workspace
   membership itself.
-- When the retrieval tools are unavailable, the fallback is to read `openwiki/quickstart.md` and
-  follow its links to the relevant pages.
+- When the retrieval tools are unavailable, the fallback is to read
+  [Quickstart](../quickstart.md) — the `openwiki/quickstart.md` entry point — and follow its
+  links to the relevant pages.
 - **Source code and tests stay authoritative.** A brief's unknowns and review items are
   verification gaps, not automatic requirements.
 - Prefer the narrowest quiet validation that proves the changed behavior, and preserve complete

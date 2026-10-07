@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:72494858b503a5ceb13292a56203e03350f54fdbf00acda8d4d5866cd4f588db",
+  "pageVersion": "sha256:3e12ecc7aaff9b04e5dc7eb161883c79d1147404edec7f7a505e3e0d8f17768b",
   "claims": [
     {
       "id": "claim_92a341bdc1934b8ca4144b92c11ee9fd",
@@ -35,7 +35,7 @@
           "version": "repo-lines-v1:sha256:a3288d6a750a9c813d1c442c91f88898e9e31e99eb20e2faa5972228a8bcaeb0:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODRjOTUyZGU5NGQ5NGRhMWE5YWZmYjhjZTY4MDA5ZGJiOGEyYWU3YWIwM2Y0YjJjNDZmYjc2NTdjNjNmYTEwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkNGU4YjVkMTVhOGEyMWM1YzBhMDdkYWY0MDUwODE3ZmViNGM3ZTVmMzhiOTFjNDc5Njk1ZTkxZTVjNGMyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDlkNmJkMTU2NmY2NWNlOGJmM2NkODM2ZWQ2NTM3ODhkZTJlNzY1NWIwYjgyZDIxOTE4ZDJlMDRlZTFjMWQ1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L722-L733",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L733-L744",
           "version": "repo-lines-v1:sha256:431463b6ec8287cd7a806391944c7882575be725e54a1d3e001d3d20078b8c30:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NjBhZGE1ZTU4MjcxYjBjMjU3ZWQ4MjNlYjRiM2U2MzUxMDkxOTRiN2JlYmFiZjBlNmYzYTYyM2Q4OWMwZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYzc2MDIwYmFlNzA1NzdlNjRiMzMwZGNhODNmZGYyNGYzZDc1OTNhMDE1NGQ4YWJlYzZkYzYzZjU4OTdmZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwYjRhN2E5NzZiZTk2MTE0MDRjNjlmM2I5ZjdkNmFmYTAyYTM1ZDM0NzZkYjYyZmNhYWFkOTJhNWM1M2Q5ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNzZhN2Y1NTRiZGM0ZjcyODRmN2I0ZmVlYmVkMDZlMjc5MWEyNWI3NDlkZWEyYjQzYjhhZWZmYjI3MTExZGQifQ"
         },
         {
@@ -57,7 +57,7 @@
           "version": "repo-lines-v1:sha256:0aa000a9845347ec292dc261d565f7c01ad96b75f5a5cd8249d378aee776f920:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWNkMjdiMTBkM2Y4MWU2N2UwNGUzMjIyMTIxMTRjZDg5NTY0NDJmOWNhZDJlODBlODZjNjVkMjQ3ZmQyY2VmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmVjNmFlZmUzODY5MzNkNzlhMmI4ODA4MGNhMmE0N2RkMzM3Y2RlMmY2N2I2MDI0MzgzNGFlMmNiYjIzYzgzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjBhYjI1NmRiMTI0OTlmNjZkZmQ3MGEyYTlkYzJiYmY3MGY1MGI0NjJiMmI5NGViZWUxNWQ3Nzc5NjU0OWVjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTUzYmEzZmJhNDYyZTU2NjQ2NzZkMzcxOGY3MmQ5MDI1ZGZkOWIwN2QwNWM2OWQyZDJhZjIxNzgwMGI5NzQ4YyJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5316-L5346",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5410-L5440",
           "version": "repo-lines-v1:sha256:5a7737f64713105eed878a0985fe3223c0e80b80ec52557e2fad148f64045dfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1OGY4NDAxYzgwMjViNTUzYjJjYmY4NTFhMzc5YjhhMTE1ODVjNDAzZjY4YzBmZjFiODFlY2E3NDNlMzcwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNzI1MWNiYzg4NzA1OWI3OWRiOGNhMjA0ZGU3MGQ1ZTIwM2UzMzJmOGE5ZThjMDBmZjU5MThmZjdlYmJiYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwZTgyOWU4ZWEyZTY3NDhiMDRhMzU0MGFhYTFiZDBlNGU4MDBmNDRmYzg1NWI3NDI5OTIyMjdlMzMwZWMzYTkifQ"
         }
       ]
@@ -67,11 +67,11 @@
       "statement": "A single `$effect` keyed on `data.security_id` drives the post-mount init chain: it resets drawing tool state and pagination flags, awaits `pageData.load()`, loads user preferences, maps the `1d` items into candles, fans out `loadAlerts`/`loadHoldings`/`loadValuation`/`drawingsService.loadSnapshots` in parallel, dynamically imports `security-chart.svelte`, and force-refetches the active timeframe when it is not `1d`; the whole chain is try/caught so a failure in the import, preference or snapshot step cannot surface as an unhandled rejection.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L707-L794",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L718-L805",
           "version": "repo-lines-v1:sha256:538227dd6501068cc75af1adbc2654e94bce35c9d9d6aab3d29c67c14f95f51b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjY4OGFjNGJhOTQ3NTM2NDgwMzk5ODNhYWFjOWM3ZjU5ZjRkOGU1NzA0MjM4ZDQ4ODNlYjgyMjM0NmZhYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMDhkNmM3MTRkNWQ1NWM1ZDk2Y2E2ZTExM2I3MGM4ZTRhYTM3OTk0MTUyYzI2MTk3ZWMzMDJmMjg1N2FkOWUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5425-L5442",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5519-L5536",
           "version": "repo-lines-v1:sha256:214e825a3003ffa52c0ce97cdc53c774b551c41ce6681785c30f7bce1a39def3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5MjQyMmE5ZWY2YTRlZDEyYzlkZGQ1NmFhMzA2ZTJlYzIyMjJlNWM4NTNmM2E5OWFlNTJlY2ZiMmYxYjA2NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4Y2ZlY2ExZjRmOTUzYzBjNzkzYzk0MzEwMTM1ODI3MzIxNTg1NGFlZTU3Nzk3MDhjZjZkYTA2YWMxYzhlN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         }
       ]
@@ -81,11 +81,11 @@
       "statement": "The initial-load wave-alert reconcile is gated on `userPreferences !== null`, so a failed preference fetch can never mass-delete the user's wave alerts; the reconcile itself is serialized onto a single promise chain because `onWaveChange` fires per point while drawing and concurrent runs reading a stale `alerts` array would double-create, and reconcile failures are swallowed so drawing never breaks.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L455-L498",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L466-L509",
           "version": "repo-lines-v1:sha256:27cab7181a8743c2b8deccafa0916256b2fd762f987c9331602b793ede5e1620:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNGQwYzA1ZjM0MDgwNDNjNjI5MWE3Mzk5MTBjMDI0MThjYTgxN2ZlOTg4NmZhODBiZWQ5MWVhMzEyNTJkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNzk1ZGQwNDYwN2M5ZDc2NTA5ZThjYTVjZDU5MzFlYmFmYjNhNzViZTQ1ZTI5MzkxNzNiYjg0NjUxMzFmNjkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L770-L774",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L781-L785",
           "version": "repo-lines-v1:sha256:8a9aee71cc223afc18b7655df1b870212d87b6ffb382d10b5201c922682dc397:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZiYTA5NzliNjQyOTgxYWRjOTJlZjM4OTA0ZmViMjRjNjc2NDVhYjQ5YTc3ZDdkOTk4MmU0NmQ5NTI2Njg3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkZjgxYjA0NmY1ODA2NTkzOGQ0OTRlYWUxMmU1N2MwNDAyZGVlNTU2NjBmNjBkMzYwOTQ2MDY4ZWVjMjNjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDAzOTFmM2UxMzk0YjZmNDkyZGFkMzAzYTBkODhhZWFjZGM0M2RiMjllZjdhZTE5ZWE1MmJiMDJmMGZlNGRlMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTdiMWY5M2M0MDZjMTA1ZGVhOWI3YWZmNTUwYmEyYmRhNzRlYjAzM2I2MDBkYmM1MTVlZDJiYzU5YzgxYjFkNCJ9"
         }
       ]
@@ -99,7 +99,7 @@
           "version": "repo-lines-v1:sha256:727eace949f590b843d53032f1bbb9a99aa1b461a6b7a372a7099e7832b73b99:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmZkNTQ1Mjk0ZjNlZGFjZjVlMGQxNGYyZTM1Y2E1ZGI4N2I0ZGRjNjU3ZTQxZWEwNDgyYmI1YTgzNjFhOTIyMSJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L570-L588",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L581-L599",
           "version": "repo-lines-v1:sha256:3ecc63e965b3c0faedde372677d9d572cf7c654d9bdecbe0ccad0629b1afef23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwZDc4NjAwNTMxMWZhMmFhYjgyNjRkZTE4Mjg5MDA4MjhiZGU1OGI4OTYxZTdhOWU5NTc2NTBhMzIwYjgxYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMjQ4MzEwMTA3YmQ2ZmE2NTI4NDRkOGQwYjZlZTc1MDRkZDYyZDExMDg2MGVlNTE0ZWEyYjA3ZGZjZDU1YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MGY2MjNjNTdjMjViNmUyYTk0MjU2MjZlYmEzNWM3ZjIxMThkOWM2ZGJkMjg4NWMxZDY2YmUyMDJmZjE4YWEifQ"
         },
         {
@@ -121,7 +121,7 @@
           "version": "repo-lines-v1:sha256:289fbb9a2b61b93fd5bfbf76b6c6ce2b22ef5f6f3613de3664a87a0053d8aaf7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NDA2NDg3MTg5ZDZkMDMwNzhmMTVlZjdmMmJlZGU0NTc2YTJkY2EzZGUwZTU5MzViNzdhYzg0Yzk1ZDVlZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMjFhYWExOGM1NGRjNzJlNzJkNTc2Y2ZlYmUyYjRmNGQyNTI1ZmM0NmRlY2M2YTExMmQyMzM4OWVkN2RlMTgifQ"
         },
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L1184-L1223",
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1186-L1225",
           "version": "repo-lines-v1:sha256:4d01a45dc3eb82e26ba74c6cc2e516e613afaeddf437a81629992bf4f25b9c3f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMjBhN2I4Yjg2ZjcxNmFhNTk0OTljYTIyYjc3MTYyMDA3YmZlZDkwNGQ0MTllNjI2OTMwOWRiZTgyODBiNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmNDRkMzA5MzY0MGMzNTdjYmYwYzc2OTk5ZmU3ZTQ1NGNiOWNmYjA5MWRkMTlkZThiYWU4MjZhOWMzYzc3NGMifQ"
         },
         {
@@ -175,7 +175,7 @@
       "statement": "Document deletion removes only the database row: `market_delete_document` calls `repository.delete(doc_id, user.id)`, whose implementation is a single `delete(SecurityDocumentModel).where(id).where(user_id)` plus commit, with no `unlink` or filesystem cleanup anywhere in the delete path — so deleting a document permanently orphans its bytes under `settings.upload_path`.",
       "evidence": [
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L1216-L1223",
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1218-L1225",
           "version": "repo-lines-v1:sha256:5ac6a6bde493e9d7d22e84e00db3754cfc361a1dc3c5196682c7b3718907cc18:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzk0NGEwNmJhNDU0NWRjNDViNmNhNDlmMzdjYjIzYmI2NWJhZmNkNTI4ODc4NDIwNTRlOGQ3MzVkM2I3OGQzNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmMwNzAxMDgyODYyMjM4YWFkYzk2ZDM4YjAxYTIyNzBiMTY5YjEzNTk3MmY5NjkwZDZkYTMyMzVmMzQ2MjZmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmY0NGQzMDkzNjQwYzM1N2NiZjBjNzY5OTlmZTdlNDU0Y2I5Y2ZiMDkxZGQxOWRlOGJhZTgyNmE5YzNjNzc0YyJ9"
         },
         {
@@ -247,42 +247,50 @@
           "version": "repo-lines-v1:sha256:eb7ec6b3364bb93daa11399ce58fec582318d29b68e2fa774353db13c3c84eb8:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NmM4MDg0NDc4MzMyMzQ5YTM1OWJmYWQxZTg3YzhiNjM5NTY1MzIwOGY0MmI5NTljZjUxODdlZTVkMzc1ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0OWY3YWYwYmNlNjQ5ZGM0NWQ4NmYwMzlhZDNjNTQxMTZkYjgwYzIxNmEzNmM3ODFkNTAxYjQzYzhkM2U0YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3OGFiNTE1OTRkYjA1OWQwNGMzODMxNTc0ODc0YWQwNmMyNWM3YmU0ODBhNGI5ZWQzYmJlN2Q5OWQ1YTQ1NjQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1096-L1105",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1107-L1116",
           "version": "repo-lines-v1:sha256:d4372aa4d6ca9cc181a49bf1ff2d451b75cc7319dd7efd6be32f3d8f56c69ae2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZWFlNTRlYWQ2MWE1MjQ0ODk0ZjI4ZDljZDIyYTBhMzBkOGMxN2U1ZGMwNWVmYjcyYThhMDVmNjRjNzFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYjQ2Mjk2ODA3ZjFjMDc4ZDY0N2Q2OWM5OWQ4MzY5YjBiNDAxOTZjMWE0NjIyYzBmNzQzNTMxYjQyNzNkMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2OWI5MjI5YWI1OTlmNzg2YTU5OTBhMjY0MTg5MzA2NDA4NjQ1Njg5ZmI4ODcyNTg3OTYxYzBmOGM1ZTc5ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwZDNjYjJkNDAyMDZkMGNmZGVkMmM0MTZmODIyYjI5MTNlNDFiMTllOWZkM2VhYjlhMDdjZTUwMjkyYTE0ZGQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L290-L291",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L301-L302",
           "version": "repo-lines-v1:sha256:5dfbbddd407f11e6211ceae48987ad440677cb83515ba24087a01cb83b97a7c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg5MGRiNGY1ZjkyNmFmMDY1NjY4ZTgyN2I0N2IwYTE4OWUwOGQyOTVjYWI1YzI4Njg3YjRlNmU4NDgyY2FjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY0ZDk3ODkwZWZhYzRjMWVlMzdjZWFiYmQ0MzgzZGRiMDZjODMyZGM5ZGM4ZTdkMTNkYmVhN2IwNzQzZGU2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjdmZDU0OTg1NmEyMWVjNzI1NzEwN2RiMGI0OTk4NjYxMWU1NGY3ODcyMGI3YTJjYTI4MTY0M2EwMGIwY2M0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTI5MjcxMTM5ZTRkOTc0MzlkNzllNWY3NDMyODBmNzlmMGE0NTgzNzYyMjk3OGIyYzEzZjU2ZWE3Mzc1MDM5YyJ9"
         }
       ]
     },
     {
       "id": "claim_8e670abd75b1480ea850267152a4dda0",
-      "statement": "`FundamentalsGroup` binds the page's `valuation` and `showOverlay` state: `valuationClient.getValuation` maps a 404 to `null` so 'no range set' is a normal state rather than an error, the overlay checkbox persists `show_valuation_band` via `patchPreferences`, and the same state is threaded into `security-chart.svelte` as `valuation`/`showValuation`/`showValuationBand`; the backend stores it as a per-user row upserted by `PUT /market/securities/{security_id}/valuation`.",
+      "statement": "`FundamentalsGroup` binds the page's `valuation` and `showOverlay` state two ways: `valuationClient.getValuation` maps a 404 to `null` so 'no range set' is a normal empty state rather than an error, saving through `ValuationModal` → `setValuation` writes back through `bind:valuation`, and the overlay checkbox assigns `showOverlay` then persists `show_valuation_band` via `patchPreferences`; the chart is fed `valuation={drawingsService.effectiveValuation}` (so the band follows the active rewind snapshot) with `showValuation` and `showValuationBand` both bound to `showValuationOverlay`. The backend stores the range as a per-user `market_security_valuations` row upserted by `PUT /market/securities/{security_id}/valuation` (which also appends a `market_security_valuation_history` row), while the `GET` raises 404 when the user has no row.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/valuationClient.ts#L21-L68",
           "version": "repo-lines-v1:sha256:543ebff3f56979541c86490df34a17182d61852f968e6d4dc6cb74dbfda2f3fb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNzNmMTVlZDk4YWI0NTRlNGNhZTc2MDAyOGI3MDQ3ZTc1ZWNhODUxMjJlNjUzNDVhZTVmNGVkM2EyNzdhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczYWE3YTBjZjA0NGIyM2EwM2I2M2Q5ZDBkMTgzOGE0NjQ5MDFhYjlkOGM5NmNlNDIxMWE4MDljOTliMzM2ZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2MmY4YzA2ZjUwNzI4MjM3Y2JmZTg1M2Y0MjBlZWFiOTg3NzgzYzFjNTZlYjE2NTFhYTBjYzRjZmU0MTI4ZjMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L46-L83",
-          "version": "repo-lines-v1:sha256:ef365acd2d3c021b306aba7d6311d84c0b0d79e19d7963b97fcc9fde48534aee:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwOWQ2NTIwY2U0MmUwODYxY2U5NDQzZDYyYWJjY2M1NGJkNjkyZTdhODEwNGMzNjE3OWQwNTZlYzIyY2Q3YmYifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L17-L95",
+          "version": "repo-lines-v1:sha256:8424fe0cdc2df22afac193ce0ae1669c2567f9fabfa1ef933c00695082b7b233:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0NGQ0ZmE5MDcyZmU1ZmYwOGY5NmQ1ZDc0ZjAyMjc1MTY3MzFkZGVjNDFmNmZjMWRjZGMyZDZiODVhN2FkN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxODVhN2U3Y2VkZTE0YTE1YTk2Yjc0MWQ5MjhhMzcwN2ZlMmQ2ZmVjNjc4N2YwY2VhY2I4Zjg0NjczYzg2YWIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1106-L1111",
-          "version": "repo-lines-v1:sha256:406a71cabc9cbac7765608665a76f23fabb76469f7feea1785e6c70d5fad9d05:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODhlN2Y3N2FjMTljOGQ4NTYxOTAwMTRjOWMzOTQ4NzE4MDg3YmI2YjE1MjdjMzU3YzQ4OTkyNWY1ZDc2M2M5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJiNDYyOTY4MDdmMWMwNzhkNjQ3ZDY5Yzk5ZDgzNjliMGI0MDE5NmMxYTQ2MjJjMGY3NDM1MzFiNDI3M2QxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzOTU5Y2IyY2Q1M2JjYjE1N2ZlYmIxZTdmMGIxMTc3ZGM0YTUzY2U3ZjY5M2M3ZDliODFiZjY5NGZhMjJiOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmJkMzM0YzI3NTMwOTg0Zjc5YjUyYmU1ZTQ2ZDE1NzZmNGI5MjdhMWIzOGJiNDRhYmUzMjgwMzNiODU2NTNjZCJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1117-L1123",
+          "version": "repo-lines-v1:sha256:e635e3c0239ae6434dd55bac0d29dcf2f16379d7060113640c46aa57de858a89:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODhlN2Y3N2FjMTljOGQ4NTYxOTAwMTRjOWMzOTQ4NzE4MDg3YmI2YjE1MjdjMzU3YzQ4OTkyNWY1ZDc2M2M5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJiNDYyOTY4MDdmMWMwNzhkNjQ3ZDY5Yzk5ZDgzNjliMGI0MDE5NmMxYTQ2MjJjMGY3NDM1MzFiNDI3M2QxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzOTU5Y2IyY2Q1M2JjYjE1N2ZlYmIxZTdmMGIxMTc3ZGM0YTUzY2U3ZjY5M2M3ZDliODFiZjY5NGZhMjJiOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmJkMzM0YzI3NTMwOTg0Zjc5YjUyYmU1ZTQ2ZDE1NzZmNGI5MjdhMWIzOGJiNDRhYmUzMjgwMzNiODU2NTNjZCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L969-L978",
-          "version": "repo-lines-v1:sha256:406e593e094d05893a6a10e0c4735fd2753a0836d31d198f4b3c1c28f4ec8674:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NDgxOWM2MzFjZGNlOTJmODlkNjA2ODM2ODMxZWI1MDFmZmVjODViOThmMWRlOTJiNDQ5OTQ2MzRhNGMyMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMjIwOTI3YTVjNmEyZTZjYzNkOWYyNTQwZmM1YzFlOTk2MzE2NGQ4MTk1NDllY2M5MjI1ZWNkMzFhNTc1YWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMTcwMzQ2OTQ0NmM1YWJmNzA3MzQyMzkzNjQwY2RiYzZlZDUxMWJmMmQ2MzAwOWEzMTRiNzZmNjk4N2ZjYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwMDJhYmQ2ZmVkYWUwZjVmZmVhNTAxYmVhZGJiMTQ2OTRkNTZiMzY0N2FlMzA3OTFjOTJlMzVmZDQ2ODdjNTgifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L141-L149",
+          "version": "repo-lines-v1:sha256:d2c5845eac5a08f067c61b9257672c70b547da66a2be9cc67e84791e57dcbdae:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTFmYWViNDU4MGM2OTdjZjdmZjJmYTE4Yzc1YjcyNGJmNzI3ZDU1NjA2MmZmOTM2YmVlOGJkM2IwMjA5MjAyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWQyYjk3NzQ3M2Q4MGRiYTU5M2VkZjBiYmQ5NTE1ZmM4ZWVhZmMzOTY5ZmZmODZkODM5M2Q3ZWRiMzkwYmI5YyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L987-L989",
+          "version": "repo-lines-v1:sha256:6bf096347f741cce4a6403131b44aeaff499a9787fcaeafd7233635fb8469278:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDI5MWIyM2NjYTVjY2JmNTAzNThjNDMxZWIzMTgyNTY5N2IzNjJjZWEyMDQ3ODQxMGUyNWViYjQ2MTM1ODY3ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmEyMjA5MjdhNWM2YTJlNmNjM2Q5ZjI1NDBmYzVjMWU5OTYzMTY0ZDgxOTU0OWVjYzkyMjVlY2QzMWE1NzVhYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjgwYTRiMjhjMjM0ZjkxNTZjYTI2MjA4NmM2Y2M0NGUyNThjZmI1ZTE2MDU4MWNmY2VkMWVmZjUxMmQ4MGJiZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzAwMmFiZDZmZWRhZTBmNWZmZWE1MDFiZWFkYmIxNDY5NGQ1NmIzNjQ3YWUzMDc5MWM5MmUzNWZkNDY4N2M1OCJ9"
+        },
+        {
+          "resource": "repo://src/market/model.py#L241-L267",
+          "version": "repo-lines-v1:sha256:e5e6030ee352985c0fca02a28f99d326f23bb13440b2ca0059a5c99e676adb02:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZGU3OTRjMDllYWFjYmI2YzYxZjlhOWJmYjQ1ZDEzMGExNmU4YWZiYjk5ZjU4NDU2ZTkzMzlhZTVmZGExMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1NzVjNzJjNGI5NjI1Mzk4NGIxOWIyNzc4NDU4M2VkZGY5NTUyZjY1MzVmOTYzYjEwOWY2MDI2NDg5MDY0ZGEifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1315-L1352",
+          "version": "repo-lines-v1:sha256:4b116ecc9f3da272628e50823ff111349b745a4bcb701c27f2ca3fd107eade40:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZTIwMGQyYjY4MWFlMzZlMDk2MjkxMWMwY2U1ZDI2ZDBjMjA4ZTIyZmU3OTQ2MTNkODQ1ZDA4OGM5N2E0ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4OWRiNWJlNWNmODcyNjJiMzVjMjdhNzQzMjk4OGY0NDVkYjQ1NGJkOTRmMTFmOGI3ZDliY2UyZTliOTI0ZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzNzk3NmZiZjE2MTg4YWI5YTMwNmZiZjVlY2JkMjMzM2JjMDk4ZmQ2MzhlN2E5OTdkYjQxNzA4ZDNkMGM0ZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyYmRhNzE1OGFlYThkYzk0MDg0MmM4YjE3ZmI4NWZmMzY5OGJjYzNmMGYwODhlYTk4YjgzZDdiYjMyYTUxOTUifQ"
         },
         {
           "resource": "repo://src/market/router.py#L1129-L1150",
           "version": "repo-lines-v1:sha256:7c9101a1de6fecbbc1e6f2d319cefa45a730ff1b338647cb97a5232c0627f2b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4Y2MxOWFjMmM0MGQxNmExMTRjNTQwNDAwODQxZjgyN2JjZWIyYWY3NWZjYzZjZGUxZTk0MjJiZjkwN2I4MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwZTM1YThiMDc0OGU4OWQwMDU2YWU3NTk3MWQzNjkxYTBlNTlmOWZlMzdjYmI2YjY4YjMyNWZlZmRhNjM4OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://src/market/schema.py#L343-L358",
-          "version": "repo-lines-v1:sha256:c971dd2f048ded0859ce2e5a9bb8d7b5983722cb20e2bd92ad255c041eee4ead:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjYWZmOGRjMDA4ZDdmMTlhMmZiZjljM2JlZjVmMWQ1NjBkM2YyMzkzN2UzNWRhNjdhZTg0Nzc4YzU0MDhkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZTAyOWU3NmE0ZmVkZDFkOTFjNWNmM2ZlYjE3ZDg5YjhjNWNmZjNmZmY0NGQ3MjYzYjQ5MDkyMzVmZmVmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1NDBiYzU1ZTJiNjEwMjZlZWMyNDhkZGViNTU0YTI5ZWQyMjdmMjhlODMxYWY2MTkxY2NiMDA4YjUwZmNiNzEifQ"
         }
       ]
     },
@@ -298,11 +306,23 @@
     },
     {
       "id": "claim_a27fccaa05cc43e1afa504694aa5fc5f",
-      "statement": "The route composes seven sidebar groups in a fixed order (Your Holdings, Fundamentals, Indicators, Price Alerts, Notes, Documents, AI Analysis) inside a `w-64` column; self-loading groups receive `expanded`, and groups that consume page-owned state (alerts, valuation/overlay, indicator configs, average-price visibility) are wired by bindable prop and callback rather than owning that state themselves.",
+      "statement": "The route composes seven sidebar groups in a fixed order (Your Holdings, Fundamentals, Indicators, Price Alerts, Notes, Documents, AI Analysis) inside a `w-64` column wrapping `Sidebar.Content`, and passes `expanded={true}` to all seven — which is what opens `NotesGroup`, `DocumentsGroup` and `AIAnalysisGroup`, since those three declare `expanded = $bindable(false)` internally. Groups that consume page-owned state are wired by bindable prop and callback (`bind:valuation`, `bind:showOverlay`, `bind:showAveragePrice`, plus the one-way `alerts` / `indicatorConfigs` props with `onIndicatorToggle` / `onIndicatorConfigChange` / `onPreferencesLoaded` / `onToggleAveragePrice` callbacks) rather than owning that state themselves.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1094-L1124",
-          "version": "repo-lines-v1:sha256:6a679df43a299c368f58c2e6a233c7fd54b3fe7f38a9860d78c5ae519fc23bd4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NmEwZGZhZjYxYzk4MjgzZmMxNzY3NjY5MjgzZjc1Y2Q3NDhiZDE4NmNlMjQ5OWQwZWMxNGI0OGQ0MjY1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmQxOTJkZWUyNTU0ZWE2OTY3YmRjM2MyMmQ2NjM5ZmQzMTA4MmVhMjRiNDI5OGRhMWY1ZTkyMTlkYzJjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4M2Q3ZTNmYTc5NDEzMjUwNjlkYTE4M2YzNWEyN2ExMGU4MGNjMWMwYzJhYmQyYzVmYjM0MGU2ODQ1YzY1MWQifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte#L11-L14",
+          "version": "repo-lines-v1:sha256:1c4d8f06de7d80fadd961409f3fcfc95a018296e3ae774521952cfcc5f7b4a6d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM0OTFkZTUxYjNhYTdiNDhiNjhjZTgzMjRiMmQ3MGJkYTdmOGMzN2YyYzkxZGFkODkxNzU5ZmE2M2MxZGY1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzY4ZDU1MGNhMDU0YWQ3ZTA1NmFjNzU5NWM3OTMwZWFlYmI5Yzg1NTVmMTYwMmI5YTBkMmY5NzU1ZTBkMjE2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTQ1OTA2NGE2MTU1NDM0MWY4MWM4MTkwNDBjYzg2NTAzNGIyMWIxZTAwYjYyZDY5ZDQzMGUyMzUwZGRhNWEzNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE5ZTE0MmM2NTIxMDFmNmFhY2EyNmU1NmNiNjU5MTdjZTAwNTQ3OWU5YzUwZjZhMGMzMjk2OWNiODYxZGE1ZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/document/document-group.svelte#L16-L19",
+          "version": "repo-lines-v1:sha256:1c4d8f06de7d80fadd961409f3fcfc95a018296e3ae774521952cfcc5f7b4a6d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM0OTFkZTUxYjNhYTdiNDhiNjhjZTgzMjRiMmQ3MGJkYTdmOGMzN2YyYzkxZGFkODkxNzU5ZmE2M2MxZGY1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzY4ZDU1MGNhMDU0YWQ3ZTA1NmFjNzU5NWM3OTMwZWFlYmI5Yzg1NTVmMTYwMmI5YTBkMmY5NzU1ZTBkMjE2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzU2NmZlM2QwMGQ5ZWM1OTAwOWE4MzkzNDY5ZjgxMGM5Mjk2YTk3ZmZkY2IzNTRiNzljZDA1ZTVjNjE4ODM4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjgzNjcxMjZjNDUxOTk2OTFkYTYxMzE2N2E5ZmI3MmEyZDI3NDRjOTQ2ZjM4YTlmMDU2YTU1ODhkMWJlMmNlMiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-group.svelte#L16-L19",
+          "version": "repo-lines-v1:sha256:1c4d8f06de7d80fadd961409f3fcfc95a018296e3ae774521952cfcc5f7b4a6d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM0OTFkZTUxYjNhYTdiNDhiNjhjZTgzMjRiMmQ3MGJkYTdmOGMzN2YyYzkxZGFkODkxNzU5ZmE2M2MxZGY1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzY4ZDU1MGNhMDU0YWQ3ZTA1NmFjNzU5NWM3OTMwZWFlYmI5Yzg1NTVmMTYwMmI5YTBkMmY5NzU1ZTBkMjE2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzU2NmZlM2QwMGQ5ZWM1OTAwOWE4MzkzNDY5ZjgxMGM5Mjk2YTk3ZmZkY2IzNTRiNzljZDA1ZTVjNjE4ODM4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTcxYTViODU1ZmRlYTE2MTllMjRmZDliMzY0MTNjMzQ5ZGFkMDM5M2ZkM2I3OWI4OTBiYzJiNTBkYTkyZjYwNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1105-L1136",
+          "version": "repo-lines-v1:sha256:fa683c609aa491af8505afe56a3ef43a821985d79e2ffd677a2c9f116fd70c64:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NmEwZGZhZjYxYzk4MjgzZmMxNzY3NjY5MjgzZjc1Y2Q3NDhiZDE4NmNlMjQ5OWQwZWMxNGI0OGQ0MjY1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmQxOTJkZWUyNTU0ZWE2OTY3YmRjM2MyMmQ2NjM5ZmQzMTA4MmVhMjRiNDI5OGRhMWY1ZTkyMTlkYzJjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4M2Q3ZTNmYTc5NDEzMjUwNjlkYTE4M2YzNWEyN2ExMGU4MGNjMWMwYzJhYmQyYzVmYjM0MGU2ODQ1YzY1MWQifQ"
         },
         {
           "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L9-L22",
@@ -315,18 +335,108 @@
       "statement": "The route's frontend test suite is contract-bound to mocking: it mocks every API client and network-touching module (`marketService`, `userPreferencesService`, `alertsService`, `notesService`, `documentsService`, `accountService`, `valuationClient`, `snapshotsService`, `watchlistService`, `$app/navigation`, `$app/paths`) plus the `Path2D` and `ResizeObserver` globals, and its `Instant Shell with Async Chart Data` block pins the shell-first behavior, timeframe force-refetch, error-card, 401-redirect and no-unhandled-rejection invariants.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L26-L149",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L27-L150",
           "version": "repo-lines-v1:sha256:8bb453d486f0bb0a97bad1ea7479bba4be628d953f2b8352cc2a9b740e7dceee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5MjY2N2NkNTM4Y2Q3YzE1ZWY2MDliZGEyNWJiMWQ4NGNlNmQ2ODQ4ZDAyNjcwYjRjNjQ1NmNlNjI5ZGNlNTAzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxYjhiZjQyMTJjYjY1NWE2MTg1M2M5MjE4OTc0NTg3ODQzMDY1ZDM4MTI1YTQ3ZTJlMjMwMmFlNjMwZmI2MjdkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YmQ2ZTYwZjhlYTY5ZTljMzdmZTljNTM0YWJmY2I1YWRmMTQ4ZmUxNTQ0YmI2MGE3ZjFlMmE4OTE1YjNhMzM2In0"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5284-L5443",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5378-L5537",
           "version": "repo-lines-v1:sha256:8571123a20e286ff36de238dd22a1397752813da867a88970cdfae199b6f18bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2NmJhMmI1OTk2NzMyZTcxMzkwZDNlMGNjNWI5YmZkZmU1OGFlM2Q2ZDM4M2NlYWEzMjc0YjM3NTk2NTVkZWJlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxMTI0M2ZjZTdmODVjZTcwM2Y2ZDdkNWY4NGU1NTkwNGJmMDc4YWY3MjczMTMwYTQwZmEyOTFiZDg1MDAxMzExIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_30e191c8fa0c4967be265e68d4cc2f31",
+      "statement": "The route is the single owner of every value the chart and the sidebar must agree on, because nothing a group holds locally is visible to the chart: `valuation`, `showValuationOverlay` and `indicatorConfigs.avgPrice.enabled` are handed down with two-way `bind:` (to `FundamentalsGroup` and `HoldingsGroup`), while `alerts`, the rest of `indicatorConfigs` and `userPreferences` are one-way props that the groups report changes back from through callbacks. The two-way bindings are what make a sidebar toggle change the chart immediately without a refetch — the overlay checkbox's `showOverlay` is the same value the chart receives as `showValuationBand`, and the Holdings checkbox is `indicatorConfigs.avgPrice.enabled`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L78-L86",
+          "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L98-L122",
+          "version": "repo-lines-v1:sha256:9fe9f113ab5ab3b3aa798a2eec806eda050c71439884ff991872d9e7fd2557fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyNTc2NjNkZjRmZjlmYTI5NGE1M2VkMGU5ZGVkMDY0YjA5OGJlZTk1NTQ3ZGY5M2QxY2Y5Y2RhYWYzYzBkOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2YzZjMDE3ZjY5ODE3NWJmYzM1MjM4OTJiZjQ4NTVhOTE5ODQwMjYyNWU2ZDQxMDNlNWY1ZGRjNjE1MDJmY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3OGFiNTE1OTRkYjA1OWQwNGMzODMxNTc0ODc0YWQwNmMyNWM3YmU0ODBhNGI5ZWQzYmJlN2Q5OWQ1YTQ1NjQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L102-L103",
+          "version": "repo-lines-v1:sha256:246ec98587a0fd6d4a86e4edb41cb71c5763707bca8cb85392769b1128617d18:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTEzMGFkNzk0MGZhNDk4YTY4MGM3NGU3NWZiZWQwODFhMDc5YjlhZDQ4ZDRiYWE4NmJhMDFlNjJmMDYyMGZmNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJiNWEyNDhiZTM0OGI2MDNhZjQ5MmZhNzE0ZDZiYzg2MjAyY2UyZmEzYTdjOTAyMzY1OTMyNTE1Y2YxYWE0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDlhNGQwZWY1YzlkMTBmMzI0OGZiMTI5MjhjNTM3YWVhM2Y0MzkyNWUxN2ZjMmFjZTJiOGYyMjUwNzA0MDM5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQxNGU5MzlkM2JiOTM3ODg0Y2UyNzY4OWYwZGI1MWRhNjQ5MDk0Y2IyMTFjZjEyMmE3YzhkMzY2MzM4ZjAyOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1107-L1134",
+          "version": "repo-lines-v1:sha256:0e0e335e9a45997fef6f41a4267bb0863328da749b60982d78b1b98de5afa5e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZWFlNTRlYWQ2MWE1MjQ0ODk0ZjI4ZDljZDIyYTBhMzBkOGMxN2U1ZGMwNWVmYjcyYThhMDVmNjRjNzFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczMzAxMDY0YTVjMTE5NTE5ZjcwMjRiZTFlM2Y2NTg4Mzk1MDUwOTQ1NjdiMGNhODcyMzc1MDM4MzM5ZWFiNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2OWI5MjI5YWI1OTlmNzg2YTU5OTBhMjY0MTg5MzA2NDA4NjQ1Njg5ZmI4ODcyNTg3OTYxYzBmOGM1ZTc5ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlYzRmOWI1MTlmYTUyOGIyNzg3Y2NlOWNhNWQ0MzYxYzc4ZGYzYjNiYjllNTg3ZTQyOGMwNDFkMGY2NDhmNTAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L293-L302",
+          "version": "repo-lines-v1:sha256:2fd6a1bf895f446c4fb1976ba060e172ddb72cf907af88269c79e1f9243b895c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZWQ1N2JlOTU0MjNmYTczOWM0MzMwNWE3NGY1MjNjNzlhMWY1ODcxMGU2ZDdiODRjM2YzODE0OTljZWRhYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2NGQ5Nzg5MGVmYWM0YzFlZTM3Y2VhYmJkNDM4M2RkYjA2YzgzMmRjOWRjOGU3ZDEzZGJlYTdiMDc0M2RlNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzZDMyYzEzNDc5NzIxM2EzYzM3YTk0YzIwNWY5ZTFjYjIzNzhkOTFjZGRhODkwNjk3OTE4NWUxNTA0ZjJjODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOTI3MTEzOWU0ZDk3NDM5ZDc5ZTVmNzQzMjgwZjc5ZjBhNDU4Mzc2MjI5NzhiMmMxM2Y1NmVhNzM3NTAzOWMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L995-L999",
+          "version": "repo-lines-v1:sha256:e2a1193c981172169e1764880e843ecb8b9da135f46801a8a93259b537a43df8:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjYwZGUwNDRlZjMzYzYyZGQxZmRmNjZlZTgyYmFkN2YxM2VhYWQ3MTUzYzM3NzQ3ODFiZjRjMDM5MDg2YWM0OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZkYzliYTA3NTRhZmE4NGZmZDc0MGIzNGYxOTU5ZGZjNzAzYTM2ZTVjZjk3YWEwMTg3OWMxODA4MjE0MzAzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWQ5YzI3NDBhYWIwNGVjYmY0ZTVjNGY5ZDNjZTJlMzRkMjc3ZjM3OGE3MDdiNWNkNTQ0ZGJiNjdhMzk2MWU4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWM5NDk3YTgyYTc0ZjU4ZTQ4Mzc4NDQyOTFmODk5NzM2ZWMxZDRmYTE2OWE5MTAyMzc2YjA2MDEyZGMwZjI5ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e51adfdb69ab4ebab5183d10cb4f2021",
+      "statement": "Preference application on the security route is split across two writers: the mount-time init chain only applies `show_valuation_band` and the saved indicator pane heights (and reuses `userPreferences` when a group already populated it), while the fuller application — chart style, the saved timeframe via `changeTimeframe(prefs.timeframe, { persist: false })`, and the persisted indicator toggles each deferred through `setTimeout(..., 100)` so `chartRef` is bound — arrives through the page's `onPreferencesLoaded` callback, which `IndicatorsGroup` fires from its own `userPreferencesService.getPreferences()` fetch on mount. The init chain's force-refetch of a non-`1d` timeframe is gated on `!isChangingTimeframe` precisely because that group-driven `changeTimeframe` may still be in flight.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L165-L178",
+          "version": "repo-lines-v1:sha256:df1892282cd63f280576ef151a64604066b43306261ec969013172d56a7ea912:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkMGQ3ZmU3ZGQyMWVlMjA3NjdkMDc0MzUwMWVhYWRmMGQ1MGJhOWRlNTNhOWU2Yzc0OWY3Y2I1MDdiM2FkZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwNGRjM2E0NGRmZWYxMTlkMTk5ZDFhODg3YjY0NjM2ZGIxZjg2YTc1MWM0ODlmMDE0MmJiYzQ1MDg0OGU2YzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L211-L213",
+          "version": "repo-lines-v1:sha256:11b73bf513aa6c5b8f142a91352670b53d1efd0a4f6ed1c4197f1eabdcdad063:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM0Njg3MDVhZDNhYWY1ODcyNzlmOTc0OTliN2FlNzI1MjViYzc2MDM1NTYxMDY1YjNiZWU1ZmQwZjkyNzE1OSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1124-L1130",
+          "version": "repo-lines-v1:sha256:11f958aef399e76611dc2aca94b2f5194da7fdab2d6bc06dfc0215de25fad7e5:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjAwZDZmOWVjMDJiYjdiYjQ0NWViODNmNDgyMDU3NzFkMGZlN2IzZDliZTViNDQ1ZGY4MmFiMTRhMGZhMmU3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJiNDYyOTY4MDdmMWMwNzhkNjQ3ZDY5Yzk5ZDgzNjliMGI0MDE5NmMxYTQ2MjJjMGY3NDM1MzFiNDI3M2QxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDQ1OWE4NGQ4MDg5MmRhOGE5MTZhNmQzZWViMzk4OGQ0YjcxZTc3MDAzMWZjNDNlZmU3N2ViMmYzMDI2Yjk1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2YxNGViNmE1OGJkYzEwM2QzMmNkYTkwMDY5NDllYmE3NTgxYmI1YmEzZDFjM2M2ZDZjOGExY2ZmNjJiMzM0MyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L675-L716",
+          "version": "repo-lines-v1:sha256:2a0e4d6a2df213094d0753703def5347990d41f94b310aabd265b57e1e4397aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMjkyOGYyYTRiZmM2Zjc3MWRhZDlmNzViNDlmYWM0MGUxM2U3MDFmYjQ0ZDllZDk4YzU0ZDc1ZGQyZjUyNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmODY2ODExYTE2MWVjM2YzNGQ2NDZiYzRiZmI2ZjE0Mjg1M2FmYWZkNWYyZWE2M2I3NDRkOWYyZjc5ZDAxZDEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L750-L764",
+          "version": "repo-lines-v1:sha256:f9d88b4c218f44addf540559e23dfbd2900271118e76f8a0b9b754780fef2807:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NzllODg3MmY5NzkxMDEzMGUyNzg5NGM3ZGIzODA5MjZlMDhmM2YyYTQ1MjU0OTgyZWM5ZTdiZmIzMGIzYzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGY4MWIwNDZmNTgwNjU5MzhkNDk0ZWFlMTJlNTdjMDQwMmRlZTU1NjYwZjYwZDM2MDk0NjA2OGVlYzIzYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2M2IyMDJlNThlOTU4ZGUzNjAxYTMyMGM3YzFhYjAyM2ZmOTFkOGJjY2NiNjRkMTU5YmE5OWJmODZkNTE3YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2ZDc2NmE2NWVjYjE2NDExYTQ1OWJlYmIxYWMyMTJiODJmOThhYWVjNzc2MjQ5ZjA3MTU3OWExYjUyZGMzYjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L787-L797",
+          "version": "repo-lines-v1:sha256:ec3ec351c10577769e26a396da5631d39da226c16d7d80a0c8ceed479ec45a84:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MjEzZTkyY2RiNjBjZmU3NzIyZmZhYzA5YzM1NGFkNDYwMzMyZTE2MmY1OGQ2MzMyNmNiMTcwODJhOWJmZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGY4MWIwNDZmNTgwNjU5MzhkNDk0ZWFlMTJlNTdjMDQwMmRlZTU1NjYwZjYwZDM2MDk0NjA2OGVlYzIzYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzNWVlZjE4Mzk3YTZlNGI3OWE5MjY0NWRkOWE5YmY0OWI3YjI2YzU1NzFkOGQzNDllOGQwZDU1M2MwZjNkOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlOTIyMzU2Yjk5ZDJhMzFhYTVlYWFhNjBiODA4M2ZhZWQyOWMzMzYzZDIxZWZiMDkwYWM1Mzc0ZGI2MmJjYTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64587a8133cd439f86e0fc18304ba37b",
+      "statement": "The same `accountService.getHoldings(securityId)` endpoint is requested twice per page load: once by the page's `loadHoldings()` into its own `holdings` state, which feeds `averageBuyingPrice = blendedAverageCost(holdings)` and the chart's `averagePrice`, and once by `HoldingsGroup`'s own `$effect`-driven `fetchHoldings()` for the sidebar table and `% of Portfolio` figure. Only the page's copy reaches the chart.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L49-L92",
+          "version": "repo-lines-v1:sha256:47222f66d4364320e4c383c31a94b965adf8f37a4b4e9ef73c59fc400c8ae519:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NmM4MDg0NDc4MzMyMzQ5YTM1OWJmYWQxZTg3YzhiNjM5NTY1MzIwOGY0MmI5NTljZjUxODdlZTVkMzc1ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0OWY3YWYwYmNlNjQ5ZGM0NWQ4NmYwMzlhZDNjNTQxMTZkYjgwYzIxNmEzNmM3ODFkNTAxYjQzYzhkM2U0YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMTNkYmZhMzY0ZjUxN2FmYjI3Y2NjMjJmZjk2ODlmNGI1ZWM5OTZmMGZiYWQ0Nzg2N2Y3NmM1M2YxMzVmOTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/average-cost.ts#L7-L17",
+          "version": "repo-lines-v1:sha256:e46a0a17bacdc4bfec6e487f3dd985499bbcc59d537c8c7180f76e5a541eaa99:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YjA0ODk3NzE3M2U5ZGJlZjRlNDM1NmNjNGMzNjQzN2EwZjU1ZjdjMDE4YWIwOTczOWNiNDUzM2FlZWNkNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NGVmMjEzMDQ0MjZmZjM5NWRjYmQ3YWNkNzM3OWU2OWJmNzU2MDcxMTZjYjkyOTBmMjlmM2M3N2Y4MGY1ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L301-L302",
+          "version": "repo-lines-v1:sha256:5dfbbddd407f11e6211ceae48987ad440677cb83515ba24087a01cb83b97a7c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg5MGRiNGY1ZjkyNmFmMDY1NjY4ZTgyN2I0N2IwYTE4OWUwOGQyOTVjYWI1YzI4Njg3YjRlNmU4NDgyY2FjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY0ZDk3ODkwZWZhYzRjMWVlMzdjZWFiYmQ0MzgzZGRiMDZjODMyZGM5ZGM4ZTdkMTNkYmVhN2IwNzQzZGU2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjdmZDU0OTg1NmEyMWVjNzI1NzEwN2RiMGI0OTk4NjYxMWU1NGY3ODcyMGI3YTJjYTI4MTY0M2EwMGIwY2M0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTI5MjcxMTM5ZTRkOTc0MzlkNzllNWY3NDMyODBmNzlmMGE0NTgzNzYyMjk3OGIyYzEzZjU2ZWE3Mzc1MDM5YyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L447-L455",
+          "version": "repo-lines-v1:sha256:a2b885680c6a6b580fde15f03857b68699f9937933653139b50e46adc3ffa5ed:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWUwZGQxYTQxMWE2ZmE3OTJkZjYzMGM3ODc2MWFiYWNkNzY0YjFkODI3ZTEyMTQ4M2IyNWE0MDQ5MDM5OTUzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFiNDVkZGFiYmE5Nzg4ZjI1OWUzMjAxZDM2OTU2ZjgwMDE0ZjFkODc0MWEwZTQ4NzFkZjBhZGYwNmE0NzNkOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L774-L779",
+          "version": "repo-lines-v1:sha256:7ba0917e9e59b7d5f797a70dba07c5c98d7c6c51996f66361aa70c10c11e9abe:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjE1MGU2NjBjOTM4ZWQ2YmRmZjg1Yjk3NjQ4ZjQ1MTg1NmJiYTQ1MzE3MWRjNzIyZTg5ZTQ4MjA1MDFiMTMwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWViMmFiOWYzZmY2ZWIwMWVhMjAzYzU2YTE0MTEwZWJkODJkMDk5YTBiMzg1YTM3N2FlMTRhZDNmNWMwOTg0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YzM2U2ZTc5NjVkNTIzYjg3ZGE0OGEyMTk0ZjNkNjAwOTA2ODIxZTEzYjQ4MDY0ZGFlMWU2NTc0MzY3NjIxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzdiMGE3Y2RiZmI0NWY2NWM2MjI1N2I4NWFjMmI0YWE1NmM5MWY4MmQ3OTk0NmFlNjI5YjYzYjc2NzMyYTVjZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L998-L999",
+          "version": "repo-lines-v1:sha256:e94b445407c898f69100206cbcc91c52df5c8deff0141e40397b9db5ae4e437a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjg1MzU0MTM5ZDViY2Y1NmE5ZmYwN2FkNTQ4OThmMTIyMjVkZGQzYzk5OGMwYjgzNTM5MmYzZTI3MDg4ZWY4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZkYzliYTA3NTRhZmE4NGZmZDc0MGIzNGYxOTU5ZGZjNzAzYTM2ZTVjZjk3YWEwMTg3OWMxODA4MjE0MzAzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTUzZGNkZDJjNWM2YjFmNTkxMGM4MjA4ZjE4MzViNjMxYzQzZmM2ZDk5Y2FhYjE4MmE3NmRhOTRjNDdjOGVlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWM5NDk3YTgyYTc0ZjU4ZTQ4Mzc4NDQyOTFmODk5NzM2ZWMxZDRmYTE2OWE5MTAyMzc2YjA2MDEyZGMwZjI5ZCJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }

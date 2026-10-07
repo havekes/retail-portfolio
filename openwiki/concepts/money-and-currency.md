@@ -1,7 +1,7 @@
 ---
 type: concept
 title: Money & Currency Handling
-description: The cross-cutting money model behind totals, holdings, P&L, and CSV import — backend Decimal plus stockholm Money/Currency in API types, the per-position FX conversion in PositionService, how free_cash and net_deposits reshape totals and P&L percentages, the frontend Money shape and its formatting helpers, and the rounding/precision rules to preserve.
+description: The cross-cutting money model behind totals, holdings, P&L, and CSV import — backend Decimal columns plus stockholm Money/Currency in API types, the currency-tagged string JSON shape and the frontend moneyToNumber parser, the per-position FX conversion in PositionService, how free_cash and net_deposits reshape totals and P&L percentages, the formatting helpers the holdings, account and watchlist surfaces use, and the rounding/precision rules to preserve.
 tags: [money, currency, decimal, stockholm, fx-conversion, holdings, precision]
 sources:
   - id: openwiki-source-32d69207445712b7946a1c1d
@@ -16,8 +16,20 @@ sources:
     resource: repo://frontend/src/lib/components/accounts/holdings-table.svelte
   - id: openwiki-source-1beec07c4e26e7747c7f4c75
     resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte
+  - id: openwiki-source-f50fd17f703650bc2f4f496d
+    resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.svelte
+  - id: openwiki-source-277415f21fdc20b26619d18d
+    resource: repo://frontend/src/lib/components/charts/security-chart.svelte
+  - id: openwiki-source-09dad1559edc73c5b154a081
+    resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-fc47a8106f76c7b01d03c6a9
     resource: repo://frontend/src/lib/components/total-profit-loss-buttons.svelte
+  - id: openwiki-source-3571b545d861e076562b80a2
+    resource: repo://frontend/src/lib/components/total-profit-loss-buttons.test.ts
+  - id: openwiki-source-1ad5b39b251e8013c0413e41
+    resource: repo://frontend/src/lib/components/watchlist/watchlist-utils.test.ts
+  - id: openwiki-source-e778f26f995b58e74570ef6f
+    resource: repo://frontend/src/lib/components/watchlist/watchlist-utils.ts
   - id: openwiki-source-f53d27c705fdd56cc1bc3064
     resource: repo://frontend/src/lib/types/money.test.ts
   - id: openwiki-source-0e068b9ff33d3c80932ce518
@@ -28,6 +40,16 @@ sources:
     resource: repo://frontend/src/lib/utils/finance/average-cost.ts
   - id: openwiki-source-6ed5be08ea41afe82aa62fc4
     resource: repo://frontend/src/lib/utils/finance/holdings-metrics.ts
+  - id: openwiki-source-86489cc0b08544b766c9d8a9
+    resource: repo://frontend/src/lib/utils/finance/valuation.ts
+  - id: openwiki-source-17695a0429275bdf8c6b0e99
+    resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-8609a03f095ca0ae9b6d35bd
+    resource: repo://frontend/src/routes/holdings/page.svelte.test.ts
+  - id: openwiki-source-67b769eb99d4518b98fe1ca7
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte
+  - id: openwiki-source-68c192b8e5d3899c314276cf
+    resource: repo://frontend/src/routes/watchlists/%2Bpage.svelte
   - id: openwiki-source-09f04a81e512969745c9bc9b
     resource: repo://src/account/api_types.py
   - id: openwiki-source-f2a11e03c22959177c73ac6b
@@ -58,10 +80,10 @@ sources:
     resource: repo://tests/services/test_position_service.py
   - id: openwiki-source-b0c29edcbfef3a92f664c095
     resource: repo://tests/tasks/test_account.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+    at: 2026-10-06T14:42:34.222Z
 ---
 
 # Money & Currency Handling
@@ -69,7 +91,8 @@ verified:
 Money is the one model that every account, holding, total, P&L, CSV row, and
 frontend currency label depends on. There is no single `Money` module to change:
 the contract is spread across backend Pydantic API types, the position service
-that does the arithmetic, the database column types, and two frontend helpers.
+that does the arithmetic, the database column types, and the frontend helpers in
+`frontend/src/lib/types/money.ts` and `frontend/src/lib/utils/finance/`.
 This page records that contract and the failure modes a careless edit introduces.
 Domain-specific endpoints belong to [Domains](../architecture/domains.md) and the
 [Broker sync](../workflows/broker-sync.md) / [CSV import](../workflows/csv-import.md)
@@ -100,6 +123,12 @@ read models (`HoldingRead.currency`, `AccountHoldingsRead.currency`) are declare
 inside the service layer and the write path — anything crossing into a read
 schema has already become a string or a `float`.
 
+`Money` instances are constructed in two places: the market domain tags a stored
+close as `Money(latest_price.close, security.currency)` in
+`MarketPricesApi.get_latest_close` (`src/market/api.py`), and `PositionService`
+wraps `quantity × average_cost`, `free_cash`, and `net_deposits` itself before
+converting or aggregating them.
+
 **JSON shape.** A `Money` does *not* serialize to `units`/`nanos` on the wire. It
 serializes to a single string field:
 
@@ -111,6 +140,25 @@ This shape is asserted in `tests/tasks/test_account.py` and
 `tests/routers/test_accounts.py` (the latter only asserts the ` CAD` suffix).
 Anyone who assumes a structured `{ units, nanos, currencyCode }` payload from the
 backend is working from the frontend type, not from what the API emits.
+
+The full path from a stored column to a rendered number is worth keeping in mind,
+because each hop changes the representation:
+
+```mermaid
+flowchart LR
+  col["DECIMAL 16,8 column"] --> dec["Decimal in the API types"]
+  dec --> tag["stockholm Money tags it with a currency"]
+  tag --> wire["JSON string field value 500.00 CAD"]
+  wire --> parse["moneyToNumber in money.ts"]
+  parse --> units{"units is a number"}
+  units -- yes --> calc["units plus nanos divided by 1e9"]
+  units -- no --> pf["parseFloat stops at the space before CAD"]
+  calc --> fmt["Intl.NumberFormat en-CA currency"]
+  pf --> fmt
+```
+
+*From database scale to display: the wire shape is a currency-tagged string, so
+the `units`/`nanos` branch is normally bypassed.*
 
 ## Where conversion happens
 
@@ -159,8 +207,8 @@ different currencies — `HoldingRead` carries both the native pair
 (`unconverted_total_value`, `latest_price`, `average_cost` in
 `security_currency`) and the converted pair (`total_value`, `profit_loss`,
 `converted_average_cost`, `converted_latest_price` in `currency`, which is the
-account currency). The frontend holds both and prints the converted line only
-when `holding.security_currency !== holding.currency`.
+account currency). The frontend holds both and prints the second line only when
+`holding.security_currency !== holding.currency`.
 
 A naming caveat: `HoldingRead.security_currency` is *not* always the security's
 currency. `_calculate_holding` resolves `position_currency = position.currency or
@@ -227,8 +275,9 @@ pushed over WebSocket as `AccountTotalsUpdatedMessage` by the
 `recalculate_all_account_totals_task` Huey task in `src/account/task.py`, which
 calls `get_total_for_account(account.id, account.currency)` once per active
 account. The frontend does **not** subscribe to that message; the account list
-still fetches totals over HTTP through `AccountClient.getAccountTotals` and only
-listens for `sync_started` / `sync_finished` / `sync_failed`.
+still fetches totals over HTTP through `AccountClient.getAccountTotals` (cached
+per account in `accounts-list-item.svelte.ts`) and only listens for
+`sync_started` / `sync_finished` / `sync_failed`.
 
 Note the `get_holdings_by_security` path computes a *different* total: it takes
 `MarketPricesApi.get_latest_close` directly, multiplies by quantity, rounds to 2
@@ -255,7 +304,10 @@ export interface Money {
 `moneyToNumber` prefers `units + nanos / 1e9` when `units` is a number, and falls
 back to `parseFloat(value)` otherwise; null/undefined/empty input yields `0`.
 Behavior is pinned in `money.test.ts`, including that `units` wins when both are
-present and that unparseable strings yield `0`.
+present and that unparseable strings yield `0`. The helper has exactly three
+production importers — `accounts-list-item.svelte`, `total-profit-loss-buttons.svelte`
+and `holding-group.svelte` — and the `Money` type additionally backs
+`AccountTotals` in `frontend/src/lib/types/account.ts`.
 
 **The `units`/`nanos` branch is effectively dead against the current backend.**
 Because the API emits `{"value": "500.00 CAD"}` with no `units`, every real
@@ -282,13 +334,29 @@ display path:
   `money.test.ts`. Do not treat it as the shared formatter.
 - `total-profit-loss-buttons.svelte` is what the account list actually renders
   for totals. It converts its `Money | number` props with `moneyToNumber`, derives
-  the return percentage as `(profitLoss / cost) * 100` when not supplied, falls
-  back to `Money.currencyCode` for the display currency, and formats with
-  `Intl.NumberFormat('en-CA', { style: 'currency', currency })`.
-- `holdings-table.svelte`, `account-inline-holdings.svelte`,
+  the return percentage as `(profitLoss / cost) * 100` when not supplied, and
+  formats with `Intl.NumberFormat('en-CA', { style: 'currency', currency })`.
+  Its `effectiveCurrency` derivation contains a `Money.currencyCode` fallback,
+  but the `currency` prop defaults to `'CAD'`, so the display currency is in
+  practice the prop passed by the caller. When `Intl` rejects the code the
+  formatter falls back to `$x.xx`, prefixed with `-` for negative amounts.
+- `holdings/holdings-table.svelte`, `account-inline-holdings.svelte`,
   `accounts/[id]/+page.svelte` and `holdings/+page.svelte` all use the same
   `Intl.NumberFormat('en-CA', { style: 'currency', currency })` helper, because a
   holdings table shows securities in several currencies at once.
+- The holdings sidebar surfaces use a different locale: `holding-group.svelte`
+  and `holdings-modal.svelte` format with `Intl.NumberFormat('en-US', ...)`, and
+  the blended average they print falls back to the first holding's currency, the
+  security's currency, then `USD`.
+- The watchlist surfaces deliberately show **no currency symbol at all**:
+  `frontend/src/lib/components/watchlist/watchlist-utils.ts` exposes
+  `formatPrice` (2 decimals, `-` for absent/unparseable) and
+  `formatPriceChangePercent` (signed 2 decimals, `0.00%` for zero and negative
+  zero), and `watchlists/+page.svelte` renders `SecuritySchema.current_price` and
+  `daily_price_change_percent` through them. The same module carries a second
+  `formatValuationRange` variant that accepts `number | string` bounds; the range
+  formatting contract itself is documented on
+  [Security Valuations](./security-valuation.md).
 
 ## Average cost and holdings math
 
@@ -297,20 +365,45 @@ is the quantity-weighted mean of `average_cost` across holdings, returning `0`
 for an empty list, zero total quantity, or all-missing costs (missing
 `average_cost` is treated as `0`). Because it treats missing costs as zero, a
 holding with unknown cost drags the blended figure toward zero rather than being
-excluded — `average-cost.test.ts` pins the empty and zero-quantity cases. The
-only consumer is `holding-group.svelte`, which formats the result with
-`Intl.NumberFormat('en-US', ...)` rather than the `en-CA` helper used elsewhere.
+excluded — `average-cost.test.ts` pins the empty and zero-quantity cases. It now
+has three consumers: `holding-group.svelte` (the "Average" row), the
+`holdings-modal.svelte` footer (`portfolioAvgPrice`), and the security detail
+page, where `averageBuyingPrice` feeds the chart's average-price overlay line.
+Those three run on the *holding* currency values, so a blended figure across
+holdings in different currencies is as mixed as the inputs.
 
-`frontend/src/lib/utils/finance/holdings-metrics.ts` supplies the period math
-that P&L display leans on. `getBenchmarkPrice` returns `averageCost` for
-`period === 'ALL'` (cost basis as the baseline) and otherwise the close of the
-most recent candle at or before the period cutoff, falling back to the earliest
-candle. `calculateHoldingGain` returns `{ gainAmount, gainPercent }` where
-`gainAmount = (currentPrice - benchmarkPrice) * quantity` and
+`frontend/src/lib/utils/finance/holdings-metrics.ts` supplies the ratio and
+period math that P&L display leans on. `getBenchmarkPrice` returns `averageCost`
+for `period === 'ALL'` (cost basis as the baseline) and otherwise the close of
+the most recent candle at or before the period cutoff, falling back to the
+earliest candle. `calculateHoldingGain` returns `{ gainAmount, gainPercent }`
+where `gainAmount = (currentPrice - benchmarkPrice) * quantity` and
 `gainPercent = priceDiff / benchmarkPrice * 100` (guarded to `0` when the
-benchmark is `0`). All of this runs on JS `number`, not the backend `Decimal`
-values, so any comparison of frontend-computed P&L against backend `profit_loss`
-must expect the usual float-rounding drift.
+benchmark is `0`). `calculatePercentOfTotal` and `calculatePercentOfAccount`
+return `0` for non-finite inputs or a non-positive denominator, and
+`formatHoldingPercent` renders one decimal place or `-`. All of this runs on JS
+`number`, not the backend `Decimal` values, so any comparison of
+frontend-computed P&L against backend `profit_loss` must expect the usual
+float-rounding drift.
+
+Per-row P&L percentages are derived the same way on all three holdings surfaces:
+`profit_loss / (quantity * (converted_average_cost ?? average_cost)) * 100`,
+skipped when the cost basis is missing or not positive. Because the numerator is
+the converted `profit_loss` and the denominator prefers the converted average
+cost, the ratio is in account currency on both sides — provided
+`converted_average_cost` was populated.
+
+The two holdings tables emphasize opposite sides of the dual-currency pair:
+`frontend/src/lib/components/accounts/holdings-table.svelte` shows the
+security-currency value as the primary figure and the account-currency value as
+the secondary line, while `frontend/src/lib/components/holdings/holdings-table.svelte`
+shows the account-currency value as primary and the security-currency value as
+the secondary line. Both render the secondary line only when
+`security_currency !== currency`, and both use `formatValuationRange` from
+`$lib/utils/finance/valuation` for the valuation-range column — see
+[Security Valuations](./security-valuation.md) for that column's contract and
+[Accounts & Holdings views](../workflows/accounts-and-holdings-views.md) for the
+column configuration and per-currency header totals.
 
 ## Precision and storage
 
@@ -333,14 +426,14 @@ boundaries:
   `float` for `HoldingRead`.
 - **User-entered prices share that convention.** `PriceAlertModel.target_price`
   and `SecurityValuationModel.lower_bound` / `upper_bound` are all
-  `DECIMAL(16, 8)`, while their write schemas (`SecurityValuationWrite`) accept a
-  bare `Decimal` with no decimal-place constraint and the frontend
-  `ValuationClient` types both bounds as plain `number`. So the *column scale* is
-  the effective precision for user-entered prices: a value written with more than
-  8 fractional digits is rounded by the database, and the number the user typed
-  may not be the number that comes back. The valuation field's full contract
-  (model, routes, client, sidebar modal) lives on
-  [Security Valuations](security-valuation.md) — this page only records the
+  `DECIMAL(16, 8)` (as is the valuation-history table), while the alert write
+  schema (`PriceAlertWrite.target_price`) takes a bare `Decimal` and the frontend
+  `ValuationClient` types both valuation bounds as plain `number`. So the
+  *column scale* is the effective precision for user-entered prices: a value
+  written with more than 8 fractional digits is rounded by the database, and the
+  number the user typed may not be the number that comes back. The valuation
+  field's full contract (model, routes, client, sidebar modal) lives on
+  [Security Valuations](./security-valuation.md) — this page only records the
   precision convention it shares with market prices.
 - **Aggregation rounding.** `_currency_convert` rounds each converted amount to 2
   decimal places *before* accumulation, and `_compute_cost` / `_compute_price` /
@@ -354,8 +447,8 @@ boundaries:
   `(book_value / quantity).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)`,
   returning `None` for non-positive quantity or missing book value. Changing that
   quantize step changes every CSV-imported `average_cost` and therefore every
-  cost-basis P&L downstream. Cash rows are accumulated separately as `float` and
-  rounded to 2 places into `free_cash`.
+  cost-basis P&L downstream. Cash rows are accumulated separately as `float`
+  (`_parse_cash_amount`) and rounded to 2 places into `free_cash`.
 
 ## Missing prices and missing rates
 
@@ -383,12 +476,15 @@ recovers from gracefully, and they fail differently.
   the WebSocket broadcast for the rest).
 
 Because currency lookups are outbound I/O, tests must inject a stub `fx_rates`
-instead of relying on live rates: backend test commands run inside Docker, and a
-test that performs a real network call is broken by definition. The only place
-that currently constructs a real `CurrencyConverter()` in the suite is
-`tests/services/test_position_service.py`; new tests should pass a mock through
-the `fx_rates` constructor argument, which is exactly why the service takes it as
-a parameter rather than instantiating the converter itself.
+instead of relying on live rates: backend test commands run inside Docker
+(`./scripts/agent-test tests/...`, or `docker compose exec backend uv run pytest`),
+and a test that performs a real network call is broken by definition. The only
+place that currently constructs a real `CurrencyConverter()` in the suite is
+`tests/services/test_position_service.py`, and its CAD-position/USD-security case
+does reach `CurrencyConverter.convert` because the codes differ — so that test
+depends on the package's rate data rather than a stub. New tests should pass a
+mock through the `fx_rates` constructor argument, which is exactly why the
+service takes it as a parameter rather than instantiating the converter itself.
 
 ## Failure modes a change can introduce
 
@@ -412,15 +508,21 @@ a parameter rather than instantiating the converter itself.
   integer money shape must update both the backend serializer and
   `frontend/src/lib/types/money.ts` together, or `parseFloat` silently keeps
   working on a `value` field that no longer exists (returning `0`).
-- **Cross-account ratios that are not normalized.** `holding-group.svelte` sums
-  `moneyToNumber(totals.value)` across every account into one
-  `totalPortfolioValue` and divides by it to compute `portfolioPercentage`. The
-  numerator comes from `AccountHoldingRead.total_value`, which is
-  `quantity × latest_price` in the *security's* currency, while the denominator is
-  a sum of *account-currency* totals. The ratio is only meaningful when every
-  account shares the currency of the security being viewed; mixing currencies
-  produces a number with no unit. Any new cross-account percentage must convert
-  each operand into one target currency first.
+- **Cross-account ratios that are not normalized.** Two live frontend paths sum
+  account-currency values across rows and then divide by that sum.
+  `holding-group.svelte` builds `totalPortfolioValue` from
+  `moneyToNumber(totals.value)` over every account and divides the security's
+  `AccountHoldingRead.total_value` (which is `quantity × latest_price` in the
+  *security's* currency) by it. `holdings/holdings-table.svelte` builds its own
+  `totalPortfolioValue` by summing `total_value` over every row in scope and uses
+  it for `percent_of_total` and the per-account badges, so those percentages mix
+  account currencies whenever the visible rows span more than one. Any new
+  cross-account percentage must convert each operand into one target currency
+  first — `frontend/src/routes/holdings/+page.svelte` is the pattern to copy,
+  since its `currencyTotals` buckets rows by `row.currency` and sums
+  `total_value`, `profit_loss` and `quantity × (converted_average_cost ??
+  average_cost)` *per bucket*, deriving `returnPercent` only when a bucket's cost
+  basis is positive and never summing across currencies.
 - **Cost-versus-value confusion.** `AccountTotals.cost` is *cost basis*
   (quantity × average cost **plus free cash**) and `.value` is *market value*
   (quantity × latest close **plus free cash**); their difference is the
@@ -437,6 +539,11 @@ a parameter rather than instantiating the converter itself.
 
 ## Testing the money contract
 
+Backend commands run in Docker only; never let a test dial a live FX or price
+API. `./scripts/agent-test <path>` is the fast entrypoint, with
+`docker compose exec backend uv run pytest` and
+`docker compose exec frontend npm run test:run` as the raw fallbacks.
+
 The focused tests that pin this behavior are:
 
 - `frontend/src/lib/types/money.test.ts` — `moneyToNumber` null/empty handling,
@@ -450,6 +557,14 @@ The focused tests that pin this behavior are:
 - `frontend/src/lib/components/total-profit-loss-buttons.test.ts` — number and
   `Money` inputs for `totalValue` / `costBasis`, and the derived profit/loss and
   percent.
+- `frontend/src/lib/components/holdings/holdings-table.test.ts` — `% of Total`
+  and per-account badge percentages, including grouped rows.
+- `frontend/src/routes/holdings/page.svelte.test.ts` — the header totals are
+  bucketed per currency rather than summed across them, and buckets with a zero
+  cost basis or missing `profit_loss` degrade gracefully.
+- `frontend/src/lib/utils/finance/valuation.test.ts` and
+  `frontend/src/lib/components/watchlist/watchlist-utils.test.ts` — the
+  two-decimal range formatting and the watchlist price/percent formatters.
 - `tests/services/test_position_service.py` —
   `test_get_total_for_account_includes_free_cash` (cash in both `cost` and
   `value`), `test_get_account_holdings_includes_free_cash` (cash in `total_value`,
@@ -477,8 +592,9 @@ still agree.
   the client layer.
 - [Accounts & Holdings views](../workflows/accounts-and-holdings-views.md) — how
   these totals and holdings reach the account list, detail page, and `/holdings`.
-- [Security Valuations](security-valuation.md) — the user-entered price range
-  that shares the `DECIMAL(16, 8)` price precision.
+- [Security Valuations](./security-valuation.md) — the user-entered price range
+  that shares the `DECIMAL(16, 8)` price precision, and the valuation-range
+  formatting helpers.
 - [Broker sync](../workflows/broker-sync.md) — how broker positions and their
   currencies enter `PositionService`.
 - [CSV import](../workflows/csv-import.md) — CSV parsing, currency selection, and

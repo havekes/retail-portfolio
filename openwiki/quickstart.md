@@ -1,8 +1,11 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how the Docker Compose stack runs from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points the work on any backend domain, configuration/DI, frontend shell, chart surface, drawings and rewind, security detail page, portfolios, valuations, preferences, holdings read path, broker/CSV/market-data/AI, money, integrations, dev workflow, testing or agent tooling at the owning page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how the Docker Compose stack runs from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points the work on any backend domain, configuration/DI, frontend shell, chart surface, drawings and rewind, security detail page, watchlists and global search, portfolios, valuations, preferences, holdings read path, broker/CSV/market-data/AI, money, integrations, dev workflow, testing or agent tooling at the owning page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow, openwiki]
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-06T14:42:34.222Z
 sources:
   - id: openwiki-source-b138950b59d6ada3889304a0
     resource: repo://.agent/skills/orchestration/SKILL.md
@@ -38,8 +41,12 @@ sources:
     resource: repo://frontend/src/lib/components/charts/security-chart.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
     resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-04059ae9c861b675fbebe0d7
+    resource: repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts
   - id: openwiki-source-ecd4b1167badc1f9ac4ea606
     resource: repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts
+  - id: openwiki-source-a8a830617ab03d4b55d49d9a
+    resource: repo://frontend/src/routes/%2Blayout.svelte
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-b8584948ed4a6fee33406f78
@@ -50,6 +57,8 @@ sources:
     resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
   - id: openwiki-source-33c886f28072e35f81eadfae
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts
+  - id: openwiki-source-a680cc2053312375d46bcfe4
+    resource: repo://frontend/src/routes/watchlists/%2Bpage.server.ts
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
@@ -68,6 +77,8 @@ sources:
     resource: repo://src/account/service/portfolio.py
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
+  - id: openwiki-source-b251d0144a6ce3e32623e4c2
+    resource: repo://src/commands/flush_market_data.py
   - id: openwiki-source-dfd9a181d2f58b1a466b8c27
     resource: repo://src/commands/seed.py
   - id: openwiki-source-e1e5885568a239055161be95
@@ -76,6 +87,8 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-8ba9c7034638e16be9336256
     resource: repo://src/market/repository_sqlalchemy.py
+  - id: openwiki-source-47b0223ca650e12504aa1417
+    resource: repo://src/market/repository.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-689c3cecf701f8b197038e75
@@ -86,10 +99,7 @@ sources:
     resource: repo://src/worker.py
   - id: openwiki-source-9c5ae74acc82cf270945cf3d
     resource: repo://src/ws/manager.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
 ---
 
 # Quickstart & Task Routing
@@ -159,7 +169,7 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | `migrations/` | Alembic revisions (configured as the Alembic `script_location`) |
 | `tests/` | Backend pytest suites, organized by domain and layer |
 | `src/stubs/` | Stub external gateways used by tests and `STUB_EXTERNAL_API` mode |
-| `src/commands/` | Seeding and market-data flush CLI entrypoints |
+| `src/commands/` | Seeding (`seed.py`) and market-data flush (`flush_market_data.py`) CLI entrypoints |
 | `openspec/` | Canonical capability specs and active/archived change artifacts |
 | `scripts/` | `agent-test` harness, `setup-agent-worktree.sh`, `docker-gid.sh`, the OpenWiki preload shim (`opencode-go-session-fetch.mjs`) |
 | `.agent/`, `.claude/`, `.opencode/` | Mirrored agent definitions: skills, subagents/workflows, slash commands, and the OpenCode model map |
@@ -180,6 +190,7 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | Signup/login, the `auth_token` JWT, 2FA/TOTP, passkeys, ownership authorization, the WS ticket | [Authentication & Authorization](./architecture/authentication.md) |
 | The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
 | Portfolios: the `portfolios`/`portfolio_accounts` models, `PortfolioService`, the `/portfolios` CRUD routes, the list page, the `?portfolio_id=` holdings filter | [Portfolios & Holdings Filters](./workflows/portfolios.md) |
+| Watchlists, the sidebar watchlist groups and ticker shortcuts, the `/watchlists` page, or the global-search dialog | [Watchlists, Sidebar & Global Search](./workflows/watchlists-and-search.md) |
 | A fair-value range on a security: the valuations table, the four market routes, `valuationClient`, the fundamentals sidebar group | [Security Valuations (Fair-Value Ranges)](./concepts/security-valuation.md) |
 | The `/security/[security_id]` route itself: the shell-first load, the page data wave, the instant titlebar, and the actions-sidebar groups (notes, documents, alerts, indicators, holdings, AI) | [Security Detail Page & Actions Sidebar](./workflows/security-detail-page.md) |
 | Broker connect, Wealthsimple login/OTP, position import and the Huey sync task | [Broker Connect, Import & Position Sync](./workflows/broker-sync.md) |

@@ -1,7 +1,7 @@
 ---
 type: architecture
 title: Backend Domains
-description: Catalog of the backend domains and their owned systems — account (accounts, positions, portfolios, institutions, CSV templating, user preferences), auth, market (securities, prices, intraday prices, watchlists with sort and manual ordering, alerts, notes, documents, chart snapshots, security valuations, indicators, AI), integration (broker gateways), ws, core and config — with each domain's models, public APIs, services, router surface, business rules, cross-domain dependencies, and the extension recipes for new domains, brokers, market gateways, CSV institutions and background jobs.
+description: Catalog of the backend domains and their owned systems — account (accounts, positions, portfolios, institutions, CSV templating, user preferences), auth, market (securities, prices, intraday prices, watchlists with sort and manual ordering, alerts, notes, documents, chart snapshots, security valuations with an append-only revision history, indicators, AI), integration (broker gateways), ws, core and config — with each domain's models, public APIs, services, router surface, business rules, cross-domain dependencies, and the extension recipes for new domains, brokers, market gateways, CSV institutions and background jobs.
 tags: [backend, domain-driven-design, fastapi, repositories, services, dependency-injection, routers, extension-points]
 sources:
   - id: openwiki-source-ebee543967c6f3e7a101e271
@@ -12,6 +12,8 @@ sources:
     resource: repo://migrations/versions/3436586a755f_create_security_valuations.py
   - id: openwiki-source-07e78ebb43c13654a939c9b4
     resource: repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py
+  - id: openwiki-source-ea094ea9d1838486872f8d58
+    resource: repo://migrations/versions/b291707f24ca_add_market_security_valuation_history.py
   - id: openwiki-source-f2a11e03c22959177c73ac6b
     resource: repo://src/account/csv/parser.py
   - id: openwiki-source-97d0ee047d10357439465331
@@ -88,10 +90,12 @@ sources:
     resource: repo://src/ws/manager.py
   - id: openwiki-source-d63e02f817074e4280e045ae
     resource: repo://src/ws/router.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+  - id: openwiki-source-0e7f2c7782ba596fb051062c
+    resource: repo://tests/market/test_security_valuation_repository.py
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+    at: 2026-10-06T14:42:34.222Z
 ---
 
 # Backend Domains
@@ -108,8 +112,21 @@ Routers are mounted in `src/main.py` under a single `APIRouter(prefix="/api/v1")
 - **Repositories** define abstract interfaces in `repository.py` and SQLAlchemy implementations in `repository_sqlalchemy.py`. Alternative implementations use `repository_<impl>.py` (for example `repository_eodhd.py`).
 - **Services** hold orchestration and calculations; routers delegate to them and must never reach into a *foreign* domain's repositories. Using the router's own domain repositories directly is allowed and is what the market watchlist, alert, note, document, snapshot and valuation routes do — there is no service layer between them and their repository.
 - **Exceptions** inherit from `src.core.exception.EntityNotFoundError` or `AuthorizationError` so `src/main.py` can map them to a consistent HTTP status. Domain errors that are not entity/authorization errors are handled explicitly in the router.
-- **MANDATORY:** editing a backend model requires a matching Alembic revision shipped in the same change, and every migration file MUST follow the `<hash>_<description>.py` naming convention under `migrations/versions/` (`alembic.ini` sets `script_location = migrations`; autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it). `src/main.py` upgrades to `head` at startup except when `settings.environment == "test"`. `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py` is the worked example of a model change plus its backfill; `migrations/versions/3436586a755f_create_security_valuations.py` is the plain `create_table` example for a newer market table.
+- **MANDATORY:** editing a backend model requires a matching Alembic revision shipped in the same change, and every migration file MUST follow the `<hash>_<description>.py` naming convention under `migrations/versions/` (`alembic.ini` sets `script_location = migrations`; autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it). `src/main.py` upgrades to `head` at startup except when `settings.environment == "test"`. `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py` is the worked example of a model change plus its backfill; `migrations/versions/3436586a755f_create_security_valuations.py` and `migrations/versions/b291707f24ca_add_market_security_valuation_history.py` are the plain `create_table` examples for the newer market tables.
 - Backend commands run inside Docker (`docker compose exec backend …`), and tests must mock every outbound client — no Redis, HTTP, SMTP or DNS dependency. See [Testing](../operations/testing.md).
+
+## Router-only repositories and the ownership/error taxonomy
+
+Not every feature earns a service layer. Inside the market domain, six per-user resources are thin enough that the router talks to the repository directly: **watchlists** (`WatchlistRepository`), **price alerts** (`PriceAlertRepository`), **security notes** (`SecurityNoteRepository`), **security documents** (`SecurityDocumentRepository`), **chart snapshots** (`ChartSnapshotRepository`), and **security valuations** (`SecurityValuationRepository`). Each is an ABC in `src/market/repository.py` with a `SqlAlchemy*` implementation plus a `sqlalchemy_*_repository_factory` registered in `register_market_services`, and the router resolves it with `services.aget(<Abc>)`. There is no `WatchlistService`, `ValuationService`, and so on.
+
+That shortcut is safe only because the repositories themselves carry the rules a service would otherwise hold:
+
+- **`user_id` is a parameter on every method that touches a user-owned row.** No route passes a client-supplied user id: the handler takes `user.id` from `current_user` and threads it down, so cross-user reads and writes are impossible by construction rather than by an explicit ownership check.
+- **A resource that is missing *or* owned by another user is reported identically.** Watchlists raise `WatchlistNotFoundError` in both cases (`_get_owned` filters on `id` *and* `user_id`), and `EntityNotFoundError` maps to a global HTTP 404 in `src/main.py`, so a caller cannot probe whether someone else's id exists. `AuthorizationApi.check_entity_owned_by_user` implements the same policy for the domains that do use it.
+- **Errors the router must translate are deliberately *not* `EntityNotFoundError`s.** `WatchlistDuplicateNameError` and `WatchlistOrderIdentityError` extend plain `Exception` (`src/market/exception.py`) precisely so the global handler does not swallow them into a 404; the routes catch them and return 409 and 422 respectively. `SecurityNotFoundError` *is* an `EntityNotFoundError` and correctly becomes a 404.
+- **A mutating route proves ownership even when the payload changes nothing.** `PATCH /market/watchlists/{watchlist_id}` with an empty payload re-reads the user's watchlists and raises `WatchlistNotFoundError` when the id is absent.
+
+The full watchlist ownership/error taxonomy is spelled out in [Watchlists](#watchlists) below; the same shape applies to alerts, notes, documents, snapshots and valuations.
 
 ## Entity model
 
@@ -125,6 +142,7 @@ erDiagram
   User ||--o{ SecurityDocument : uploads
   User ||--o{ ChartSnapshot : captures
   User ||--o{ SecurityValuation : values
+  User ||--o{ SecurityValuationHistory : revises
   User ||--o{ PriceAlert : sets
   Institution ||--o{ Account : provides
   AccountType ||--o{ Account : classifies
@@ -149,6 +167,8 @@ erDiagram
 `SecurityBroker` stores the broker symbol/exchange mapping plus the raw EODHD search results used to resolve it. Every market-owned table references `market_securities.id` with a real foreign key; the one cross-domain exception is `account_positions.security_id` in the account domain, which is a plain UUID column so positions can point at a security without a database-level constraint across domains.
 
 The watchlist membership association is an entity in its own right rather than a bare join table: `market_watchlists_securities` carries `added_at` and an application-managed `position`, and `market_watchlists` carries the persisted `sort` mode.
+
+`market_security_valuation_history` is a revision log rather than a child of `market_security_valuations`: it has no foreign key to the current-value table and is correlated to it only by the `(user_id, security_id)` pair it shares, while its own `security_id` cascades from `market_securities`. So deleting a security removes both its current range and its whole revision history, but the two tables are otherwise independent rows.
 
 ## account
 
@@ -275,6 +295,7 @@ Login and 2FA verification set the `httponly`/`secure` `auth_token` cookie (7-da
 | `SecurityDocumentModel` | `market_security_documents` | `security_id` (FK, cascade), `user_id`, `filename`, `file_path`, `file_size`, `file_type` | File bytes under `settings.upload_path` |
 | `ChartSnapshotModel` | `market_chart_snapshots` | `id: UUID`, `security_id` (FK, cascade), `user_id`, `drawings` (JSON), `data_window` (JSON), `captured_at`, `created_at` | Indexed `(security_id, user_id, captured_at)` |
 | `SecurityValuationModel` | `market_security_valuations` | `id: int`, `user_id`, `security_id` (FK, cascade), `lower_bound`/`upper_bound` as `DECIMAL(16,8)`, `created_at`, `updated_at` | Unique `(user_id, security_id)` as `valuation_user_security_unique`; index `ix_market_security_valuations_user_security` |
+| `SecurityValuationHistoryModel` | `market_security_valuation_history` | `id: int`, `user_id`, `security_id` (FK, cascade), `lower_bound`/`upper_bound` as `DECIMAL(16,8)`, `created_at` | Append-only revision log; index `ix_market_security_valuation_history_user_security_created` on `(user_id, security_id, created_at)`; no unique constraint, so one row per write |
 
 `src/market/enum.py` holds `PriceInterval` (`1h`, `4h`, `1d`, `1w`, `1m`) and `WatchlistSortMode` (`custom`, `name_asc`, `price_change_desc`, `price_change_asc`, `date_added`, `date_added_asc`).
 
@@ -324,15 +345,36 @@ The batch routes are declared before the `{security_id}` routes so `/securities/
 
 ### Security valuations
 
-`SecurityValuationRepository` (`src/market/repository.py`) is the market's second router-only repository contract alongside watchlists — there is no valuation service. `SqlAlchemySecurityValuationRepository` (`src/market/repository_sqlalchemy.py`) implements three methods:
+`SecurityValuationRepository` (`src/market/repository.py`) is one of the market's router-only repository contracts — there is no valuation service between it and the routes. `SqlAlchemySecurityValuationRepository` (`src/market/repository_sqlalchemy.py`) implements four methods:
 
 | Method | Behaviour |
 |--------|-----------|
 | `get_by_security_and_user(security_id, user_id)` | Single-row lookup returning `SecurityValuationRead \| None`; the route turns `None` into 404 |
-| `upsert(valuation, security_id, user_id)` | Updates `lower_bound`/`upper_bound` and `updated_at` when the `(user_id, security_id)` row exists, otherwise inserts with both timestamps set to now; commits and refreshes before returning |
+| `upsert(valuation, security_id, user_id)` | Updates `lower_bound`/`upper_bound` and `updated_at` when the `(user_id, security_id)` row exists, otherwise inserts with both timestamps set to now; in **both** branches it also appends a `SecurityValuationHistoryModel` row with the same bounds and timestamp, then commits and refreshes before returning |
+| `get_history(security_id, user_id)` | All revision rows for that `(security_id, user_id)`, ordered by `created_at` then `id` ascending, as `SecurityValuationHistoryRead`; scoped to `user_id` |
 | `get_batch_by_user_and_securities(security_ids, user_id)` | Short-circuits to `[]` for an empty id list, otherwise one `IN` query scoped to `user_id`, so a caller can never read another user's valuations |
 
-The unique constraint `(user_id, security_id)` is what makes the upsert safe to call repeatedly. The full feature — model, routes, frontend client and sidebar modal — is documented on [Security Valuations](../concepts/security-valuation.md).
+The unique constraint `(user_id, security_id)` is what makes the upsert safe to call repeatedly: the current-value table keeps exactly one row per pair, while `market_security_valuation_history` grows one row per write and is the append-only revision log. `get_history` is implemented but **not exposed by any route** — the valuation HTTP surface is read-current plus upsert only — so history is currently reachable only from code that resolves the repository itself. The history table arrived later than the valuation table, in `migrations/versions/b291707f24ca_add_market_security_valuation_history.py`. The full feature — model, routes, frontend client and sidebar modal — is documented on [Security Valuations](../concepts/security-valuation.md).
+
+```mermaid
+sequenceDiagram
+    participant Route as PUT valuation route
+    participant Repo as SqlAlchemySecurityValuationRepository
+    participant Current as market_security_valuations
+    participant Log as market_security_valuation_history
+
+    Route->>Repo: upsert write security id user id
+    Repo->>Current: select row for user and security
+    alt row exists
+        Repo->>Current: update bounds and updated_at
+    else no row
+        Repo->>Current: insert with created_at and updated_at
+    end
+    Repo->>Log: insert revision row with same bounds
+    Repo->>Repo: commit and refresh
+    Repo-->>Route: SecurityValuationRead
+```
+*Every valuation write touches two tables: the unique-keyed current row and one appended revision row.*
 
 ### Watchlists
 
@@ -360,9 +402,9 @@ Three invariants matter when changing this code. First, **every operation is sco
 - Note create and update both enqueue `generate_note_title_task(note_id, request_id=...)`, which regenerates the title with AI in the worker.
 - Documents are written to `settings.upload_path` under a random `uuid4` filename with the original extension; only metadata goes to the database.
 - Price alerts are evaluated only when `triggered_at IS NULL`.
-- Security valuations are per `(user_id, security_id)`; the upsert is idempotent because of that unique constraint, and every read path filters by `user_id`.
+- Security valuations are per `(user_id, security_id)`; the upsert is idempotent for the current-value row because of that unique constraint, every read path filters by `user_id`, and each upsert additionally appends a revision row to `market_security_valuation_history` — so the current-value table is bounded and the history table is unbounded by design.
 - AI endpoints surface upstream failures as 503/504 rather than 500.
-- Changing a market model means shipping its migration in the same change: `market_watchlists.sort` and `market_watchlists_securities.added_at`/`position` arrived together in `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py`, which backfills deterministically before enforcing `NOT NULL`, and `market_security_valuations` arrived in `migrations/versions/3436586a755f_create_security_valuations.py`.
+- Changing a market model means shipping its migration in the same change: `market_watchlists.sort` and `market_watchlists_securities.added_at`/`position` arrived together in `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py`, which backfills deterministically before enforcing `NOT NULL`; `market_security_valuations` arrived in `migrations/versions/3436586a755f_create_security_valuations.py`; and the revision log arrived separately in `migrations/versions/b291707f24ca_add_market_security_valuation_history.py`.
 
 ## integration
 
@@ -487,7 +529,7 @@ flowchart TD
 - **Adding CSV support for a new institution.** Set `csv_format` to the positional template matching the broker export and set `csv_import_enabled = True`; the seed command's `WEALTHSIMPLE_CSV_FORMAT` is the worked example. No parser code changes are needed unless new placeholder vocabulary is required.
 - **Adding a background job.** Define it in the owning domain's `task.py` with `@huey.task()` or `@huey.periodic_task(...)`, import the module in `src/worker.py` so it registers, and resolve services through `huey.svcs_registry` inside the task.
 - **Adding a watchlist-sort mode.** Extend `WatchlistSortMode` in `src/market/enum.py`; the repository persists whatever value it is given, so a new mode needs no schema change but does need a client that knows how to order by it.
-- **Adding a router-only repository feature.** For a thin per-user resource inside an existing domain (the watchlist, alert, note, document, snapshot and valuation pattern), add the ABC to the domain's `repository.py`, the SQLAlchemy class plus its `sqlalchemy_*_repository_factory` to `repository_sqlalchemy.py`, and register the factory in the domain's `register_*_services`; then call it directly from the router.
+- **Adding a router-only repository feature.** For a thin per-user resource inside an existing domain (the watchlist, alert, note, document, snapshot and valuation pattern), add the ABC to the domain's `repository.py`, the SQLAlchemy class plus its `sqlalchemy_*_repository_factory` to `repository_sqlalchemy.py`, and register the factory in the domain's `register_*_services`; then call it directly from the router. Because no service sits in between, the repository must itself filter every statement by `user_id` and raise the domain's `EntityNotFoundError` subclass for a missing-or-unowned row; any error the route must translate to a non-404 status must be a plain `Exception` so the global handler does not claim it.
 
 ## Focused tests
 
@@ -497,7 +539,7 @@ Tests are grouped by concern rather than strictly by domain:
 - Service-level: `tests/services/test_account_api.py`, `test_account_service.py`, `test_auth_api.py`, `test_auth_services.py`, `test_csv_account_service.py`, `test_market_service.py`, `test_position_api.py`, `test_position_service.py`.
 - Repository-level: `tests/repositories/test_repository_sqlalchemy.py` covers watchlist create/rename/delete, sort and membership metadata, `set_security_order` acceptance and rejection, cross-user `WatchlistNotFoundError`, and price enrichment.
 - Task-level: `tests/tasks/test_account.py`, `test_integration.py`, `test_market.py`, `test_redis_concurrency.py`.
-- Domain unit tests: `tests/account/test_models_and_sync.py`, `tests/account/csv/test_parser.py`, and `tests/market/` — `test_alert_evaluation_service.py`, `test_alert_email_dispatch_task.py`, `test_check_and_dispatch_price_alerts.py`, `test_eodhd.py`, `test_heikin_ashi.py`, `test_indicator_cache.py`, `test_indicator_client.py`, `test_indicator_compute_api.py`, `test_indicators.py`, `test_price_alert_repository.py`, `test_search_router.py`, `test_security_api.py`, `test_security_search_cache.py`, `test_security_valuation_repository.py`.
+- Domain unit tests: `tests/account/test_models_and_sync.py`, `tests/account/csv/test_parser.py`, and `tests/market/` — `test_alert_evaluation_service.py`, `test_alert_email_dispatch_task.py`, `test_check_and_dispatch_price_alerts.py`, `test_eodhd.py`, `test_heikin_ashi.py`, `test_indicator_cache.py`, `test_indicator_client.py`, `test_indicator_compute_api.py`, `test_indicators.py`, `test_price_alert_repository.py`, `test_search_router.py`, `test_security_api.py`, `test_security_search_cache.py`, `test_security_valuation_repository.py` (which pins the idempotent upsert, the empty-batch short circuit, cross-user isolation of the batch read, and that two upserts for one `(user, security)` produce exactly two history rows in ascending `created_at` order).
 - Broker tests: `tests/integration/brokers/test_wealthsimple.py`. WebSocket tests: `tests/ws/test_manager.py`, `test_router.py`.
 
 Tests must not depend on external services — no Redis, HTTP, or SMTP — see [Testing](../operations/testing.md).
