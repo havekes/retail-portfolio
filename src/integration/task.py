@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from decimal import Decimal
 
 from huey import signals
 from svcs import Container
@@ -29,6 +30,7 @@ from src.integration.exception import (
 from src.integration.repository import IntegrationUserRepository
 from src.integration.sync_status import mark_sync_finished, mark_sync_started
 from src.market.api import SecurityApi
+from src.market.fx import FxRateProvider
 from src.worker import huey
 from src.ws.api_types import AccountSyncMessage, WsEventType
 from src.ws.manager import ws_manager
@@ -102,12 +104,29 @@ async def _do_sync_positions(
 
     await position_api.create(positions_api_types)
 
+    account_api = await svcs_container.aget(AccountApi)
+
+    # Cash is an account attribute (`free_cash`), not a position, so it is
+    # fetched separately and converted into the account currency. Gateways that
+    # cannot report cash inherit the base no-op, so their free_cash is left
+    # untouched (it may come from a CSV import).
+    if _broker_reports_cash_balances(broker):
+        cash_balances = await broker.get_cash_balances(
+            integration_user=integration_user,
+            broker_account_id=broker_account_id,
+        )
+        await account_api.update_free_cash(
+            account.id,
+            await _sum_cash_in_account_currency(
+                cash_balances, str(account.currency), svcs_container
+            ),
+        )
+
     # Sync account details (net_deposits)
     broker_accounts = await broker.get_accounts(integration_user)
     broker_account = next(
         (a for a in broker_accounts if a.id == broker_account_id), None
     )
-    account_api = await svcs_container.aget(AccountApi)
     if broker_account:
         await account_api.update_net_deposits(
             account.id,
@@ -118,6 +137,45 @@ async def _do_sync_positions(
             ),
         )
         await account_api.update_last_sync_at(account.id)
+
+
+def _broker_reports_cash_balances(broker: BrokerApiGateway) -> bool:
+    """Return True when ``broker`` overrides the cash-balance no-op.
+
+    The base ``BrokerApiGateway.get_cash_balances`` returns ``{}`` to signal
+    "cash not reported". A gateway that does not override it must leave
+    ``free_cash`` untouched rather than clearing it to zero.
+    """
+    return (
+        getattr(type(broker), "get_cash_balances", None)
+        is not BrokerApiGateway.get_cash_balances
+    )
+
+
+async def _sum_cash_in_account_currency(
+    cash_balances: dict[str, Decimal],
+    account_currency: str,
+    svcs_container: Container,
+) -> float:
+    """Convert every cash balance to ``account_currency`` and sum them."""
+    if not cash_balances:
+        return 0.0
+
+    fx_provider = await svcs_container.aget(FxRateProvider)
+    converter = await fx_provider.converter()
+
+    total = Decimal(0)
+    for currency, amount in cash_balances.items():
+        if currency == account_currency:
+            total += amount
+        else:
+            total += converter.convert(
+                amount=amount,
+                currency=currency,
+                new_currency=account_currency,
+            )
+
+    return float(round(total, 2))
 
 
 _SYNC_ERROR_MESSAGE_MAPPING: tuple[tuple[type[Exception], str], ...] = (

@@ -41,6 +41,20 @@ _wealthsimple_account_type_map = {
     "SELF_DIRECTED_NON_REGISTERED": AccountTypeEnum.NON_REGISTERED,
 }
 
+# Cash balances use security ids of the form ``sec-c-<currency>`` (e.g.
+# ``sec-c-cad``). The API sometimes wraps ids in ``[]``, so trim before matching.
+_CASH_SECURITY_PREFIX = "sec-c-"
+
+
+def _is_cash_security_id(security_id: str) -> bool:
+    """Return True when ``security_id`` identifies a cash balance, not a security."""
+    return security_id.strip("[]").startswith(_CASH_SECURITY_PREFIX)
+
+
+def _cash_currency(security_id: str) -> str:
+    """Extract the upper-cased currency code from a ``sec-c-<currency>`` id."""
+    return security_id.strip("[]").removeprefix(_CASH_SECURITY_PREFIX).upper()
+
 
 class WealthsimpleApiGateway(BrokerApiGateway):
     _username: str
@@ -193,6 +207,12 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         all_raw_ws_positions: list[list[dict[str, Any]]] = []
 
         for security_id, ws_balance in ws_balances.items():
+            # Cash is an account attribute (`free_cash`), not a position; it is
+            # returned by get_cash_balances instead of being priced here.
+            if _is_cash_security_id(security_id):
+                logger.debug("Skipping cash balance in positions: %s", security_id)
+                continue
+
             position, raw_ws_positions = self._parse_position(
                 ws_client=ws_client,
                 broker_account_id=broker_account_id,
@@ -232,6 +252,36 @@ class WealthsimpleApiGateway(BrokerApiGateway):
             broker_account_id,
         )
         return positions
+
+    @override
+    async def get_cash_balances(
+        self,
+        integration_user: IntegrationUserSchema,
+        broker_account_id: BrokerAccountId,
+    ) -> dict[str, Decimal]:
+        """Return Wealthsimple cash balances keyed by currency code.
+
+        Cash lives under ``sec-c-<currency>`` ids in ``get_account_balances``.
+        That endpoint is fetched again here (once for positions, once for cash);
+        acceptable for a sync job.
+        """
+        ws_client = self._get_client(integration_user.external_user_id)
+        ws_balances = cast(
+            "dict[str, float]", ws_client.get_account_balances(broker_account_id)
+        )
+
+        cash_balances: dict[str, Decimal] = {}
+        for security_id, ws_balance in ws_balances.items():
+            if not _is_cash_security_id(security_id):
+                continue
+            cash_balances[_cash_currency(security_id)] = Decimal(str(ws_balance))
+
+        logger.info(
+            "Parsed %d cash balances for account: %s",
+            len(cash_balances),
+            broker_account_id,
+        )
+        return cash_balances
 
     def _parse_account(
         self,
@@ -288,8 +338,10 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         security_id: str,
         ws_balance: float,
     ) -> tuple[BrokerPosition | None, list[dict[str, Any]] | None]:
-        if security_id == "sec-c-cad":
-            logger.info("Skipping cash position: not yet supported")
+        if _is_cash_security_id(security_id):
+            logger.debug(
+                "Skipping cash position (reported as free cash): %s", security_id
+            )
             return None, None
 
         # Handle API bug where security id is wrapped in []
