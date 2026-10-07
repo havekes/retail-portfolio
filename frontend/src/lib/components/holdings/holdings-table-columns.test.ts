@@ -63,19 +63,6 @@ describe('holdings-table-columns', () => {
 			);
 		});
 
-		it('clamps percent_of_total within bounds', () => {
-			expect(clampColumnWidth('percent_of_total', 50)).toBe(
-				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.percent_of_total
-			);
-			expect(clampColumnWidth('percent_of_total', 500)).toBe(
-				HOLDINGS_TABLE_COLUMN_MAX_WIDTHS.percent_of_total
-			);
-			expect(clampColumnWidth('percent_of_total', 150)).toBe(150);
-			expect(clampColumnWidth('percent_of_total', Number.NaN)).toBe(
-				HOLDINGS_TABLE_DEFAULT_WIDTHS.percent_of_total
-			);
-		});
-
 		it('clamps valuation_range within bounds', () => {
 			expect(clampColumnWidth('valuation_range', 50)).toBe(
 				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.valuation_range
@@ -91,27 +78,23 @@ describe('holdings-table-columns', () => {
 	});
 
 	describe('HOLDINGS_TABLE_COLUMNS', () => {
-		it('has updated labels and contains ew_primary_target and ew_cycle_target without profit_loss_percent', () => {
+		it('has 9 canonical columns with updated labels without average_cost or percent_of_total', () => {
+			expect(HOLDINGS_TABLE_COLUMNS).toHaveLength(9);
+			expect(HOLDINGS_TABLE_COLUMN_IDS).toHaveLength(9);
 			const labels = Object.fromEntries(HOLDINGS_TABLE_COLUMNS.map((c) => [c.id, c.label]));
-			expect(labels.average_cost).toBe('Average');
+			expect(labels.security_symbol).toBe('Security');
+			expect(labels.account_name).toBe('Allocation');
+			expect(labels.quantity).toBe('Quantity');
+			expect(labels.latest_price).toBe('Price');
+			expect(labels.total_value).toBe('Total Value');
 			expect(labels.profit_loss).toBe('Return');
 			expect(labels.ew_primary_target).toBe('EW Primary');
 			expect(labels.ew_cycle_target).toBe('EW Cycle');
-			expect(labels).not.toHaveProperty('profit_loss_percent');
-			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_primary_target');
-			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_cycle_target');
-			expect(HOLDINGS_TABLE_COLUMN_IDS).not.toContain('profit_loss_percent');
-		});
-
-		it('includes percent_of_total with label "% of Total" and alignRight: true immediately after total_value', () => {
-			const totalValueIdx = HOLDINGS_TABLE_COLUMNS.findIndex((c) => c.id === 'total_value');
-			const percentOfTotalCol = HOLDINGS_TABLE_COLUMNS[totalValueIdx + 1];
-			expect(percentOfTotalCol).toEqual({
-				id: 'percent_of_total',
-				label: '% of Total',
-				alignRight: true
-			});
-			expect(HOLDINGS_TABLE_COLUMN_IDS[totalValueIdx + 1]).toBe('percent_of_total');
+			expect(labels.valuation_range).toBe('Valuation Range');
+			expect(labels).not.toHaveProperty('average_cost');
+			expect(labels).not.toHaveProperty('percent_of_total');
+			expect(HOLDINGS_TABLE_COLUMN_IDS).not.toContain('average_cost');
+			expect(HOLDINGS_TABLE_COLUMN_IDS).not.toContain('percent_of_total');
 		});
 
 		it('includes valuation_range with label "Valuation Range" and alignRight: true', () => {
@@ -154,17 +137,6 @@ describe('holdings-table-columns', () => {
 			const attempt = toggleColumnVisibility(initial, 'security_symbol');
 			expect(attempt.visible).toContain('security_symbol');
 			expect(attempt).toBe(initial);
-		});
-
-		it('toggles percent_of_total column visibility while preserving canonical order', () => {
-			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
-			expect(initial.visible).toContain('percent_of_total');
-
-			const hidden = toggleColumnVisibility(initial, 'percent_of_total');
-			expect(hidden.visible).not.toContain('percent_of_total');
-
-			const restored = toggleColumnVisibility(hidden, 'percent_of_total');
-			expect(restored.visible).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG.visible);
 		});
 
 		it('toggles valuation_range column visibility while preserving canonical order', () => {
@@ -258,13 +230,17 @@ describe('holdings-table-columns', () => {
 			expect(restored).toEqual(config);
 		});
 
-		it('normalizes and preserves percent_of_total width and visibility', () => {
+		it('purges obsolete column ids (average_cost, percent_of_total) from widths and visible', () => {
 			const config = normalizeHoldingsTableConfig({
-				widths: { percent_of_total: 135 },
-				visible: ['security_symbol', 'total_value', 'percent_of_total']
+				widths: { percent_of_total: 135, average_cost: 140, quantity: 150 },
+				visible: ['security_symbol', 'total_value', 'percent_of_total', 'average_cost']
 			});
-			expect(config.widths.percent_of_total).toBe(135);
-			expect(config.visible).toEqual(['security_symbol', 'total_value', 'percent_of_total']);
+			expect(config.widths).not.toHaveProperty('percent_of_total');
+			expect(config.widths).not.toHaveProperty('average_cost');
+			expect(config.widths.quantity).toBe(150);
+			expect(config.visible).toEqual(['security_symbol', 'total_value']);
+			expect(config.visible).not.toContain('percent_of_total');
+			expect(config.visible).not.toContain('average_cost');
 		});
 
 		it('normalizes and preserves valuation_range width and visibility', () => {

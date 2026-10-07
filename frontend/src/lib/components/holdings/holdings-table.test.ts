@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/svelte';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
 import type { UserHolding } from '$lib/types/account';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
@@ -15,6 +15,15 @@ import {
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
+
+vi.mock('$lib/api/valuationClient', () => ({
+	valuationClient: {
+		setValuation: vi.fn(),
+		getValuation: vi.fn()
+	}
+}));
+
+import { valuationClient } from '$lib/api/valuationClient';
 
 const sampleElliottWaves: Record<string, SecurityElliottWaves> = {
 	'sec-z': {
@@ -255,11 +264,11 @@ describe('HoldingsTable', () => {
 	it('sorts null cells last in both directions', async () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
-		// Average: AAA has a null average_cost and must stay last in both directions.
-		await fireEvent.click(screen.getByRole('button', { name: 'Average' }));
+		// Price: AAA has undefined latest_price and must stay last in both directions.
+		await fireEvent.click(screen.getByRole('button', { name: 'Price' }));
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Average' }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Price' }));
 		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
 	});
 
@@ -520,8 +529,8 @@ describe('HoldingsTable', () => {
 		expect(within(aRow).queryByTestId('ew-primary-upside')).not.toBeInTheDocument();
 		expect(within(aRow).queryByTestId('ew-cycle-upside')).not.toBeInTheDocument();
 		const aCells = within(aRow).getAllByRole('cell');
-		expect(aCells[8]).toHaveTextContent('-');
-		expect(aCells[9]).toHaveTextContent('-');
+		expect(aCells[6]).toHaveTextContent('-');
+		expect(aCells[7]).toHaveTextContent('-');
 	});
 
 	it('features visible separator borders on header cells and resize handles, with header hover isolation', () => {
@@ -582,23 +591,20 @@ describe('HoldingsTable', () => {
 		const row = rowBySymbol('AAPL');
 
 		// Total Value: CAD on top, USD on bottom
-		const totalValueCell = within(row).getAllByRole('cell')[5];
+		const totalValueCell = within(row).getAllByRole('cell')[4];
 		expect(totalValueCell).toHaveTextContent('$2,450.00');
 		expect(totalValueCell).toHaveTextContent('$1,800.00');
 
-		// Average: only native USD on a single line, no converted CAD line
-		const avgCostCell = within(row).getAllByRole('cell')[3];
-		expect(avgCostCell).toHaveTextContent('$150.00');
-		expect(avgCostCell).not.toHaveTextContent('$205.00');
+		// Price: native latest price and native average cost stacked, no converted CAD line
+		const priceCell = within(row).getAllByRole('cell')[3];
+		expect(priceCell).toHaveTextContent('$180.00');
+		expect(priceCell).toHaveTextContent('$150.00');
+		expect(priceCell).not.toHaveTextContent('$245.00');
+		expect(priceCell).not.toHaveTextContent('$205.00');
 
 		// Profit / Loss: CAD primary return only, secondary unconverted USD removed
 		expect(within(row).getByTestId('profit-loss')).toHaveTextContent('+$400.00');
 		expect(within(row).queryByTestId('profit-loss-secondary')).not.toBeInTheDocument();
-
-		// Latest Price: only native USD, no CAD converted line
-		const priceCell = within(row).getAllByRole('cell')[4];
-		expect(priceCell).toHaveTextContent('$180.00');
-		expect(priceCell).not.toHaveTextContent('$245.00');
 	});
 
 	it('renders "Group by stock" mode: strictly one row per stock without accordion headers and with combined account badges', () => {
@@ -669,18 +675,18 @@ describe('HoldingsTable', () => {
 		expect(screen.queryByTestId('empty-state')).not.toBeInTheDocument();
 	});
 
-	it('renders "Account" column header when groupBy is null and "Accounts" when groupBy is "stock"', () => {
+	it('renders "Allocation" column header with data-testid="column-header-allocation"', () => {
 		const { rerender } = render(HoldingsTable, { props: { holdings: groupRows, groupBy: null } });
 
-		expect(screen.getByRole('button', { name: 'Account' })).toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Accounts' })).not.toBeInTheDocument();
-		expect(screen.getByLabelText('Resize Account column')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Allocation' })).toBeInTheDocument();
+		expect(screen.getByTestId('column-header-allocation')).toBeInTheDocument();
+		expect(screen.getByLabelText('Resize Allocation column')).toBeInTheDocument();
 
 		rerender({ holdings: groupRows, groupBy: 'stock' });
 
-		expect(screen.getByRole('button', { name: 'Accounts' })).toBeInTheDocument();
-		expect(screen.queryByRole('button', { name: 'Account' })).not.toBeInTheDocument();
-		expect(screen.getByLabelText('Resize Accounts column')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Allocation' })).toBeInTheDocument();
+		expect(screen.getByTestId('column-header-allocation')).toBeInTheDocument();
+		expect(screen.getByLabelText('Resize Allocation column')).toBeInTheDocument();
 	});
 
 	it('applies opaque zebra/hover tints to rows, inherited by the sticky Security cell, with borders on cells', () => {
@@ -735,7 +741,7 @@ describe('HoldingsTable', () => {
 
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('160px');
 			expect(screen.getByTestId('column-col-security_symbol').style.width).toBe('220px');
-			expect(screen.getByTestId('column-col-account_name').style.width).toBe('140px');
+			expect(screen.getByTestId('column-col-account_name').style.width).toBe('180px');
 
 			await fireEvent.pointerUp(handle, { clientX: 150, pointerId: 1 });
 		});
@@ -834,42 +840,53 @@ describe('HoldingsTable', () => {
 
 			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
 
-			expect(screen.getAllByRole('columnheader')).toHaveLength(11);
+			expect(screen.getAllByRole('columnheader')).toHaveLength(9);
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
 		});
 	});
 
-	describe('% of Total and Account Badge', () => {
-		it('renders "% of Total" column immediately adjacent to Total Value with correct portfolio percentage formatted to 1 decimal place', () => {
+	describe('Allocation and Price Display', () => {
+		it('renders overall percent of total alongside account badges in Allocation cell', () => {
 			render(HoldingsTable, { props: { holdings: sortRows } });
-
-			const headers = screen.getAllByRole('columnheader');
-			const totalValueIndex = headers.findIndex((h) => h.textContent?.includes('Total Value'));
-			const percentOfTotalIndex = headers.findIndex((h) => h.textContent?.includes('% of Total'));
-			expect(percentOfTotalIndex).toBe(totalValueIndex + 1);
 
 			const zRow = rowBySymbol('ZZZ');
-			expect(within(zRow).getByTestId('percent-of-total')).toHaveTextContent('8.2%');
+			const zAccountCell = within(zRow).getByTestId('account-cell');
+			expect(within(zAccountCell).getByTestId('percent-of-total')).toHaveTextContent('8.2%');
+			expect(within(zAccountCell).getByText('Account Z')).toBeInTheDocument();
 
 			const aRow = rowBySymbol('AAA');
-			expect(within(aRow).getByTestId('percent-of-total')).toHaveTextContent('82.0%');
+			const aAccountCell = within(aRow).getByTestId('account-cell');
+			expect(within(aAccountCell).getByTestId('percent-of-total')).toHaveTextContent('82.0%');
 
 			const mRow = rowBySymbol('MMM');
-			expect(within(mRow).getByTestId('percent-of-total')).toHaveTextContent('9.8%');
+			const mAccountCell = within(mRow).getByTestId('account-cell');
+			expect(within(mAccountCell).getByTestId('percent-of-total')).toHaveTextContent('9.8%');
 		});
 
-		it('sorts holdings table by "% of Total" column ascending and descending', async () => {
+		it('sorts holdings table by Allocation column ascending and descending', async () => {
 			render(HoldingsTable, { props: { holdings: sortRows } });
 
-			const percentHeader = screen.getByRole('columnheader', { name: /% of Total/i });
+			const allocationHeader = screen.getByRole('columnheader', { name: /Allocation/i });
 			// Default sort was total_value desc (AAA: 500, MMM: 200, ZZZ: 50).
-			// Clicking % of Total sorts desc first
-			await fireEvent.click(percentHeader);
+			// Clicking Allocation sorts desc first
+			await fireEvent.click(allocationHeader);
 			expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
 
-			// Clicking again sorts asc (ZZZ: 6.7%, MMM: 26.7%, AAA: 66.7%)
-			await fireEvent.click(percentHeader);
+			// Clicking again sorts asc (ZZZ: 8.2%, MMM: 9.8%, AAA: 82.0%)
+			await fireEvent.click(allocationHeader);
 			expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+		});
+
+		it('renders latest_price and average_cost stacked in Price cell, or dash when null', () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const zRow = rowBySymbol('ZZZ');
+			expect(within(zRow).getByTestId('latest-price')).toHaveTextContent('$10.00');
+			expect(within(zRow).getByTestId('average-cost')).toHaveTextContent('$10.00');
+
+			const aRow = rowBySymbol('AAA');
+			expect(within(aRow).getByTestId('latest-price')).toHaveTextContent('-');
+			expect(within(aRow).getByTestId('average-cost')).toHaveTextContent('—');
 		});
 
 		it('renders account badge with holding percentage of account value for single holding and multiple holdings within the same account', () => {
@@ -1092,6 +1109,62 @@ describe('HoldingsTable', () => {
 			const aRow = rowBySymbol('AAA');
 			expect(within(aRow).queryByTestId('valuation-upside-range')).not.toBeInTheDocument();
 			expect(within(aRow).queryByTestId('valuation-updated-at')).not.toBeInTheDocument();
+		});
+
+		it('opens ValuationModal when clicking valuation range cell and invokes onValuationChange on save', async () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 20,
+					upper_bound: 50
+				}
+			};
+			const onValuationChange = vi.fn();
+			vi.mocked(valuationClient.setValuation).mockResolvedValue({
+				id: 1,
+				user_id: 'u-1',
+				security_id: 'sec-z',
+				lower_bound: 25,
+				upper_bound: 60,
+				created_at: '2026-10-01T00:00:00Z',
+				updated_at: '2026-10-07T00:00:00Z'
+			});
+
+			render(HoldingsTable, {
+				props: {
+					holdings: sortRows,
+					valuations: mockValuations,
+					onValuationChange
+				}
+			});
+
+			const zRow = rowBySymbol('ZZZ');
+			const trigger = within(zRow).getByTestId('valuation-edit-trigger');
+			expect(trigger).toBeInTheDocument();
+			expect(trigger.className).toContain('hover:bg-background/60');
+
+			await fireEvent.click(trigger);
+
+			// ValuationModal should now be open
+			expect(screen.getByText('Set Valuation Range')).toBeInTheDocument();
+			const saveButton = screen.getByRole('button', { name: 'Save Valuation' });
+
+			await fireEvent.click(saveButton);
+
+			await waitFor(() => {
+				expect(valuationClient.setValuation).toHaveBeenCalledWith('sec-z', {
+					lower_bound: 20,
+					upper_bound: 50
+				});
+				expect(onValuationChange).toHaveBeenCalledWith(
+					'sec-z',
+					expect.objectContaining({
+						security_id: 'sec-z',
+						lower_bound: 25,
+						upper_bound: 60
+					})
+				);
+			});
 		});
 	});
 });

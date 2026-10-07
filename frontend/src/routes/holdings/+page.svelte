@@ -7,6 +7,8 @@
 	import TotalProfitLossButtons from '$lib/components/total-profit-loss-buttons.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import Check from '@lucide/svelte/icons/check';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { HoldingsService } from '$lib/components/holdings/holdingsService.svelte';
@@ -72,15 +74,11 @@
 			: null
 	);
 
-	const pageSubtitle = $derived.by(() => {
-		if (service.filter.type === 'portfolio' && activePortfolio) {
-			return `Holdings in ${activePortfolio.name}`;
-		}
-		if (service.filter.type === 'account' && activeAccount) {
-			return `Holdings in ${activeAccount.name}`;
-		}
-		return 'All holdings across your accounts';
-	});
+	const assignedPortfolio = $derived(
+		activeAccount
+			? data.portfolios?.find((p) => p.accounts.some((a) => a.id === activeAccount.id))
+			: null
+	);
 
 	const emptyMessage = $derived(
 		service.filter.type !== 'all' && service.allRows.length > 0 && service.rows.length === 0
@@ -203,7 +201,103 @@
 <!-- Bound to the viewport so `main` owns the scroll: the page header stays put
      while the (long) holdings table scrolls underneath it. -->
 <div class="flex h-svh max-h-svh min-h-0 flex-1 flex-col overflow-hidden bg-background">
-	<PageHeader title="Holdings" subtitle={pageSubtitle}>
+	<PageHeader
+		subtitle={service.filter.type === 'all' ? 'All holdings across your accounts' : undefined}
+	>
+		{#snippet titleSlot()}
+			{#if service.filter.type === 'all'}
+				<h2 class="text-lg font-semibold">Holdings</h2>
+			{:else}
+				<nav aria-label="Breadcrumb" class="flex items-center gap-1.5">
+					<button
+						type="button"
+						class="cursor-pointer text-lg font-semibold text-muted-foreground transition-colors hover:text-primary"
+						onclick={() => handleSelectFilter('all')}
+						data-testid="breadcrumb-holdings"
+					>
+						Holdings
+					</button>
+					<ChevronRight class="h-4 w-4 shrink-0 text-muted-foreground" />
+
+					{#if (service.filter.type === 'portfolio' && activePortfolio) || assignedPortfolio}
+						{@const port =
+							service.filter.type === 'portfolio' ? activePortfolio : assignedPortfolio}
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										data-testid="breadcrumb-portfolio-trigger"
+										class="flex cursor-pointer items-center gap-1 text-lg font-semibold transition-colors hover:text-primary {service
+											.filter.type === 'account'
+											? 'text-muted-foreground'
+											: ''}"
+									>
+										<span>{port?.name ?? 'Portfolio'}</span>
+										<ChevronDown class="h-4 w-4 opacity-50" />
+									</button>
+								{/snippet}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="start" class="w-48">
+								{#if data.portfolios && data.portfolios.length > 0}
+									{#each data.portfolios as portfolio (portfolio.id)}
+										<DropdownMenu.Item
+											data-testid={`breadcrumb-portfolio-${portfolio.id}`}
+											class="flex items-center justify-between"
+											onSelect={() => handleSelectFilter('portfolio', portfolio.id)}
+										>
+											<span class="truncate">{portfolio.name}</span>
+											{#if port?.id === portfolio.id}
+												<Check size={14} />
+											{/if}
+										</DropdownMenu.Item>
+									{/each}
+								{/if}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+
+						{#if service.filter.type === 'account' && activeAccount}
+							<ChevronRight class="h-4 w-4 shrink-0 text-muted-foreground" />
+						{/if}
+					{/if}
+
+					{#if service.filter.type === 'account' && activeAccount}
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										data-testid="breadcrumb-account-trigger"
+										class="flex cursor-pointer items-center gap-1 text-lg font-semibold transition-colors hover:text-primary"
+									>
+										<span>{activeAccount.name}</span>
+										<ChevronDown class="h-4 w-4 opacity-50" />
+									</button>
+								{/snippet}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="start" class="w-48">
+								{#if data.accounts && data.accounts.length > 0}
+									{#each data.accounts as account (account.id)}
+										<DropdownMenu.Item
+											data-testid={`breadcrumb-account-${account.id}`}
+											class="flex items-center justify-between"
+											onSelect={() => handleSelectFilter('account', account.id)}
+										>
+											<span class="truncate">{account.name}</span>
+											{#if activeAccount.id === account.id}
+												<Check size={14} />
+											{/if}
+										</DropdownMenu.Item>
+									{/each}
+								{/if}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					{/if}
+				</nav>
+			{/if}
+		{/snippet}
 		{#snippet actions()}
 			<div class="flex items-center gap-6">
 				{#each currencyTotals as total (total.currency)}
@@ -315,6 +409,9 @@
 			{tableConfig}
 			onConfigChange={handleConfigChange}
 			onAccountClick={(accountId) => handleSelectFilter('account', accountId)}
+			onValuationChange={(secId, val) => {
+				service.valuations[secId] = val;
+			}}
 			elliottWaves={data.elliott_waves}
 			valuations={service.valuations}
 			{emptyMessage}

@@ -31,6 +31,13 @@ vi.mock('$lib/api/userPreferencesService', () => ({
 	getUserPreferencesService: vi.fn()
 }));
 
+vi.mock('$lib/api/valuationClient', () => ({
+	valuationClient: {
+		setValuation: vi.fn(),
+		getValuation: vi.fn()
+	}
+}));
+
 import { goto } from '$app/navigation';
 import { ApiError } from '$lib/api/apiClient';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
@@ -39,6 +46,7 @@ import {
 	getUserPreferencesService,
 	type UserPreferencesService
 } from '$lib/api/userPreferencesService';
+import { valuationClient } from '$lib/api/valuationClient';
 
 const getUserHoldings = vi.fn();
 const getValuationsBatch = vi.fn();
@@ -663,8 +671,76 @@ describe('Holdings page (+page.svelte)', () => {
 
 			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
-			expect(screen.getByText('Holdings in TFSA')).toBeInTheDocument();
+			expect(screen.getByTestId('breadcrumb-holdings')).toBeInTheDocument();
+			expect(screen.getByTestId('breadcrumb-account-trigger')).toHaveTextContent('TFSA');
 			expect(screen.queryByTestId('holdings-filter-trigger')).not.toBeInTheDocument();
+		});
+
+		it('renders breadcrumbs when filtered by portfolio and allows switching or clearing', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				portfolios: [testPortfolio],
+				accounts: [testAccount1, testAccount2],
+				portfolio_id: 'port-1'
+			});
+
+			expect(screen.getByTestId('breadcrumb-holdings')).toBeInTheDocument();
+			const portTrigger = screen.getByTestId('breadcrumb-portfolio-trigger');
+			expect(portTrigger).toHaveTextContent('Retirement');
+
+			// Clicking breadcrumb-holdings clears filter to /holdings
+			await fireEvent.click(screen.getByTestId('breadcrumb-holdings'));
+			expect(goto).toHaveBeenCalledWith('/holdings', expect.anything());
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
+		});
+
+		it('renders breadcrumbs when filtered by account with assigned portfolio and allows switching', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				portfolios: [testPortfolio],
+				accounts: [testAccount1, testAccount2],
+				account_id: 'acc-2'
+			});
+
+			// acc-2 is in testPortfolio ('Retirement')
+			expect(screen.getByTestId('breadcrumb-holdings')).toBeInTheDocument();
+			expect(screen.getByTestId('breadcrumb-portfolio-trigger')).toHaveTextContent('Retirement');
+			const accTrigger = screen.getByTestId('breadcrumb-account-trigger');
+			expect(accTrigger).toHaveTextContent('RRSP');
+
+			// Clicking account trigger opens dropdown and allows switching account
+			await fireEvent.click(accTrigger);
+			const tfsaOption = await screen.findByTestId('breadcrumb-account-acc-1');
+			expect(tfsaOption).toBeInTheDocument();
+
+			await fireEvent.click(tfsaOption);
+			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
+		});
+
+		it('updates valuation in table when saved in ValuationModal without page reload', async () => {
+			vi.mocked(valuationClient.setValuation).mockResolvedValue({
+				id: 1,
+				user_id: 'u-1',
+				security_id: 'sec-aapl',
+				lower_bound: 150,
+				upper_bound: 250,
+				created_at: '2026-10-01T00:00:00Z',
+				updated_at: '2026-10-07T00:00:00Z'
+			});
+
+			await renderWithHoldings([aaplTfsa]);
+
+			const trigger = screen.getByTestId('valuation-edit-trigger');
+			expect(trigger).toHaveTextContent('—');
+
+			await fireEvent.click(trigger);
+			expect(screen.getByText('Set Valuation Range')).toBeInTheDocument();
+
+			await fireEvent.input(screen.getByLabelText('Lower Bound'), { target: { value: '150' } });
+			await fireEvent.input(screen.getByLabelText('Upper Bound'), { target: { value: '250' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save Valuation' }));
+
+			await waitFor(() => {
+				expect(trigger).toHaveTextContent('150.00 – 250.00');
+			});
 		});
 
 		it('updates currency totals when holdings are filtered by portfolio', async () => {
