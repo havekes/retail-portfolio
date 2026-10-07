@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import Page from './+page.svelte';
-import type { UserHolding, Account } from '$lib/types/account';
+import type { AccountTotals, UserHolding, Account } from '$lib/types/account';
 import { AccountType, Institution } from '$lib/types/account';
 import type { Portfolio } from '$lib/types/portfolio';
 import {
@@ -23,6 +24,10 @@ vi.mock('$lib/api/accountService', () => ({
 	getAccountService: vi.fn()
 }));
 
+vi.mock('$lib/api/accountClient', () => ({
+	getAccountClient: vi.fn()
+}));
+
 vi.mock('$lib/api/marketService', () => ({
 	getMarketService: vi.fn()
 }));
@@ -41,6 +46,7 @@ vi.mock('$lib/api/valuationClient', () => ({
 import { goto } from '$app/navigation';
 import { ApiError } from '$lib/api/apiClient';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import { getAccountClient, type AccountClient } from '$lib/api/accountClient';
 import { getMarketService, type MarketService } from '$lib/api/marketService';
 import {
 	getUserPreferencesService,
@@ -52,6 +58,24 @@ const getUserHoldings = vi.fn();
 const getValuationsBatch = vi.fn();
 const getPreferences = vi.fn();
 const patchPreferences = vi.fn();
+const getAccountTotals = vi.fn();
+
+function makeTotals(
+	value: number,
+	profitLoss: number,
+	overrides: Partial<AccountTotals> = {}
+): AccountTotals {
+	return {
+		cost: { value: String(value - profitLoss) },
+		value: { value: String(value) },
+		cash: { value: '0' },
+		net_deposits: null,
+		profit_loss: { value: String(profitLoss) },
+		return_percent: null,
+		basis: 'cost',
+		...overrides
+	};
+}
 
 function makeRow(
 	overrides: Partial<UserHolding> &
@@ -186,21 +210,68 @@ async function renderWithHoldings(
 	}
 }
 
+const testAccount1: Account = {
+	id: 'acc-1',
+	name: 'TFSA',
+	external_id: 'ext-1',
+	account_type_id: AccountType.TFSA,
+	institution_id: Institution.Questrade,
+	currency: 'CAD',
+	is_active: true,
+	api_sync_enabled: false,
+	created_at: new Date('2025-01-01')
+};
+
+const testAccount2: Account = {
+	id: 'acc-2',
+	name: 'RRSP',
+	external_id: 'ext-2',
+	account_type_id: AccountType.RRSP,
+	institution_id: Institution.Questrade,
+	currency: 'CAD',
+	is_active: true,
+	api_sync_enabled: false,
+	created_at: new Date('2025-01-01')
+};
+
+const testAccount3: Account = {
+	id: 'acc-3',
+	name: 'USD Account',
+	external_id: 'ext-3',
+	account_type_id: AccountType.NonRegistered,
+	institution_id: Institution.Questrade,
+	currency: 'USD',
+	is_active: true,
+	api_sync_enabled: false,
+	created_at: new Date('2025-01-01')
+};
+
+const testPortfolio: Portfolio = {
+	id: 'port-1',
+	name: 'Retirement',
+	accounts: [testAccount2]
+};
+
 describe('Holdings page (+page.svelte)', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		getUserHoldings.mockReset();
 		getPreferences.mockReset();
 		patchPreferences.mockReset();
+		getAccountTotals.mockReset();
 
 		getUserHoldings.mockResolvedValue(pageOf([]));
 		getPreferences.mockResolvedValue({});
 		patchPreferences.mockResolvedValue({});
+		getAccountTotals.mockResolvedValue(makeTotals(0, 0));
 		getValuationsBatch.mockReset();
 		getValuationsBatch.mockResolvedValue([]);
 		vi.mocked(getAccountService).mockReturnValue({
 			getUserHoldings
 		} as unknown as AccountService);
+		vi.mocked(getAccountClient).mockReturnValue({
+			getAccountTotals
+		} as unknown as AccountClient);
 		vi.mocked(getMarketService).mockReturnValue({
 			getValuationsBatch
 		} as unknown as MarketService);
@@ -281,34 +352,90 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(getUserHoldings).toHaveBeenNthCalledWith(2, 50, 50, undefined);
 	});
 
-	it('buckets header totals per currency instead of summing across them', async () => {
-		await renderWithHoldings([aaplTfsa, aaplRrsp, aaplUsd]);
+	it('aggregates header totals per currency from the account totals', async () => {
+		getAccountTotals.mockImplementation(async (id: string) => {
+			if (id === 'acc-1')
+				return makeTotals(1000, 100, {
+					basis: 'net_deposits',
+					net_deposits: { value: '900' }
+				});
+			if (id === 'acc-2')
+				return makeTotals(500, 50, {
+					basis: 'net_deposits',
+					net_deposits: { value: '450' }
+				});
+			return makeTotals(200, 20, { basis: 'cost' });
+		});
 
-		const cadTotalBtn = screen.getByTestId('currency-CAD-total-value');
+		await renderWithHoldings([aaplTfsa, aaplRrsp, aaplUsd], {
+			accounts: [testAccount1, testAccount2, testAccount3]
+		});
+
+		// One CAD bucket and one USD bucket, never summed together.
+		expect(screen.getAllByTestId(/^currency-.*-total-value$/)).toHaveLength(2);
+
+		const cadTotalBtn = await screen.findByTestId('currency-CAD-total-value');
 		expect(cadTotalBtn).toHaveTextContent('$1,500.00');
 
+		// 150 / 1350 * 100
 		const cadReturnPill = screen.getByTestId('currency-CAD-return-percent');
-		expect(cadReturnPill).toHaveTextContent('+3.33%');
+		expect(cadReturnPill).toHaveTextContent('+11.11%');
 		expect(cadReturnPill.className).toContain('text-emerald-600');
 
-		const cadPl = screen.getByTestId('currency-CAD-profit-loss-value');
-		expect(cadPl).toHaveTextContent('+$50.00');
+		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('+$150.00');
 
-		const usdTotalBtn = screen.getByTestId('currency-USD-total-value');
-		expect(usdTotalBtn).toHaveTextContent('US$200.00');
+		expect(screen.getByTestId('currency-USD-total-value')).toHaveTextContent('US$200.00');
+		expect(screen.getByTestId('currency-USD-profit-loss-value')).toHaveTextContent('+US$20.00');
+	});
 
-		const usdReturnPill = screen.getByTestId('currency-USD-return-percent');
-		expect(usdReturnPill).toHaveTextContent('+20.00%');
-		expect(usdReturnPill.className).toContain('text-emerald-600');
+	it('uses the filtered account totals verbatim, including cash', async () => {
+		getAccountTotals.mockImplementation(async (id: string) => {
+			if (id === 'acc-1')
+				return makeTotals(1234.56, 234.56, {
+					basis: 'net_deposits',
+					net_deposits: { value: '1000' }
+				});
+			return makeTotals(0, 0);
+		});
 
-		const usdPl = screen.getByTestId('currency-USD-profit-loss-value');
-		expect(usdPl).toHaveTextContent('+US$20.00');
+		await renderWithHoldings([aaplTfsa], {
+			accounts: [testAccount1, testAccount2],
+			account_id: 'acc-1'
+		});
+
+		const totalValueBtn = await screen.findByTestId('currency-CAD-total-value');
+		expect(totalValueBtn).toHaveTextContent('$1,234.56');
+		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('+$234.56');
+		// Only the selected account's bucket is shown.
+		expect(screen.getAllByTestId(/^currency-.*-total-value$/)).toHaveLength(1);
+	});
+
+	it('labels a mixed-basis currency bucket "mixed basis" in the tooltip', async () => {
+		const user = userEvent.setup();
+		getAccountTotals.mockImplementation(async (id: string) =>
+			id === 'acc-1'
+				? makeTotals(1000, 100, { basis: 'net_deposits', net_deposits: { value: '900' } })
+				: makeTotals(500, 50, { basis: 'cost' })
+		);
+
+		await renderWithHoldings([aaplTfsa, aaplRrsp], {
+			accounts: [testAccount1, testAccount2]
+		});
+
+		await screen.findByTestId('currency-CAD-total-value');
+		await user.hover(screen.getByTestId('currency-CAD-profit-loss'));
+
+		expect(await screen.findByText('mixed basis')).toBeInTheDocument();
 	});
 
 	it('renders currency totals using TotalProfitLossButtons with split value and profit/loss buttons', async () => {
-		await renderWithHoldings([aaplTfsa]);
+		getAccountTotals.mockResolvedValue(
+			makeTotals(1000, 100, { basis: 'net_deposits', net_deposits: { value: '1000' } })
+		);
 
-		const totalValueBtn = screen.getByTestId('currency-CAD-total-value');
+		await renderWithHoldings([aaplTfsa], { accounts: [testAccount1] });
+
+		const totalValueBtn = await screen.findByTestId('currency-CAD-total-value');
 		const profitLossBtn = screen.getByTestId('currency-CAD-profit-loss');
 		expect(totalValueBtn).toBeInTheDocument();
 		expect(profitLossBtn).toBeInTheDocument();
@@ -318,63 +445,67 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	it('renders negative return % pill badge with negative styling', async () => {
-		const losingHolding = makeRow({
-			id: 'h-loss',
-			security_id: 'sec-loss',
-			security_symbol: 'LOSS',
-			security_name: 'Loss Corp',
-			quantity: 10,
-			average_cost: 100,
-			converted_average_cost: 100,
-			total_value: 800,
-			profit_loss: -200,
-			currency: 'CAD'
-		});
+		getAccountTotals.mockResolvedValue(
+			makeTotals(800, -200, { basis: 'net_deposits', net_deposits: { value: '1000' } })
+		);
 
-		await renderWithHoldings([losingHolding]);
+		await renderWithHoldings([aaplTfsa], { accounts: [testAccount1] });
 
-		const pill = screen.getByTestId('currency-CAD-return-percent');
+		const pill = await screen.findByTestId('currency-CAD-return-percent');
 		expect(pill).toHaveTextContent('-20.00%');
 		expect(pill.className).toContain('text-rose-600');
 		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('-$200.00');
 	});
 
-	it('handles currency bucket with zero cost basis or missing profit/loss gracefully', async () => {
-		const zeroCostHolding = makeRow({
-			id: 'h-gift',
-			security_id: 'sec-gift',
-			security_symbol: 'GIFT',
-			security_name: 'Gifted Sec',
-			quantity: 10,
-			average_cost: 0,
-			converted_average_cost: 0,
-			total_value: 500,
-			profit_loss: 500,
-			currency: 'CAD'
-		});
-		const noPlHolding = makeRow({
-			id: 'h-nopl',
-			security_id: 'sec-nopl',
-			security_symbol: 'NOPL',
-			security_name: 'No PL Sec',
-			quantity: 5,
-			average_cost: 100,
-			converted_average_cost: 100,
-			total_value: 500,
-			profit_loss: null,
-			currency: 'USD'
-		});
+	it('omits the return % pill when the bucket denominator is zero but keeps the dollar profit/loss', async () => {
+		getAccountTotals.mockResolvedValue(makeTotals(500, 500, { basis: 'cost' }));
 
-		await renderWithHoldings([zeroCostHolding, noPlHolding]);
+		await renderWithHoldings([aaplTfsa], { accounts: [testAccount1] });
 
-		// Zero cost basis -> returnPercent is null, pill badge omitted, but dollar profit/loss is displayed
+		// value - profit_loss is zero here, so there is no meaningful percentage.
+		expect(await screen.findByTestId('currency-CAD-total-value')).toHaveTextContent('$500.00');
 		expect(screen.queryByTestId('currency-CAD-return-percent')).not.toBeInTheDocument();
 		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('+$500.00');
+	});
 
-		// Missing profit/loss -> hasProfitLoss is false, right side (pill and dollar P/L) is omitted
-		expect(screen.queryByTestId('currency-USD-return-percent')).not.toBeInTheDocument();
-		expect(screen.queryByTestId('currency-USD-profit-loss-value')).not.toBeInTheDocument();
-		expect(screen.getByTestId('currency-USD-total-value')).toHaveTextContent('US$500.00');
+	it('requests account totals after navigation without blocking the shell', async () => {
+		let resolveLoad!: (value: unknown) => void;
+		getUserHoldings.mockReturnValueOnce(
+			new Promise((resolve) => {
+				resolveLoad = resolve;
+			})
+		);
+
+		render(Page, { props: { data: makeData({ accounts: [testAccount1] }) } });
+
+		// The shell is already painted while the holdings wave is still in flight.
+		expect(screen.getByText('Holdings')).toBeInTheDocument();
+		await waitFor(() => expect(getAccountTotals).toHaveBeenCalledWith('acc-1', undefined));
+
+		resolveLoad(pageOf([]));
+		await waitFor(() => expect(screen.getByTestId('empty-state')).toBeInTheDocument());
+	});
+
+	it('omits the account whose totals request fails and shows the existing error banner', async () => {
+		getAccountTotals.mockImplementation(async (id: string) => {
+			if (id === 'acc-1') {
+				return makeTotals(1000, 100, {
+					basis: 'net_deposits',
+					net_deposits: { value: '900' }
+				});
+			}
+			throw new Error('Totals service unavailable');
+		});
+
+		await renderWithHoldings([aaplTfsa, aaplRrsp], {
+			accounts: [testAccount1, testAccount2]
+		});
+
+		await waitFor(() =>
+			expect(screen.getByTestId('holdings-error')).toHaveTextContent('Totals service unavailable')
+		);
+		// acc-2 failed, so only acc-1's value is summed into the CAD bucket.
+		expect(await screen.findByTestId('currency-CAD-total-value')).toHaveTextContent('$1,000.00');
 	});
 
 	it('renders unified icon-only settings trigger button and no standalone group checkbox in header', async () => {
@@ -560,36 +691,6 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	describe('portfolio and account filtering', () => {
-		const testAccount1: Account = {
-			id: 'acc-1',
-			name: 'TFSA',
-			external_id: 'ext-1',
-			account_type_id: AccountType.TFSA,
-			institution_id: Institution.Questrade,
-			currency: 'CAD',
-			is_active: true,
-			api_sync_enabled: false,
-			created_at: new Date('2025-01-01')
-		};
-
-		const testAccount2: Account = {
-			id: 'acc-2',
-			name: 'RRSP',
-			external_id: 'ext-2',
-			account_type_id: AccountType.RRSP,
-			institution_id: Institution.Questrade,
-			currency: 'CAD',
-			is_active: true,
-			api_sync_enabled: false,
-			created_at: new Date('2025-01-01')
-		};
-
-		const testPortfolio: Portfolio = {
-			id: 'port-1',
-			name: 'Retirement',
-			accounts: [testAccount2]
-		};
-
 		it('filters displayed holdings to portfolio accounts when portfolio_id is provided in data', async () => {
 			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
 				portfolios: [testPortfolio],
@@ -746,15 +847,19 @@ describe('Holdings page (+page.svelte)', () => {
 		});
 
 		it('updates currency totals when holdings are filtered by portfolio', async () => {
+			getAccountTotals.mockImplementation(async (id: string) =>
+				id === 'acc-1' ? makeTotals(1000, 100) : makeTotals(900, 30)
+			);
+
 			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
 				portfolios: [testPortfolio],
 				accounts: [testAccount1, testAccount2]
 			});
 
-			// Initial CAD total: 1000 + 500 + 400 = 1900
-			expect(screen.getByTestId('currency-CAD-total-value')).toHaveTextContent('$1,900.00');
+			// Initial CAD total across both accounts: 1000 + 900 = 1900
+			expect(await screen.findByTestId('currency-CAD-total-value')).toHaveTextContent('$1,900.00');
 
-			// Filter to portfolio port-1 (only acc-2: 500 + 400 = 900)
+			// Filter to portfolio port-1 (only acc-2)
 			await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 			await fireEvent.click(await screen.findByTestId('filter-portfolio-port-1'));
 

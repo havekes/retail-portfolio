@@ -32,8 +32,8 @@ export class AccountClient extends ApiClient {
 		);
 	}
 
-	async getAccountTotals(id: string): Promise<AccountTotals> {
-		return this.get<AccountTotals>(`/accounts/${id}/totals`);
+	async getAccountTotals(id: string, token?: string | null): Promise<AccountTotals> {
+		return this.get<AccountTotals>(`/accounts/${id}/totals`, {}, token);
 	}
 
 	async getAccountHoldings(id: string, token?: string | null): Promise<AccountHoldings> {

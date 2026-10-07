@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import TotalProfitLossButtons from './total-profit-loss-buttons.svelte';
 
 describe('TotalProfitLossButtons', () => {
@@ -136,5 +137,25 @@ describe('TotalProfitLossButtons', () => {
 		});
 
 		expect(screen.getByText('+25.00%')).toBeInTheDocument();
+	});
+
+	it('shows the basis label in the profit/loss tooltip', async () => {
+		const user = userEvent.setup();
+
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				profitLoss: 50,
+				returnPercent: 5.26,
+				basisLabel: 'mixed basis',
+				testIdPrefix: 'account-1'
+			}
+		});
+
+		expect(screen.queryByText('mixed basis')).not.toBeInTheDocument();
+
+		await user.hover(screen.getByTestId('account-1-profit-loss'));
+
+		expect(await screen.findByText('mixed basis')).toBeInTheDocument();
 	});
 });
