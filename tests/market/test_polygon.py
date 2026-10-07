@@ -425,6 +425,7 @@ def test_next_url_is_followed_and_entries_merged(session_cls):
     chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
 
     assert len(chain.contracts) == 2
+    assert chain.truncated is False
     mock_get = session_cls.return_value.get
     assert mock_get.call_count == 2
     second_url = mock_get.call_args_list[1].args[0]
@@ -491,6 +492,7 @@ def test_sticky_next_url_is_truncated_at_cap(session_cls):
     assert len(chain.contracts) == _MAX_PAGES
     assert chain.contracts[0].contract.contract_ticker == "O:AAPL250117C00150000"
     assert "polygon" not in chain.underlying_symbol.lower()
+    assert chain.truncated is True
 
 
 # --------------------------------------------------------------------------- #

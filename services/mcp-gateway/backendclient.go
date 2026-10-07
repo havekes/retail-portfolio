@@ -88,14 +88,12 @@ func (c *BackendClient) SymbolSearch(ctx context.Context, query string) (json.Ra
 func (c *BackendClient) OptionsChain(
 	ctx context.Context,
 	symbol string,
-	expiry *time.Time,
+	expiry time.Time,
 	optionType string,
 	strikeMin, strikeMax *float64,
 ) (json.RawMessage, error) {
 	query := url.Values{}
-	if expiry != nil {
-		query.Set("expiry", expiry.Format("2006-01-02"))
-	}
+	query.Set("expiry", expiry.Format("2006-01-02"))
 	if optionType != "" {
 		query.Set("option_type", optionType)
 	}

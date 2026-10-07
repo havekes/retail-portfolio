@@ -1388,6 +1388,11 @@
             "title": "Contracts",
             "type": "array"
           },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
           "underlying_symbol": {
             "title": "Underlying Symbol",
             "type": "string"
@@ -2107,18 +2112,11 @@
           {
             "in": "query",
             "name": "expiry",
-            "required": false,
+            "required": true,
             "schema": {
-              "anyOf": [
-                {
-                  "format": "date",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Expiry"
+              "format": "date",
+              "title": "Expiry",
+              "type": "string"
             }
           },
           {
