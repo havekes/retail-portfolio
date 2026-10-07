@@ -53,14 +53,20 @@
 		}
 		error = null;
 		try {
-			const [holdingsRes, accounts] = await Promise.all([
+			const [holdingsRes, accounts, prefs] = await Promise.all([
 				accountService.getHoldings(effectiveSecurityId),
-				accountClient.getAccounts()
+				accountClient.getAccounts(),
+				userPreferencesService.getPreferences().catch(() => null)
 			]);
 			holdings = holdingsRes.items;
 
+			// Request every account's totals in the user's display currency so the
+			// portfolio total and the (display-currency) holding values share a
+			// single currency before being divided.
+			const displayCurrency = prefs?.display_currency ?? 'CAD';
+
 			const totalsList = await Promise.all(
-				accounts.map((acc) => accountClient.getAccountTotals(acc.id))
+				accounts.map((acc) => accountClient.getAccountTotals(acc.id, undefined, displayCurrency))
 			);
 
 			let totalPortfolioValue = 0;
@@ -68,7 +74,7 @@
 				totalPortfolioValue += moneyToNumber(totals?.value);
 			}
 
-			const totalSecurityValue = holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0);
+			const totalSecurityValue = holdings.reduce((sum, h) => sum + (h.display_total_value ?? 0), 0);
 
 			if (totalPortfolioValue > 0) {
 				portfolioPercentage = (totalSecurityValue / totalPortfolioValue) * 100;

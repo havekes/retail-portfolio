@@ -32,8 +32,18 @@ export class AccountClient extends ApiClient {
 		);
 	}
 
-	async getAccountTotals(id: string, token?: string | null): Promise<AccountTotals> {
-		return this.get<AccountTotals>(`/accounts/${id}/totals`, {}, token);
+	/**
+	 * Fetch server-computed totals for an account.
+	 *
+	 * `currency` requests the totals converted to a display currency; the token
+	 * is kept as the second argument so existing callers are unaffected.
+	 */
+	async getAccountTotals(
+		id: string,
+		token?: string | null,
+		currency?: string | null
+	): Promise<AccountTotals> {
+		return this.get<AccountTotals>(`/accounts/${id}/totals`, currency ? { currency } : {}, token);
 	}
 
 	async getAccountHoldings(id: string, token?: string | null): Promise<AccountHoldings> {

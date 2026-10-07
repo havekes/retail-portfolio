@@ -9,6 +9,10 @@ export interface AccountHoldingRead {
 	average_cost?: number;
 	total_value: number;
 	currency: string;
+	/** Value converted to the user's display currency (see backend `AccountHoldingRead`). */
+	display_total_value: number;
+	/** The user's display-currency preference these display values are in. */
+	display_currency: string;
 	account_total_value?: number;
 	account_percentage?: number;
 }

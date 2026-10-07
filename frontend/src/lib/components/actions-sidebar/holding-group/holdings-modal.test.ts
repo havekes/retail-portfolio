@@ -47,6 +47,8 @@ describe('HoldingsModal Component', () => {
 			average_cost: 100,
 			total_value: 1500,
 			currency: 'USD',
+			display_total_value: 1500,
+			display_currency: 'CAD',
 			account_percentage: 25.5
 		},
 		{
@@ -56,6 +58,8 @@ describe('HoldingsModal Component', () => {
 			average_cost: 120,
 			total_value: 3000,
 			currency: 'USD',
+			display_total_value: 3000,
+			display_currency: 'CAD',
 			account_percentage: 45.0
 		}
 	];
