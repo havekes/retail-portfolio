@@ -274,7 +274,17 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         for security_id, ws_balance in ws_balances.items():
             if not _is_cash_security_id(security_id):
                 continue
-            cash_balances[_cash_currency(security_id)] = Decimal(str(ws_balance))
+            currency = _cash_currency(security_id)
+            if currency in cash_balances:
+                logger.warning(
+                    "Duplicate Wealthsimple cash balance for %s in account %s;"
+                    " summing them",
+                    currency,
+                    broker_account_id,
+                )
+            cash_balances[currency] = cash_balances.get(currency, Decimal(0)) + Decimal(
+                str(ws_balance)
+            )
 
         logger.info(
             "Parsed %d cash balances for account: %s",

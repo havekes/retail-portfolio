@@ -164,18 +164,20 @@ async def _sum_cash_in_account_currency(
     fx_provider = await svcs_container.aget(FxRateProvider)
     converter = await fx_provider.converter()
 
-    total = Decimal(0)
+    # ``CurrencyConverter.convert`` returns a float (our converters are not
+    # built with ``decimal=True``), so accumulate in float.
+    total = 0.0
     for currency, amount in cash_balances.items():
         if currency == account_currency:
-            total += amount
+            total += float(amount)
         else:
             total += converter.convert(
-                amount=amount,
+                amount=float(amount),
                 currency=currency,
                 new_currency=account_currency,
             )
 
-    return float(round(total, 2))
+    return round(total, 2)
 
 
 _SYNC_ERROR_MESSAGE_MAPPING: tuple[tuple[type[Exception], str], ...] = (

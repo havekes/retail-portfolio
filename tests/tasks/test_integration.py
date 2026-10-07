@@ -1251,7 +1251,7 @@ async def test_sync_positions_persists_converted_free_cash(
     account_api = AsyncMock(spec=AccountApi)
 
     converter = MagicMock()
-    converter.convert.return_value = Decimal("123.456")
+    converter.convert.return_value = 123.456
     fx_provider = AsyncMock(spec=FxRateProvider)
     fx_provider.converter.return_value = converter
 
@@ -1276,10 +1276,10 @@ async def test_sync_positions_persists_converted_free_cash(
             mock_account.user_id, mock_account, broker_account_id, _SyncTestGateway
         )
 
-    # 500 CAD + 123.456 (100 USD -> CAD) = 623.456, rounded to 2 dp.
+    # 500 CAD + 123.456 (100 USD -> CAD, float as the real converter returns) = 623.456
     account_api.update_free_cash.assert_awaited_once_with(mock_account.id, 623.46)
     converter.convert.assert_called_once_with(
-        amount=Decimal("100.0"), currency="USD", new_currency="CAD"
+        amount=100.0, currency="USD", new_currency="CAD"
     )
     # The security position is still synced alongside the cash.
     position_api.create.assert_awaited_once()

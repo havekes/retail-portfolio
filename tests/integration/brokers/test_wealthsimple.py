@@ -363,6 +363,24 @@ async def test_get_cash_balances_empty_when_no_cash(
 
 
 @pytest.mark.asyncio
+async def test_get_cash_balances_sums_duplicate_currency_keys(
+    gateway: WealthsimpleApiGateway,
+    dummy_user: IntegrationUserSchema,
+) -> None:
+    """Two ids mapping to the same currency are summed, not silently overwritten."""
+    mock_client = MagicMock()
+    mock_client.get_account_balances.return_value = {
+        "sec-c-cad": 100.0,
+        "[sec-c-cad]": 50.0,
+    }
+
+    with patch.object(gateway, "_get_client", return_value=mock_client):
+        cash = await gateway.get_cash_balances(dummy_user, "acc-tfsa-001")
+
+    assert cash == {"CAD": Decimal("150.0")}
+
+
+@pytest.mark.asyncio
 async def test_get_positions_by_account_skips_cash_and_does_not_log(
     gateway: WealthsimpleApiGateway,
     dummy_user: IntegrationUserSchema,
