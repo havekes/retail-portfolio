@@ -18,6 +18,8 @@ gateway (T10/T11); do not rename them:
 
 * ``GET /api/v1/market/data/prices/{symbol}`` — ``from``, ``to``, ``exchange``
   (``SupportedExchange``)
+* ``GET /api/v1/market/data/quote/{symbol}`` — ``exchange``
+  (``SupportedExchange``)
 * ``GET /api/v1/market/data/symbols/search`` — ``q``
 * ``GET /api/v1/market/data/options/{symbol}`` — ``expiry``, ``option_type``,
   ``strike_min``, ``strike_max``
@@ -55,6 +57,7 @@ from src.market.api_types import (
     IncomeStatement,
     OptionExpirations,
     OptionsChain,
+    Quote,
     SupportedExchange,
     SymbolLookupResult,
 )
@@ -207,6 +210,54 @@ async def market_data_prices(  # noqa: PLR0913, PLR0917
         )
 
     return response
+
+
+@data_router.get("/quote/{symbol}")
+async def market_data_quote(
+    _svc: Annotated[None, Depends(require_service_token)],
+    symbol: str,
+    services: DepContainer,
+    exchange: Annotated[SupportedExchange | None, Query()] = None,
+) -> Quote:
+    """Live quote snapshot for a symbol, served through the endpoint cache."""
+    normalized_symbol = symbol.upper()
+    gateway = services.get(DataPlaneMarketGateway)
+    cache = await services.aget(EndpointResponseCache)
+
+    params = {
+        "symbol": normalized_symbol,
+        "exchange": exchange,
+    }
+
+    async def fetch() -> Quote:
+        quote_task = asyncio.to_thread(
+            gateway.get_quote, normalized_symbol, exchange=exchange
+        )
+        currency_task = resolve_listing_currency(
+            gateway, cache, normalized_symbol, exchange
+        )
+        try:
+            quote, currency = await asyncio.gather(quote_task, currency_task)
+        except (
+            MarketDataProviderError,
+            MarketDataConfigurationError,
+        ) as exc:
+            raise _map_market_error(normalized_symbol, exc) from exc
+
+        return quote.model_copy(
+            update={"symbol": normalized_symbol, "currency": currency}
+        )
+
+    try:
+        return await cache.cached_response(
+            data_class="quotes",
+            endpoint="quote",
+            params=params,
+            fetch=fetch,
+            model=Quote,
+        )
+    except MarketDataNotFoundError as exc:
+        raise _map_market_error(normalized_symbol, exc) from exc
 
 
 @data_router.get("/symbols/search")

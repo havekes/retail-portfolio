@@ -21,6 +21,7 @@ from src.market.api_types import (
     KeyMetrics,
     OptionExpirations,
     OptionsChain,
+    Quote,
     SecuritySearchResult,
     SymbolLookupResult,
 )
@@ -140,6 +141,22 @@ class FakeFmpGateway(MarketGateway):
         self._record("get_financial_ratios", (symbol, period))
         return FinancialRatios(symbol=symbol, date=FROM_DATE)
 
+    def get_quote(self, symbol: str, *, exchange=None) -> Quote:
+        self._record("get_quote", (symbol,), {"exchange": exchange})
+        return Quote(
+            symbol=symbol,
+            price=Decimal("175.0"),
+            change=Decimal("1.0"),
+            change_percent=Decimal("0.5"),
+            previous_close=Decimal("174.0"),
+            open=Decimal("174.5"),
+            day_high=Decimal("176.0"),
+            day_low=Decimal("174.0"),
+            volume=1000000,
+            timestamp=datetime(2024, 1, 5, tzinfo=UTC),
+            currency="USD",
+        )
+
 
 class FakePolygonGateway(MarketGateway):
     """Records options-chain calls and returns a sentinel chain."""
@@ -203,6 +220,9 @@ class FakePolygonGateway(MarketGateway):
     ):
         raise AssertionError("Polygon must not receive intraday calls")
 
+    def get_quote(self, symbol, *, exchange=None):
+        raise AssertionError("Polygon must not receive quote calls")
+
 
 @pytest.fixture
 def fakes() -> tuple[FakeFmpGateway, FakePolygonGateway, CompositeMarketGateway]:
@@ -256,6 +276,20 @@ def test_fundamentals_route_to_fmp(fakes):
     # Period/limit arguments pass straight through.
     assert fmp.calls[1][1] == ("AAPL", "quarter", 2)
     assert fmp.calls[5][1] == ("AAPL", "quarter")
+
+
+def test_quote_routes_to_fmp(fakes):
+    fmp, polygon, composite = fakes
+
+    quote = composite.get_quote("AAPL", exchange="NASDAQ")
+
+    assert [name for name, *_ in fmp.calls] == ["get_quote"]
+    assert fmp.calls[0][1] == ("AAPL",)
+    assert fmp.calls[0][2] == {"exchange": "NASDAQ"}
+    assert quote.symbol == "AAPL"
+    assert quote.price == Decimal("175.0")
+    # Quote never leaks to Polygon.
+    assert all(name != "get_quote" for name, *_ in polygon.calls)
 
 
 def test_options_route_to_polygon_with_filters(fakes):

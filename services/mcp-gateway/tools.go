@@ -58,6 +58,14 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 			})
 		})
 
+	addTool(server, "get_quote",
+		"Live quote snapshot for a symbol.",
+		func(ctx context.Context, _ *mcp.CallToolRequest, in quoteInput) (*mcp.CallToolResult, any, error) {
+			return runTool(ctx, "get_quote", cfg, in, quoteInput.prepare, func(ctx context.Context, r quoteRequest) (any, error) {
+				return client.Quote(ctx, r.symbol, r.exchange)
+			})
+		})
+
 	addTool(server, "get_fundamentals",
 		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload (metrics and ratios may be null if unavailable).",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
@@ -384,6 +392,31 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 		from:     fromPtr,
 		to:       toPtr,
 		interval: interval,
+		exchange: exchange,
+	}, nil
+}
+
+type quoteInput struct {
+	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
+}
+
+type quoteRequest struct {
+	symbol   string
+	exchange string
+}
+
+func (in quoteInput) prepare() (quoteRequest, error) {
+	symbol, err := requireSymbol(in.Symbol)
+	if err != nil {
+		return quoteRequest{}, err
+	}
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return quoteRequest{}, err
+	}
+	return quoteRequest{
+		symbol:   symbol,
 		exchange: exchange,
 	}, nil
 }
