@@ -8,7 +8,7 @@ export interface Account {
 	institution_id: Institution;
 	currency: string;
 	broker_display_name?: string;
-	net_deposits?: number;
+	net_deposits?: number | null;
 	free_cash?: number;
 	is_active: boolean;
 	api_sync_enabled: boolean;
@@ -134,5 +134,7 @@ export interface CsvDiscoveredAccount {
 	currency: string;
 	positions_count: number;
 	positions?: CsvPositionRecord[];
+	/** Stored net deposits for existing accounts; `null`/absent for new ones. */
+	net_deposits?: number | null;
 	exists?: boolean;
 }
