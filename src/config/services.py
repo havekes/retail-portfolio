@@ -82,6 +82,10 @@ def register_market_stub_services(registry: Registry) -> None:
         security_search_cache_factory,
     )
     from src.market.eodhd import eodhd_gateway_factory  # noqa: PLC0415
+    from src.market.fx import (  # noqa: PLC0415
+        FxRateProvider,
+        fx_rate_provider_factory,
+    )
     from src.market.gateway import MarketGateway  # noqa: PLC0415
     from src.market.repository import (  # noqa: PLC0415
         ChartSnapshotRepository,
@@ -148,6 +152,7 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(SecuritySearchCache, security_search_cache_factory)
+    registry.register_factory(FxRateProvider, fx_rate_provider_factory)
     registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
