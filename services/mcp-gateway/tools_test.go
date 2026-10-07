@@ -101,7 +101,8 @@ const (
 				"strike_price": "150", "expiration_date": "2026-01-16",
 				"contract_type": "call", "shares_per_contract": 100, "active": true},
 			"quote": {"implied_volatility": "0.24", "open_interest": "8421"}
-		}]
+		}],
+		"truncated": false
 	}`
 
 	optionExpirationsBody = `{"underlying_symbol": "AAPL", "expirations": ["2026-01-16"], "truncated": false}`
@@ -122,7 +123,7 @@ type toolCall struct {
 var validToolCalls = []toolCall{
 	{"get_price_history", map[string]any{"symbol": "AAPL", "from": "2026-01-01", "to": "2026-01-31"}},
 	{"get_fundamentals", map[string]any{"symbol": "AAPL"}},
-	{"get_options_chain", map[string]any{"symbol": "AAPL"}},
+	{"get_options_chain", map[string]any{"symbol": "AAPL", "expiry": "2026-01-16"}},
 	{"get_option_expirations", map[string]any{"symbol": "AAPL"}},
 	{"get_financial_statements", map[string]any{"symbol": "AAPL", "statement": "income"}},
 	{"search_symbols", map[string]any{"q": "apple"}},
@@ -221,12 +222,40 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				var got struct {
 					UnderlyingSymbol string `json:"underlying_symbol"`
 					Contracts        []any  `json:"contracts"`
+					Truncated        bool   `json:"truncated"`
 				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode OptionsChain: %v", err)
 				}
 				if got.UnderlyingSymbol != "AAPL" || len(got.Contracts) != 1 {
 					t.Errorf("payload = %+v", got)
+				}
+				if got.Truncated {
+					t.Errorf("truncated = %v, want false", got.Truncated)
+				}
+			},
+		},
+		{
+			name: "get_options_chain with truncated true",
+			tool: "get_options_chain",
+			args: map[string]any{
+				"symbol": "aapl", "expiry": "2026-01-16",
+			},
+			body:     `{"underlying_symbol":"AAPL","contracts":[],"truncated":true}`,
+			wantPath: "/api/v1/market/data/options/AAPL",
+			wantQuery: map[string]string{
+				"expiry": "2026-01-16",
+			},
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					UnderlyingSymbol string `json:"underlying_symbol"`
+					Truncated        bool   `json:"truncated"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode OptionsChain: %v", err)
+				}
+				if got.UnderlyingSymbol != "AAPL" || !got.Truncated {
+					t.Errorf("payload = %+v, want truncated true", got)
 				}
 			},
 		},
@@ -949,10 +978,26 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 		{
 			name: "bad option type",
 			prepare: func() error {
-				_, err := (optionsChainInput{Symbol: "AAPL", OptionType: "straddle"}).prepare()
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "2026-01-16", OptionType: "straddle"}).prepare()
 				return err
 			},
 			want: "option_type must be 'call' or 'put'",
+		},
+		{
+			name: "missing expiry",
+			prepare: func() error {
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: ""}).prepare()
+				return err
+			},
+			want: "expiry is required; use get_option_expirations to list available dates",
+		},
+		{
+			name: "blank expiry",
+			prepare: func() error {
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "   "}).prepare()
+				return err
+			},
+			want: "expiry is required; use get_option_expirations to list available dates",
 		},
 		{
 			name: "bad expiry",
@@ -966,7 +1011,7 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			name: "strike min after max",
 			prepare: func() error {
 				min, max := 200.0, 100.0
-				_, err := (optionsChainInput{Symbol: "AAPL", StrikeMin: &min, StrikeMax: &max}).prepare()
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "2026-01-16", StrikeMin: &min, StrikeMax: &max}).prepare()
 				return err
 			},
 			want: "strike_min must be on or before strike_max",
@@ -1071,6 +1116,13 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 	if !resultStmt.IsError {
 		t.Fatalf("expected the SDK to reject missing statement argument, got %q", resultText(t, resultStmt))
 	}
+
+	// `expiry` is non-omitempty on get_options_chain, so the SDK rejects
+	// the call before the handler runs when omitted.
+	resultChain := callTool(t, session, "get_options_chain", map[string]any{"symbol": "AAPL"})
+	if !resultChain.IsError {
+		t.Fatalf("expected the SDK to reject missing expiry argument, got %q", resultText(t, resultChain))
+	}
 }
 
 func TestToolsRejectBeforeBackendCall(t *testing.T) {
@@ -1120,6 +1172,24 @@ func TestToolsRejectBeforeBackendCall(t *testing.T) {
 		})
 		if !res.IsError {
 			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		if captured.path != "" {
+			t.Errorf("backend called unexpectedly: %s", captured.path)
+		}
+	})
+
+	t.Run("missing or blank expiry rejected before backend call naming get_option_expirations", func(t *testing.T) {
+		captured.path = ""
+		res := callTool(t, session, "get_options_chain", map[string]any{
+			"symbol": "AAPL",
+			"expiry": "   ",
+		})
+		if !res.IsError {
+			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		text := resultText(t, res)
+		if !strings.Contains(text, "get_option_expirations") {
+			t.Errorf("expected error naming get_option_expirations, got %q", text)
 		}
 		if captured.path != "" {
 			t.Errorf("backend called unexpectedly: %s", captured.path)

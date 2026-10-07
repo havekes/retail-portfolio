@@ -208,6 +208,7 @@ class PolygonGateway(MarketGateway):
         payload = self._request_json(url, underlying)
         entries.extend(self._parse_entries(payload, underlying))
 
+        truncated = False
         pages_fetched = 1
         next_url = payload.get("next_url") if isinstance(payload, dict) else None
         while isinstance(next_url, str) and next_url:
@@ -218,6 +219,7 @@ class PolygonGateway(MarketGateway):
                     "Options chain pagination truncated at the %d page cap",
                     _MAX_PAGES,
                 )
+                truncated = True
                 break
             page = self._request_json(self._with_api_key(next_url), underlying)
             entries.extend(self._parse_entries(page, underlying))
@@ -233,6 +235,7 @@ class PolygonGateway(MarketGateway):
             underlying_symbol=underlying,
             as_of=None,
             contracts=entries,
+            truncated=truncated,
         )
 
     def get_option_expirations(self, symbol: str) -> OptionExpirations:

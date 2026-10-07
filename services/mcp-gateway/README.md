@@ -139,7 +139,7 @@ it. Every tool name, description and result string is provider-agnostic.
 | -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------- |
 | `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                                |
 | `get_fundamentals`         | `symbol`, `sections?`, `exchange?`                              | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate          |
-| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
+| `get_options_chain`        | `symbol`, `expiry`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
 | `get_option_expirations`   | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                           |
 | `get_financial_statements` | `symbol`, `statement`, `period?`, `limit?`, `exchange?`         | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Financial statements (income, balance, cashflow)  |
 | `search_symbols`           | `q`                                                             | `GET /api/v1/market/data/symbols/search`                        | Symbol lookup results                     |
@@ -153,8 +153,9 @@ actionable error rather than "no data":
 - `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
 - `get_fundamentals` accepts optional `sections` subset of `profile`, `key_metrics`,
   `ratios` (default all).
-- `get_options_chain` accepts `option_type` of `call` or `put`, parses `expiry`
-  as `YYYY-MM-DD`, and requires `strike_min <= strike_max`.
+- `get_options_chain` requires `expiry` (`YYYY-MM-DD`; use `get_option_expirations` to
+  discover valid dates), accepts `option_type` of `call` or `put`, and requires
+  `strike_min <= strike_max`.
 - `get_financial_statements` requires `statement` (`income`, `balance`, or
   `cashflow`), accepts `period` of `annual` (default) or `quarter`, and clamps
   `limit` to 1–20 with a default of 5.

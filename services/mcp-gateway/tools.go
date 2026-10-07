@@ -384,7 +384,7 @@ func (in fundamentalsInput) prepare() (fundamentalsRequest, error) {
 
 type optionsChainInput struct {
 	Symbol     string   `json:"symbol" jsonschema:"Ticker symbol of the underlying security."`
-	Expiry     string   `json:"expiry,omitempty" jsonschema:"Optional expiration date in YYYY-MM-DD format."`
+	Expiry     string   `json:"expiry" jsonschema:"Expiration date in YYYY-MM-DD format."`
 	OptionType string   `json:"option_type,omitempty" jsonschema:"Optional contract type filter: 'call' or 'put'."`
 	StrikeMin  *float64 `json:"strike_min,omitempty" jsonschema:"Optional minimum strike price."`
 	StrikeMax  *float64 `json:"strike_max,omitempty" jsonschema:"Optional maximum strike price."`
@@ -392,7 +392,7 @@ type optionsChainInput struct {
 
 type optionsChainRequest struct {
 	symbol     string
-	expiry     *time.Time
+	expiry     time.Time
 	optionType string
 	strikeMin  *float64
 	strikeMax  *float64
@@ -403,17 +403,16 @@ func (in optionsChainInput) prepare() (optionsChainRequest, error) {
 	if err != nil {
 		return optionsChainRequest{}, err
 	}
-	optionType, err := validateOptionType(in.OptionType)
+	if strings.TrimSpace(in.Expiry) == "" {
+		return optionsChainRequest{}, errors.New("expiry is required; use get_option_expirations to list available dates")
+	}
+	expiry, err := parseToolDate(in.Expiry, "expiry")
 	if err != nil {
 		return optionsChainRequest{}, err
 	}
-	var expiry *time.Time
-	if strings.TrimSpace(in.Expiry) != "" {
-		parsed, err := parseToolDate(in.Expiry, "expiry")
-		if err != nil {
-			return optionsChainRequest{}, err
-		}
-		expiry = &parsed
+	optionType, err := validateOptionType(in.OptionType)
+	if err != nil {
+		return optionsChainRequest{}, err
 	}
 	if in.StrikeMin != nil && in.StrikeMax != nil && *in.StrikeMin > *in.StrikeMax {
 		return optionsChainRequest{}, errors.New("strike_min must be on or before strike_max")

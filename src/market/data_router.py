@@ -277,7 +277,7 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
     _svc: Annotated[None, Depends(require_service_token)],
     symbol: str,
     services: DepContainer,
-    expiry: Annotated[date | None, Query()] = None,
+    expiry: Annotated[date, Query()],
     option_type: Annotated[Literal["call", "put"] | None, Query()] = None,
     strike_min: Annotated[Decimal | None, Query()] = None,
     strike_max: Annotated[Decimal | None, Query()] = None,

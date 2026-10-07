@@ -125,7 +125,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 			name: "options chain",
 			body: `{"underlying_symbol":"AAPL","contracts":[]}`,
 			call: func(ctx context.Context, c *BackendClient) error {
-				_, err := c.OptionsChain(ctx, "aapl", &expiry, "call", &strikeMin, &strikeMax)
+				_, err := c.OptionsChain(ctx, "aapl", expiry, "call", &strikeMin, &strikeMax)
 				return err
 			},
 			wantPath: "/api/v1/market/data/options/AAPL",
@@ -196,8 +196,9 @@ func TestBackendClientEndpoints(t *testing.T) {
 func TestBackendClientSendsServiceToken(t *testing.T) {
 	srv, cap := newStubBackend(t, http.StatusOK, `{"underlying_symbol":"AAPL","contracts":[]}`)
 	client := mustClient(t, srv.URL+"/", "super-secret-token") // trailing slash tolerated
+	expiry := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
 
-	if _, err := client.OptionsChain(context.Background(), "AAPL", nil, "", nil, nil); err != nil {
+	if _, err := client.OptionsChain(context.Background(), "AAPL", expiry, "", nil, nil); err != nil {
 		t.Fatalf("call returned error: %v", err)
 	}
 	if got := cap.header.Get(serviceTokenHeader); got != "super-secret-token" {
@@ -400,8 +401,9 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 						"theta": "-0.0731", "vega": "0.3412", "rho": null}}}
 			]
 		}`)
+		expiry := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
 		raw, err := mustClient(t, srv.URL, "test-token").OptionsChain(
-			context.Background(), "AAPL", nil, "", nil, nil,
+			context.Background(), "AAPL", expiry, "", nil, nil,
 		)
 		if err != nil {
 			t.Fatalf("OptionsChain: %v", err)

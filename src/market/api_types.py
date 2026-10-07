@@ -363,6 +363,7 @@ class OptionsChain(BaseModel):
     underlying_symbol: str
     as_of: date | None = None
     contracts: list[OptionsChainEntry] = []
+    truncated: bool = False
 
 
 class OptionExpirations(BaseModel):
