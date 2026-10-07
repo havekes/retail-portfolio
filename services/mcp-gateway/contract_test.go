@@ -184,6 +184,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 		"/api/v1/market/data/options/{symbol}/expirations",
 		"/api/v1/market/data/fundamentals/{symbol}",
 		"/api/v1/market/data/fundamentals/{symbol}/statements",
+		"/api/v1/market/data/indicators/{symbol}",
 	}
 
 	if len(doc.Paths) != len(expectedRoutes) {
@@ -239,6 +240,10 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 			_, _ = w.Write([]byte(`[]`))
 		case strings.Contains(r.URL.Path, "/fundamentals/"):
 			_, _ = w.Write([]byte(`{"profile":{"symbol":"AAPL","company_name":"Apple Inc."}}`))
+		case strings.Contains(r.URL.Path, "/quote/"):
+			_, _ = w.Write([]byte(`{"symbol":"AAPL","price":150.0,"currency":"USD"}`))
+		case strings.Contains(r.URL.Path, "/indicators/"):
+			_, _ = w.Write([]byte(`{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2024-01-01","to_date":"2024-01-10","params":{"period":14},"points":[]}`))
 		default:
 			_, _ = w.Write([]byte(`{}`))
 		}
@@ -304,6 +309,31 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	}
 	if _, err := client.Quote(ctx, "AAPL", ""); err != nil {
 		t.Fatalf("Quote without exchange failed: %v", err)
+	}
+
+	// 8. TechnicalIndicator (with all parameters, and with minimal)
+	periodVal := 14
+	fastVal := 12
+	slowVal := 26
+	signalVal := 9
+	stdDevVal := 2.0
+	if _, err := client.TechnicalIndicator(ctx, "AAPL", indicatorQuery{
+		indicator: "bollinger",
+		period:    &periodVal,
+		fast:      &fastVal,
+		slow:      &slowVal,
+		signal:    &signalVal,
+		stdDev:    &stdDevVal,
+		from:      &from,
+		to:        &to,
+		exchange:  "NASDAQ",
+	}); err != nil {
+		t.Fatalf("TechnicalIndicator with all parameters failed: %v", err)
+	}
+	if _, err := client.TechnicalIndicator(ctx, "AAPL", indicatorQuery{
+		indicator: "rsi",
+	}); err != nil {
+		t.Fatalf("TechnicalIndicator minimal failed: %v", err)
 	}
 
 	// Assert 100% of the OpenAPI contract routes were exercised
@@ -461,7 +491,7 @@ func TestExchangeVocabularyMatchesContract(t *testing.T) {
 		}
 	}
 
-	expectedRouteCount := 4
+	expectedRouteCount := 5
 	if routesChecked != expectedRouteCount {
 		t.Errorf("expected %d routes with exchange parameter, checked %d", expectedRouteCount, routesChecked)
 	}

@@ -13,15 +13,17 @@ from collections.abc import AsyncIterator
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 import threading
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from asgi_lifespan import LifespanManager
+from fastapi import HTTPException
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 
 from src.config.settings import settings
 from src.main import app
+from src.market.service import IndicatorServiceClient
 from src.market.api_types import (
     BalanceSheet,
     CashFlowStatement,
@@ -94,9 +96,17 @@ def endpoint_cache() -> EndpointResponseCache:
 
 
 @pytest.fixture
+def mock_indicator_client() -> MagicMock:
+    mock_client = MagicMock(spec=IndicatorServiceClient)
+    mock_client.compute = AsyncMock(return_value={})
+    return mock_client
+
+
+@pytest.fixture
 async def client(
     mock_gateway: MagicMock,
     endpoint_cache: EndpointResponseCache,
+    mock_indicator_client: MagicMock,
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncIterator[AsyncClient]:
     """Real app + lifespan, with the data-plane gateway and cache overridden.
@@ -109,6 +119,9 @@ async def client(
     async with LifespanManager(app) as manager:
         app.state.svcs_registry.register_value(DataPlaneMarketGateway, mock_gateway)
         app.state.svcs_registry.register_value(EndpointResponseCache, endpoint_cache)
+        app.state.svcs_registry.register_value(
+            IndicatorServiceClient, mock_indicator_client
+        )
         async with AsyncClient(
             transport=ASGITransport(app=manager.app),
             base_url="http://test",
@@ -1576,3 +1589,375 @@ async def test_new_routes_non_ascii_token_returns_401_not_500(
     response = await client.get(url, headers={b"X-Service-Token": b"tok\xe9n"})
 
     assert response.status_code == 401
+
+
+# --------------------------------------------------------------------------- #
+# Technical Indicators (T08)
+# --------------------------------------------------------------------------- #
+
+
+def _generate_daily_prices(
+    start: date,
+    end: date,
+    base_price: float = 100.0,
+) -> list[HistoricalPrice]:
+    prices = []
+    cur = start
+    price_val = base_price
+    while cur <= end:
+        if cur.weekday() < 5:
+            prices.append(
+                HistoricalPrice(
+                    date=cur,
+                    open=Decimal(str(round(price_val, 2))),
+                    high=Decimal(str(round(price_val + 2.0, 2))),
+                    low=Decimal(str(round(price_val - 2.0, 2))),
+                    close=Decimal(str(round(price_val + 1.0, 2))),
+                    adjusted_close=Decimal(str(round(price_val + 1.0, 2))),
+                    volume=1_000_000,
+                )
+            )
+            price_val += 0.5
+        cur += timedelta(days=1)
+    return prices
+
+
+@pytest.mark.anyio
+async def test_indicator_rsi_series_warmup_and_trimming(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_indicator_client: MagicMock,
+) -> None:
+    from_date = date(2026, 1, 1)
+    to_date = date(2026, 3, 31)
+
+    # 3 months range plus warm-up (warmup for RSI 14: ~68 calendar days, so prices start in Oct 2025)
+    all_prices = _generate_daily_prices(date(2025, 10, 1), to_date)
+    mock_gateway.get_prices.return_value = all_prices
+
+    async def fake_rsi_compute(interval, candles, indicators):
+        spec = indicators[0]
+        idle = spec.period or 14
+        points = []
+        for idx, c in enumerate(candles):
+            if idx >= idle:
+                points.append(
+                    {
+                        "time": c.time,
+                        "value": 50.0 + (idx % 20),
+                        "rsi": 50.0 + (idx % 20),
+                    }
+                )
+        return {"rsi": points}
+
+    mock_indicator_client.compute.side_effect = fake_rsi_compute
+
+    url = f"/api/v1/market/data/indicators/AAPL?indicator=rsi&from={from_date}&to={to_date}"
+    response = await client.get(url, headers=_headers())
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["symbol"] == "AAPL"
+    assert data["indicator"] == "rsi"
+    assert data["from_date"] == "2026-01-01"
+    assert data["to_date"] == "2026-03-31"
+    assert data["params"] == {"period": 14}
+    assert "currency" in data
+
+    # Verify warm-up was fetched and passed to indicator-service
+    called_candles = mock_indicator_client.compute.call_args[1]["candles"]
+    assert len(called_candles) > len(data["points"])
+    # First candle passed to indicator-service is well before from_date
+    assert called_candles[0].time < from_date.isoformat()
+
+    # Verify trimmed points: first point dated on or after from_date
+    points = data["points"]
+    assert len(points) > 0
+    first_point_date = date.fromisoformat(points[0]["time"])
+    assert first_point_date >= from_date
+
+    # Count trading days in [from_date, to_date]
+    expected_trading_days = [
+        p.date.isoformat() for p in all_prices if from_date <= p.date <= to_date
+    ]
+    assert [p["time"] for p in points] == expected_trading_days
+
+    # None with a null value caused by missing warm-up
+    for pt in points:
+        assert pt["value"] is not None
+        assert pt["rsi"] is not None
+
+
+@pytest.mark.anyio
+async def test_indicator_spec_mapping_and_defaults(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_indicator_client: MagicMock,
+) -> None:
+    prices = _generate_daily_prices(date(2025, 9, 1), date(2026, 1, 31))
+    mock_gateway.get_prices.return_value = prices
+
+    # 1. Bollinger defaults: mapped to "bb", period=20, stdDev=2.0
+    mock_indicator_client.compute.return_value = {
+        "bb": [{"time": "2026-01-02", "middle": 100.0, "upper": 105.0, "lower": 95.0}]
+    }
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=bollinger&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+    assert resp.status_code == 200
+    spec = mock_indicator_client.compute.call_args[1]["indicators"][0]
+    assert spec.type == "bb"
+    assert spec.period == 20
+    assert spec.std_dev == 2.0
+    body = resp.json()
+    assert body["indicator"] == "bollinger"
+    assert body["params"] == {"period": 20, "std_dev": 2.0}
+
+    # 2. Bollinger explicit period and std_dev
+    mock_indicator_client.compute.reset_mock()
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=bollinger&period=30&std_dev=2.5&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+    assert resp.status_code == 200
+    spec = mock_indicator_client.compute.call_args[1]["indicators"][0]
+    assert spec.type == "bb"
+    assert spec.period == 30
+    assert spec.std_dev == 2.5
+    assert resp.json()["params"] == {"period": 30, "std_dev": 2.5}
+
+    # 3. MACD defaults: fast=12, slow=26, signal=9
+    mock_indicator_client.compute.reset_mock()
+    mock_indicator_client.compute.return_value = {
+        "macd": [
+            {
+                "time": "2026-01-02",
+                "macd": 1.5,
+                "signal": 1.2,
+                "histogram": 0.3,
+            }
+        ]
+    }
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=macd&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+    assert resp.status_code == 200
+    spec = mock_indicator_client.compute.call_args[1]["indicators"][0]
+    assert spec.type == "macd"
+    assert spec.fast == 12
+    assert spec.slow == 26
+    assert spec.signal == 9
+    assert resp.json()["params"] == {"fast": 12, "slow": 26, "signal": 9}
+
+    # 4. SMA defaults: period=14
+    mock_indicator_client.compute.reset_mock()
+    mock_indicator_client.compute.return_value = {
+        "sma": [{"time": "2026-01-02", "value": 100.0}]
+    }
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=sma&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+    assert resp.status_code == 200
+    spec = mock_indicator_client.compute.call_args[1]["indicators"][0]
+    assert spec.type == "sma"
+    assert spec.period == 14
+    assert resp.json()["params"] == {"period": 14}
+
+    # 5. EMA defaults: period=14
+    mock_indicator_client.compute.reset_mock()
+    mock_indicator_client.compute.return_value = {
+        "ema": [{"time": "2026-01-02", "value": 100.0}]
+    }
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=ema&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+    assert resp.status_code == 200
+    spec = mock_indicator_client.compute.call_args[1]["indicators"][0]
+    assert spec.type == "ema"
+    assert spec.period == 14
+    assert resp.json()["params"] == {"period": 14}
+
+
+@pytest.mark.anyio
+async def test_indicator_unsupported_or_out_of_range_422(
+    client: AsyncClient,
+) -> None:
+    # Unsupported indicator
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=unsupported",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    # Period out of range (< 2 or > 400)
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=rsi&period=1",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=rsi&period=401",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    # MACD params out of range
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=macd&fast=1",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=macd&slow=401",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=macd&signal=1",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    # std_dev <= 0
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=bollinger&std_dev=0",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=bollinger&std_dev=-1",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+
+    # from > to
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=rsi&from=2026-02-01&to=2026-01-01",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+    assert "from must be less than or equal to to" in resp.json()["detail"]
+
+    # Over-cap range (> 2000 bars) returns same 422 as price history
+    resp = await client.get(
+        "/api/v1/market/data/indicators/AAPL?indicator=rsi&from=2010-01-01&to=2026-01-01",
+        headers=_headers(),
+    )
+    assert resp.status_code == 422
+    assert "exceeding the limit of 2000" in resp.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_indicator_currency_resolution(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_indicator_client: MagicMock,
+) -> None:
+    mock_gateway.get_prices.return_value = _generate_daily_prices(
+        date(2025, 10, 1), date(2026, 1, 31)
+    )
+    mock_gateway.get_company_profile.return_value = _company_profile("SHOP").model_copy(
+        update={"currency": "CAD"}
+    )
+    mock_indicator_client.compute.return_value = {
+        "rsi": [{"time": "2026-01-02", "value": 50.0, "rsi": 50.0}]
+    }
+
+    resp = await client.get(
+        "/api/v1/market/data/indicators/SHOP?indicator=rsi&exchange=TSX&from=2026-01-01&to=2026-01-31",
+        headers=_headers(),
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["symbol"] == "SHOP"
+    assert body["exchange"] == "TSX"
+    assert body["currency"] == "CAD"
+
+
+@pytest.mark.anyio
+async def test_indicator_service_unavailability_503_not_cached(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_indicator_client: MagicMock,
+) -> None:
+    mock_gateway.get_prices.return_value = _generate_daily_prices(
+        date(2025, 10, 1), date(2026, 1, 31)
+    )
+    mock_indicator_client.compute.side_effect = HTTPException(
+        status_code=503,
+        detail="Indicator service unavailable",
+    )
+
+    url = "/api/v1/market/data/indicators/AAPL?indicator=rsi&from=2026-01-01&to=2026-01-31"
+    first = await client.get(url, headers=_headers())
+    assert first.status_code == 503
+    assert first.json()["detail"] == "Indicator service unavailable"
+
+    second = await client.get(url, headers=_headers())
+    assert second.status_code == 503
+
+    # Both calls hit compute; the 503 was not cached
+    assert mock_indicator_client.compute.call_count == 2
+
+
+@pytest.mark.anyio
+async def test_indicator_repeated_request_served_from_cache(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_indicator_client: MagicMock,
+) -> None:
+    mock_gateway.get_prices.return_value = _generate_daily_prices(
+        date(2025, 10, 1), date(2026, 1, 31)
+    )
+    mock_indicator_client.compute.return_value = {
+        "rsi": [{"time": "2026-01-02", "value": 55.0, "rsi": 55.0}]
+    }
+
+    url = "/api/v1/market/data/indicators/AAPL?indicator=rsi&from=2026-01-01&to=2026-01-31"
+    first = await client.get(url, headers=_headers())
+    assert first.status_code == 200
+    assert mock_gateway.get_prices.call_count == 1
+    assert mock_indicator_client.compute.call_count == 1
+
+    second = await client.get(url, headers=_headers())
+    assert second.status_code == 200
+    assert first.json() == second.json()
+
+    # Cached: neither gateway nor indicator client called again
+    assert mock_gateway.get_prices.call_count == 1
+    assert mock_indicator_client.compute.call_count == 1
+
+
+@pytest.mark.anyio
+async def test_indicator_unknown_symbol_404_and_empty_points_404(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+) -> None:
+    # Unknown symbol from gateway
+    mock_gateway.get_prices.side_effect = MarketDataNotFoundError("ZZZZ")
+    resp = await client.get(
+        "/api/v1/market/data/indicators/ZZZZ?indicator=rsi",
+        headers=_headers(),
+    )
+    assert resp.status_code == 404
+    assert "ZZZZ" in resp.json()["detail"]
+
+    # Empty prices returns 404
+    mock_gateway.get_prices.side_effect = None
+    mock_gateway.get_prices.return_value = []
+    resp2 = await client.get(
+        "/api/v1/market/data/indicators/EMPTY?indicator=rsi",
+        headers=_headers(),
+    )
+    assert resp2.status_code == 404
+    assert "EMPTY" in resp2.json()["detail"]
+
