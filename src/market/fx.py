@@ -42,10 +42,16 @@ STALE_AFTER_BUSINESS_DAYS = 3
 # request-scoped, so this must outlive any single instance for the zip to be
 # parsed once per refresh.
 _converter_by_fetched_at: dict[str, CurrencyConverter] = {}
+# Fetch dates whose stored zip failed to build. Kept so a corrupt payload is
+# decoded/parsed once, not on every request, until the fetch date changes.
+_failed_fetched_at: set[str] = set()
 # {bundled currency file -> parsed fallback converter}.
 _fallback_converters: dict[str | None, CurrencyConverter] = {}
-# Per-event-loop build locks (one loop per asyncio.run() in the worker/tests).
+# Per-event-loop locks (one loop per asyncio.run() in the worker/tests). The
+# fallback lock is separate so a build failure inside the build lock can fall
+# through to the bundled converter without deadlocking.
 _build_locks: dict[asyncio.AbstractEventLoop, asyncio.Lock] = {}
+_fallback_locks: dict[asyncio.AbstractEventLoop, asyncio.Lock] = {}
 
 _MAX_CACHED_CONVERTERS = 4
 
@@ -54,16 +60,18 @@ _MAX_CACHED_CONVERTERS = 4
 _SATURDAY_WEEKDAY = 5
 
 
-def _get_build_lock() -> asyncio.Lock:
-    """Return the build lock for the running event loop, creating it if needed."""
-    for closed_loop in [loop for loop in _build_locks if loop.is_closed()]:
-        _build_locks.pop(closed_loop, None)
+def _get_loop_lock(
+    locks: dict[asyncio.AbstractEventLoop, asyncio.Lock],
+) -> asyncio.Lock:
+    """Return the lock for the running event loop, creating it if needed."""
+    for closed_loop in [loop for loop in locks if loop.is_closed()]:
+        locks.pop(closed_loop, None)
 
     loop = asyncio.get_running_loop()
-    lock = _build_locks.get(loop)
+    lock = locks.get(loop)
     if lock is None:
         lock = asyncio.Lock()
-        _build_locks[loop] = lock
+        locks[loop] = lock
     return lock
 
 
@@ -72,6 +80,8 @@ def _prune_converter_cache() -> None:
     while len(_converter_by_fetched_at) > _MAX_CACHED_CONVERTERS:
         oldest = next(iter(_converter_by_fetched_at))
         del _converter_by_fetched_at[oldest]
+    while len(_failed_fetched_at) > _MAX_CACHED_CONVERTERS:
+        _failed_fetched_at.pop()
 
 
 def _business_days_old(last_date: date, today: date) -> int:
@@ -157,13 +167,64 @@ class FxRateProvider:
 
         Falls back to the bundled ``currencyconverter`` snapshot when Redis has
         no cached data, cannot be reached, or holds an unreadable zip. The zip
-        is parsed once per fetch date for the whole process.
+        is fetched only on a cache miss and parsed once per fetch date for the
+        whole process.
         """
+        fetched_at = await self._read_fetched_at()
+        if fetched_at is None:
+            return await self._fallback()
+
+        cached = _converter_by_fetched_at.get(fetched_at)
+        if cached is not None:
+            return cached
+
+        converter = await self._load_converter(fetched_at)
+        if converter is None:
+            return await self._fallback()
+        return converter
+
+    async def _load_converter(self, fetched_at: str) -> CurrencyConverter | None:
+        """Build (once) and cache the converter for ``fetched_at``.
+
+        Returns None when the caller should fall back to the bundled converter:
+        the zip failed to build (now negatively cached for this fetch date), is
+        missing, or the state changed while waiting for the build lock.
+        """
+        async with _get_loop_lock(_build_locks):
+            cached = _converter_by_fetched_at.get(fetched_at)
+            if cached is not None:
+                return cached
+            if fetched_at in _failed_fetched_at:
+                return None
+
+            zip_payload = await self._read_zip(fetched_at)
+            if zip_payload is None:
+                return None
+
+            try:
+                converter = await asyncio.to_thread(self._build_converter, zip_payload)
+            except Exception:
+                logger.exception(
+                    "FX rate provider: cached ECB zip is unreadable; "
+                    "falling back to bundled ECB rates"
+                )
+                _failed_fetched_at.add(fetched_at)
+                _prune_converter_cache()
+                return None
+
+            _converter_by_fetched_at[fetched_at] = converter
+            _prune_converter_cache()
+            _log_if_stale(converter)
+            return converter
+
+    async def as_of(self) -> date:
+        """Return the most recent ECB rate date in the active converter."""
+        return _last_rate_date(await self.converter())
+
+    async def _read_fetched_at(self) -> str | None:
+        """Read the small fetch-date key, or None when unavailable/empty."""
         try:
             async with self._redis_manager.client() as redis:
-                zip_payload: str | None = cast(
-                    "str | None", await redis.get(ECB_ZIP_KEY)
-                )
                 fetched_at: str | None = cast(
                     "str | None", await redis.get(ECB_FETCHED_AT_KEY)
                 )
@@ -173,41 +234,48 @@ class FxRateProvider:
                 "falling back to bundled ECB rates",
                 exc,
             )
-            return await self._fallback()
+            return None
 
-        if not zip_payload or not fetched_at:
+        if not fetched_at:
             logger.warning(
                 "FX rate provider: no cached ECB rates in Redis; "
                 "falling back to bundled ECB rates"
             )
-            return await self._fallback()
+            return None
+        return fetched_at
 
-        cached = _converter_by_fetched_at.get(fetched_at)
-        if cached is not None:
-            return cached
+    async def _read_zip(self, fetched_at: str) -> str | None:
+        """Re-read the fetch date and, if unchanged, the zip payload.
 
-        async with _get_build_lock():
-            cached = _converter_by_fetched_at.get(fetched_at)
-            if cached is not None:
-                return cached
-            try:
-                converter = await asyncio.to_thread(self._build_converter, zip_payload)
-            except Exception:
-                logger.exception(
-                    "FX rate provider: cached ECB zip is unreadable; "
-                    "falling back to bundled ECB rates"
+        Both reads happen while the build lock is held. A changed fetch date or
+        a Redis failure returns None so the caller falls back; the next call
+        re-evaluates the (possibly new) state.
+        """
+        try:
+            async with self._redis_manager.client() as redis:
+                current_fetched_at: str | None = cast(
+                    "str | None", await redis.get(ECB_FETCHED_AT_KEY)
                 )
-            else:
-                _converter_by_fetched_at[fetched_at] = converter
-                _prune_converter_cache()
-                _log_if_stale(converter)
-                return converter
+                if current_fetched_at != fetched_at:
+                    return None
+                zip_payload: str | None = cast(
+                    "str | None", await redis.get(ECB_ZIP_KEY)
+                )
+        except RedisError as exc:
+            logger.warning(
+                "FX rate provider: Redis unavailable (%s); "
+                "falling back to bundled ECB rates",
+                exc,
+            )
+            return None
 
-        return await self._fallback()
-
-    async def as_of(self) -> date:
-        """Return the most recent ECB rate date in the active converter."""
-        return _last_rate_date(await self.converter())
+        if not zip_payload:
+            logger.warning(
+                "FX rate provider: no cached ECB rates in Redis; "
+                "falling back to bundled ECB rates"
+            )
+            return None
+        return zip_payload
 
     async def _fallback(self) -> CurrencyConverter:
         """Return the bundled converter, parsed once per process."""
@@ -216,7 +284,7 @@ class FxRateProvider:
         if cached is not None:
             return cached
 
-        async with _get_build_lock():
+        async with _get_loop_lock(_fallback_locks):
             cached = _fallback_converters.get(key)
             if cached is not None:
                 return cached

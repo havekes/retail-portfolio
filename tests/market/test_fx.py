@@ -48,8 +48,10 @@ def _clear_fx_process_cache():
     """Keep the module-level converter caches from leaking across tests."""
     caches = (
         fx_module._converter_by_fetched_at,  # noqa: SLF001
+        fx_module._failed_fetched_at,  # noqa: SLF001
         fx_module._fallback_converters,  # noqa: SLF001
         fx_module._build_locks,  # noqa: SLF001
+        fx_module._fallback_locks,  # noqa: SLF001
     )
     for cache in caches:
         cache.clear()
@@ -86,6 +88,20 @@ def _response(zip_bytes: bytes) -> httpx.Response:
     return httpx.Response(200, content=zip_bytes, request=httpx.Request("GET", ECB_URL))
 
 
+def _count_zip_reads(monkeypatch, store) -> list[str]:
+    """Record reads of the zip key while passing everything else through."""
+    reads: list[str] = []
+    original_get = store.get
+
+    async def _counting_get(key):
+        if key == ECB_ZIP_KEY:
+            reads.append(key)
+        return await original_get(key)
+
+    monkeypatch.setattr(store, "get", _counting_get)
+    return reads
+
+
 @pytest.mark.anyio
 async def test_refresh_fx_rates_stores_zip_bytes_and_fetch_date_atomically():
     """The refresh stores base64 zip bytes plus today's fetch date in one MSET."""
@@ -116,6 +132,19 @@ async def test_refresh_fx_rates_rejects_non_zip_payload():
         await refresh_fx_rates(redis, http_client)
 
     redis.mset.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_refresh_fx_rates_round_trips_through_fake_redis(mock_redis_storage):
+    """The MSET write path works end-to-end against the in-memory Redis fake."""
+    zip_bytes = _make_zip([(BASE_RATE_DATE, "1.10")])
+    http_client = AsyncMock()
+    http_client.get = AsyncMock(return_value=_response(zip_bytes))
+
+    await refresh_fx_rates(mock_redis_storage, http_client)
+
+    provider = FxRateProvider(redis_manager=redis_manager)
+    assert _usd_last_date(await provider.converter()) == BASE_RATE_DATE
 
 
 @pytest.mark.anyio
@@ -219,6 +248,45 @@ async def test_provider_falls_back_when_cached_zip_is_corrupt(
 
     assert _usd_last_date(converter) == _bundled_last_date()
     assert any("unreadable" in record.message for record in caplog.records)
+
+
+@pytest.mark.anyio
+async def test_provider_cache_hit_does_not_fetch_zip(mock_redis_storage, monkeypatch):
+    """A process-cache hit serves converter()/as_of() without reading the zip."""
+    _seed_redis(
+        mock_redis_storage, _make_zip([(BASE_RATE_DATE, "1.10")]), SEED_FETCHED_AT
+    )
+    first = await FxRateProvider(redis_manager=redis_manager).converter()
+
+    zip_reads = _count_zip_reads(monkeypatch, mock_redis_storage)
+    second = await FxRateProvider(redis_manager=redis_manager).converter()
+    as_of = await FxRateProvider(redis_manager=redis_manager).as_of()
+
+    assert second is first
+    assert as_of == BASE_RATE_DATE
+    assert zip_reads == []
+
+
+@pytest.mark.anyio
+async def test_provider_negatively_caches_build_failures(
+    mock_redis_storage, monkeypatch, caplog
+):
+    """A corrupt zip is attempted once; later calls go straight to the fallback."""
+    _seed_redis(mock_redis_storage, b"not a zip archive", SEED_FETCHED_AT)
+    provider = FxRateProvider(redis_manager=redis_manager)
+
+    with caplog.at_level(logging.WARNING, logger="src.market.fx"):
+        first = await provider.converter()
+    assert any("unreadable" in record.message for record in caplog.records)
+
+    caplog.clear()
+    zip_reads = _count_zip_reads(monkeypatch, mock_redis_storage)
+    with caplog.at_level(logging.WARNING, logger="src.market.fx"):
+        second = await FxRateProvider(redis_manager=redis_manager).converter()
+
+    assert second is first
+    assert zip_reads == []
+    assert not any("unreadable" in record.message for record in caplog.records)
 
 
 @pytest.mark.anyio
