@@ -113,6 +113,18 @@ func TestBackendClientEndpoints(t *testing.T) {
 			},
 		},
 		{
+			name: "quote",
+			body: `{"symbol":"AAPL","price":"229.87","currency":"USD"}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				_, err := c.Quote(ctx, "aapl", "nasdaq")
+				return err
+			},
+			wantPath: "/api/v1/market/data/quote/AAPL",
+			wantQuery: map[string]string{
+				"exchange": "nasdaq",
+			},
+		},
+		{
 			name: "prices without dates and interval",
 			body: `{"symbol":"AAPL","from_date":"2025-01-01","to_date":"2026-01-01","items":[]}`,
 			call: func(ctx context.Context, c *BackendClient) error {

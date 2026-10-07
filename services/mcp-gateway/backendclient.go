@@ -75,6 +75,25 @@ func (c *BackendClient) Prices(
 	return out, nil
 }
 
+// Quote returns the live quote snapshot for symbol.
+//
+// GET /api/v1/market/data/quote/{symbol}?exchange=
+func (c *BackendClient) Quote(
+	ctx context.Context,
+	symbol, exchange string,
+) (json.RawMessage, error) {
+	query := url.Values{}
+	if exchange != "" {
+		query.Set("exchange", exchange)
+	}
+
+	var out json.RawMessage
+	if err := c.group.Get(ctx, "/quote/"+url.PathEscape(normalizeSymbol(symbol)), query, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SymbolSearch looks up symbols/companies by free-text query.
 //
 // GET /api/v1/market/data/symbols/search?q=

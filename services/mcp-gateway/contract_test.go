@@ -178,6 +178,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 
 	expectedRoutes := []string{
 		"/api/v1/market/data/prices/{symbol}",
+		"/api/v1/market/data/quote/{symbol}",
 		"/api/v1/market/data/symbols/search",
 		"/api/v1/market/data/options/{symbol}",
 		"/api/v1/market/data/options/{symbol}/expirations",
@@ -239,6 +240,8 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 			_, _ = w.Write([]byte(`[]`))
 		case strings.Contains(r.URL.Path, "/fundamentals/"):
 			_, _ = w.Write([]byte(`{"profile":{"symbol":"AAPL","company_name":"Apple Inc."}}`))
+		case strings.Contains(r.URL.Path, "/quote/"):
+			_, _ = w.Write([]byte(`{"symbol":"AAPL","price":150.0,"currency":"USD"}`))
 		case strings.Contains(r.URL.Path, "/indicators/"):
 			_, _ = w.Write([]byte(`{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2024-01-01","to_date":"2024-01-10","params":{"period":14},"points":[]}`))
 		default:
@@ -300,7 +303,15 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		t.Fatalf("Statements minimal failed: %v", err)
 	}
 
-	// 7. TechnicalIndicator (with all parameters, and with minimal)
+	// 7. Quote (with and without exchange)
+	if _, err := client.Quote(ctx, "AAPL", "NASDAQ"); err != nil {
+		t.Fatalf("Quote with exchange failed: %v", err)
+	}
+	if _, err := client.Quote(ctx, "AAPL", ""); err != nil {
+		t.Fatalf("Quote without exchange failed: %v", err)
+	}
+
+	// 8. TechnicalIndicator (with all parameters, and with minimal)
 	periodVal := 14
 	fastVal := 12
 	slowVal := 26
@@ -400,6 +411,12 @@ func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
 			headerToken: "test-token",
 			wantErrMsg:  "query parameter \"bogus\" sent to /api/v1/market/data/fundamentals/{symbol} is not defined",
 		},
+		{
+			name:        "unknown query param on quote",
+			url:         "/api/v1/market/data/quote/AAPL?unexpected=val",
+			headerToken: "test-token",
+			wantErrMsg:  "query parameter \"unexpected\" sent to /api/v1/market/data/quote/{symbol} is not defined",
+		},
 	}
 
 	for _, tc := range cases {
@@ -474,7 +491,7 @@ func TestExchangeVocabularyMatchesContract(t *testing.T) {
 		}
 	}
 
-	expectedRouteCount := 4
+	expectedRouteCount := 5
 	if routesChecked != expectedRouteCount {
 		t.Errorf("expected %d routes with exchange parameter, checked %d", expectedRouteCount, routesChecked)
 	}

@@ -22,6 +22,7 @@ from src.market.api_types import (
     HistoricalPrice,
     IncomeStatement,
     KeyMetrics,
+    Quote,
     SupportedExchange,
     SymbolLookupResult,
 )
@@ -743,6 +744,33 @@ _RATIOS_PAYLOAD: list[dict[str, Any]] = [
     }
 ]
 
+_QUOTE_PAYLOAD: list[dict[str, Any]] = [
+    {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "price": 229.87,
+        "changesPercentage": 0.528,
+        "change": 1.21,
+        "dayLow": 228.10,
+        "dayHigh": 231.45,
+        "yearHigh": 237.23,
+        "yearLow": 164.08,
+        "marketCap": 3400000000000,
+        "priceAvg50": 220.5,
+        "priceAvg200": 195.1,
+        "exchange": "NASDAQ",
+        "volume": 48231900,
+        "avgVolume": 52000000,
+        "open": 228.50,
+        "previousClose": 228.66,
+        "eps": 6.42,
+        "pe": 35.8,
+        "earningsAnnouncement": "2024-05-02T10:30:00.000+0000",
+        "sharesOutstanding": 15300000000,
+        "timestamp": 1715000000,
+    }
+]
+
 
 # --------------------------------------------------------------------------- #
 # Fundamentals: happy path, one test per capability (AC1, AC2).
@@ -940,6 +968,47 @@ def test_get_financial_ratios_parses_mocked_payload():
     assert ratios.price_earnings_ratio == Decimal("36.28")
     assert ratios.book_value_per_share == Decimal("3.85")
     assert ratios.dividend_yield == Decimal("0.0044")
+
+
+def test_get_quote_parses_mocked_payload():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/stable/quote"
+        assert request.url.params["symbol"] == "AAPL"
+        assert request.url.params["apikey"] == "test-key"
+        return httpx.Response(200, json=_QUOTE_PAYLOAD)
+
+    quote = _gateway(handler).get_quote("AAPL")
+
+    assert isinstance(quote, Quote)
+    assert quote.symbol == "AAPL"
+    assert quote.price == Decimal("229.87")
+    assert quote.change == Decimal("1.21")
+    assert quote.change_percent == Decimal("0.528")
+    assert quote.previous_close == Decimal("228.66")
+    assert quote.open == Decimal("228.50")
+    assert quote.day_high == Decimal("231.45")
+    assert quote.day_low == Decimal("228.10")
+    assert quote.volume == 48231900
+    assert quote.timestamp == datetime.fromtimestamp(1715000000, tz=UTC)
+
+
+def test_get_quote_empty_list_raises_not_found():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/stable/quote"
+        return httpx.Response(200, json=[])
+
+    with pytest.raises(MarketDataNotFoundError):
+        _gateway(handler).get_quote("ZZZZ")
+
+
+def test_get_quote_maps_non_us_ticker():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/stable/quote"
+        assert request.url.params["symbol"] == "RY.TO"
+        return httpx.Response(200, json=[{**_QUOTE_PAYLOAD[0], "symbol": "RY.TO"}])
+
+    quote = _gateway(handler).get_quote("RY", exchange="TSX")
+    assert quote.symbol == "RY.TO"
 
 
 # --------------------------------------------------------------------------- #
@@ -1291,3 +1360,24 @@ def test_stub_fmp_gateway_fundamentals_error_and_period_paths():
         gateway.get_income_statement("AAPL", period="monthly")
     with pytest.raises(ValueError, match="period"):
         gateway.get_financial_ratios("AAPL", period="monthly")
+
+
+def test_stub_fmp_gateway_quote_is_deterministic():
+    gateway = StubFmpGateway(api_key="stub")
+
+    quote = gateway.get_quote("AAPL")
+    assert isinstance(quote, Quote)
+    assert quote.symbol == "AAPL"
+    assert quote.price == Decimal("175.00")
+    assert quote.currency == "USD"
+    assert gateway.get_quote("aapl") == quote
+
+    shop_quote = gateway.get_quote("SHOP", exchange="TSX")
+    assert shop_quote.symbol == "SHOP"
+    assert shop_quote.price == Decimal("75.00")
+    assert shop_quote.currency == "CAD"
+
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_quote("ZZZZ")
+    with pytest.raises(MarketDataProviderError):
+        StubFmpGateway(api_key="stub", fail_on_symbols={"AAPL"}).get_quote("AAPL")

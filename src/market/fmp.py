@@ -18,7 +18,7 @@ Error translation is provider-agnostic: upstream not-found becomes
 """
 
 import logging
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -34,6 +34,7 @@ from src.market.api_types import (
     IncomeStatement,
     IntradayHistoricalPrice,
     KeyMetrics,
+    Quote,
     SecurityId,
     SecuritySearchResult,
     SymbolLookupResult,
@@ -143,6 +144,27 @@ def _to_datetime(value: object) -> datetime | None:
         return None
     try:
         return datetime.fromisoformat(text)
+    except ValueError as exc:
+        raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc
+
+
+def _to_timestamp_utc(value: object) -> datetime | None:
+    """Coerce an FMP timestamp (unix seconds or ISO datetime) to UTC datetime."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value, tz=UTC)
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        ts_float = float(text)
+        return datetime.fromtimestamp(ts_float, tz=UTC)
+    except ValueError:
+        pass
+    try:
+        dt = datetime.fromisoformat(text)
+        return dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
     except ValueError as exc:
         raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc
 
@@ -928,6 +950,44 @@ class FmpGateway(MarketGateway):
         validated_period = _validate_period(period)
         payload = self._fetch_financial_ratios(symbol, validated_period, exchange)
         return self._parse_financial_ratios(payload, symbol)
+
+    def _fetch_quote(self, symbol: str, exchange: str | None) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
+        return self._get_json("stable/quote", {"symbol": ticker})
+
+    def _parse_quote(self, payload: object, symbol: str) -> Quote:
+        self._raise_for_error_payload(payload, symbol, "")
+        row = _first_dict_row(payload)
+        if row is None:
+            raise MarketDataNotFoundError(symbol, detail=_NOT_FOUND_DETAIL)
+        raw_ts = _pick(row, "timestamp")
+        ts = _to_timestamp_utc(raw_ts) or datetime.now(UTC)
+        return Quote(
+            symbol=_to_str(row.get("symbol")) or symbol,
+            price=_to_decimal(_pick(row, "price")) or Decimal(),
+            change=_to_decimal(_pick(row, "change")) or Decimal(),
+            change_percent=_to_decimal(
+                _pick(row, "changePercentage", "changesPercentage", "changePercent")
+            )
+            or Decimal(),
+            previous_close=_to_decimal(_pick(row, "previousClose", "previous_close"))
+            or Decimal(),
+            open=_to_decimal(_pick(row, "open")) or Decimal(),
+            day_high=_to_decimal(_pick(row, "dayHigh", "day_high")) or Decimal(),
+            day_low=_to_decimal(_pick(row, "dayLow", "day_low")) or Decimal(),
+            volume=_to_int(_pick(row, "volume")) or 0,
+            timestamp=ts,
+            currency=_to_str(row.get("currency")) or "",
+        )
+
+    def get_quote(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> Quote:
+        payload = self._fetch_quote(symbol, exchange)
+        return self._parse_quote(payload, symbol)
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
