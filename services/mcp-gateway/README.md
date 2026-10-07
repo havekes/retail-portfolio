@@ -142,7 +142,7 @@ it. Every tool name, description and result string is provider-agnostic.
 | `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
 | `get_option_expirations`   | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                           |
 | `get_financial_statements` | `symbol`, `statement`, `period?`, `limit?`, `exchange?`         | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Financial statements (income, balance, cashflow)  |
-| `search_symbols`           | `q`                                                             | `GET /api/v1/market/data/symbols/search`                        | Symbol lookup results                     |
+| `resolve_symbol`           | `query`, `exchange?`                                            | `GET /api/v1/market/data/symbols/search`                        | Best matching symbol and alternatives             |
 
 Inputs are validated or clamped in the handler before any backend call, so most
 bad arguments never reach the backend. A backend `422` that still occurs is
@@ -158,7 +158,7 @@ actionable error rather than "no data":
 - `get_financial_statements` requires `statement` (`income`, `balance`, or
   `cashflow`), accepts `period` of `annual` (default) or `quarter`, and clamps
   `limit` to 1–20 with a default of 5.
-- `search_symbols` requires a trimmed query of 1–100 characters.
+- `resolve_symbol` requires a trimmed query of 1–100 characters and optional supported exchange.
 
 ### Tool result contract
 
