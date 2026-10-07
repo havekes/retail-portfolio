@@ -765,4 +765,51 @@ describe('AccountsListItem', () => {
 			expect(accountClient.getAccountHoldings).toHaveBeenCalledWith('acc-1');
 		});
 	});
+
+	describe('Incomplete pricing warning (ARCH-T26)', () => {
+		it('shows the warning icon when pricing_incomplete is true', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost',
+				unpriced_positions: 1,
+				pricing_incomplete: true
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			expect(await screen.findByLabelText('Incomplete pricing')).toBeInTheDocument();
+		});
+
+		it('does not show the warning icon when pricing_incomplete is false', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost',
+				unpriced_positions: 0,
+				pricing_incomplete: false
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			await screen.findByText('$100.00');
+			expect(screen.queryByLabelText('Incomplete pricing')).not.toBeInTheDocument();
+		});
+	});
 });
