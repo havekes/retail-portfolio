@@ -109,11 +109,26 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 			})
 		})
 
-	addTool(server, "search_symbols",
-		"Search for symbols and companies by name or ticker fragment.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in searchSymbolsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "search_symbols", cfg, in, searchSymbolsInput.prepare, func(ctx context.Context, r searchSymbolsRequest) (any, error) {
-				return client.SymbolSearch(ctx, r.query)
+	addTool(server, "resolve_symbol",
+		"Resolve a company or ticker query to the single best matching symbol, with alternatives.",
+		func(ctx context.Context, _ *mcp.CallToolRequest, in resolveSymbolInput) (*mcp.CallToolResult, any, error) {
+			return runTool(ctx, "resolve_symbol", cfg, in, resolveSymbolInput.prepare, func(ctx context.Context, r resolveSymbolRequest) (any, error) {
+				raw, err := client.SymbolSearch(ctx, r.query)
+				if err != nil {
+					return nil, err
+				}
+				var items []json.RawMessage
+				if err := json.Unmarshal(raw, &items); err != nil {
+					return nil, &backendError{class: ErrProvider, detail: err.Error()}
+				}
+				best, alts, err := rankSymbolMatches(items, r.query, r.exchange)
+				if err != nil {
+					return nil, err
+				}
+				return resolveSymbolResult{
+					BestMatch:    best,
+					Alternatives: alts,
+				}, nil
 			})
 		})
 }
@@ -495,20 +510,125 @@ type statementEnvelope struct {
 	Items     []json.RawMessage `json:"items"`
 }
 
-type searchSymbolsInput struct {
-	Query string `json:"q" jsonschema:"Free-text query matched against symbol and company names."`
+type resolveSymbolInput struct {
+	Query    string `json:"query" jsonschema:"Company name or ticker query to resolve."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
-type searchSymbolsRequest struct {
-	query string
+type resolveSymbolRequest struct {
+	query    string
+	exchange string
 }
 
-func (in searchSymbolsInput) prepare() (searchSymbolsRequest, error) {
+func (in resolveSymbolInput) prepare() (resolveSymbolRequest, error) {
 	query, err := validateSearchQuery(in.Query)
 	if err != nil {
-		return searchSymbolsRequest{}, err
+		return resolveSymbolRequest{}, err
 	}
-	return searchSymbolsRequest{query: query}, nil
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return resolveSymbolRequest{}, err
+	}
+	return resolveSymbolRequest{
+		query:    query,
+		exchange: exchange,
+	}, nil
+}
+
+type resolveSymbolResult struct {
+	BestMatch    json.RawMessage   `json:"best_match"`
+	Alternatives []json.RawMessage `json:"alternatives"`
+}
+
+type symbolMatchSummary struct {
+	Symbol            string `json:"symbol"`
+	ExchangeShortName string `json:"exchange_short_name"`
+	AltExchangeShort  string `json:"exchangeShortName"`
+}
+
+func (s symbolMatchSummary) exchangeShort() string {
+	if s.ExchangeShortName != "" {
+		return s.ExchangeShortName
+	}
+	return s.AltExchangeShort
+}
+
+const maxAlternatives = 10
+
+// rankSymbolMatches ranks symbol candidates against the query and optional preferred exchange.
+// Ranking tiers:
+//  1. case-insensitive exact symbol match on the preferred exchange
+//  2. exact symbol match anywhere
+//  3. first result on the preferred exchange
+//  4. first result
+//
+// Alternatives are the remaining results in backend order, capped at 10.
+func rankSymbolMatches(items []json.RawMessage, query, exchange string) (json.RawMessage, []json.RawMessage, error) {
+	if len(items) == 0 {
+		return nil, nil, &backendError{class: ErrNoData}
+	}
+
+	cleanQuery := strings.TrimSpace(query)
+	cleanExchange := strings.TrimSpace(exchange)
+
+	summaries := make([]symbolMatchSummary, len(items))
+	for i, item := range items {
+		if err := json.Unmarshal(item, &summaries[i]); err != nil {
+			return nil, nil, &backendError{class: ErrProvider, detail: err.Error()}
+		}
+	}
+
+	bestIdx := -1
+
+	// Tier 1: exact symbol match on the preferred exchange.
+	if cleanExchange != "" {
+		for i, s := range summaries {
+			if strings.EqualFold(s.Symbol, cleanQuery) && strings.EqualFold(s.exchangeShort(), cleanExchange) {
+				bestIdx = i
+				break
+			}
+		}
+	}
+
+	// Tier 2: exact symbol match anywhere.
+	if bestIdx == -1 {
+		for i, s := range summaries {
+			if strings.EqualFold(s.Symbol, cleanQuery) {
+				bestIdx = i
+				break
+			}
+		}
+	}
+
+	// Tier 3: first result on the preferred exchange.
+	if bestIdx == -1 && cleanExchange != "" {
+		for i, s := range summaries {
+			if strings.EqualFold(s.exchangeShort(), cleanExchange) {
+				bestIdx = i
+				break
+			}
+		}
+	}
+
+	// Tier 4: first result.
+	if bestIdx == -1 {
+		bestIdx = 0
+	}
+
+	best := items[bestIdx]
+
+	alts := make([]json.RawMessage, 0, min(len(items)-1, maxAlternatives))
+	for i, item := range items {
+		if i == bestIdx {
+			continue
+		}
+		alts = append(alts, item)
+		if len(alts) == maxAlternatives {
+			break
+		}
+	}
+
+	return best, alts, nil
 }
 
 // --------------------------------------------------------------------------- //
@@ -582,7 +702,7 @@ func validateOptionType(v string) (string, error) {
 func validateSearchQuery(v string) (string, error) {
 	query := strings.TrimSpace(v)
 	if len(query) < minQueryLength || len(query) > maxQueryLength {
-		return "", fmt.Errorf("q must be between %d and %d characters", minQueryLength, maxQueryLength)
+		return "", fmt.Errorf("query must be between %d and %d characters", minQueryLength, maxQueryLength)
 	}
 	return query, nil
 }
