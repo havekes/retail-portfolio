@@ -130,20 +130,22 @@ mention an upstream provider brand. Keep the vocabulary provider-agnostic
 ## Tools
 
 Tools are registered by a single `tools.go::registerTools(*mcp.Server,
-*BackendClient)` function using the SDK's generic `mcp.AddTool` with typed input
-structs (the SDK infers and validates the input schema). `newMCPServer` (in
-`mcpserver.go`) accepts the `*BackendClient` so the tool handlers can close over
-it. Every tool name, description and result string is provider-agnostic.
+*BackendClient)` function using `addTool` with typed input structs (the SDK
+infers and validates the input schema from struct fields and `jsonschema` tags).
+`newMCPServer` (in `mcpserver.go`) accepts the `*BackendClient` so the tool
+handlers can close over it. Every tool name, description and result string is
+provider-agnostic.
 
-| Tool                       | Inputs                                                          | Backend route                                                   | Returns                                           |
-| -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------- |
-| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                                |
-| `get_technical_indicator`  | `symbol`, `indicator`, `period?`, `fast?`, `slow?`, `signal?`, `std_dev?`, `from?`, `to?`, `exchange?` | `GET /api/v1/market/data/indicators/{symbol}`                   | Technical indicator series                        |
-| `get_fundamentals`         | `symbol`, `sections?`, `exchange?`                              | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate          |
-| `get_options_chain`        | `symbol`, `expiry`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
-| `get_option_expirations`   | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                           |
-| `get_financial_statements` | `symbol`, `statement`, `period?`, `limit?`, `exchange?`         | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Financial statements (income, balance, cashflow)  |
-| `resolve_symbol`           | `query`, `exchange?`                                            | `GET /api/v1/market/data/symbols/search`                        | Best matching symbol and alternatives             |
+| Tool                       | Inputs                                                                                                   | Backend route                                               | Returns                                          |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------ |
+| `resolve_symbol`           | `query`, `exchange?`                                                                                     | `GET /api/v1/market/data/symbols/search`                    | Best matching symbol and alternatives            |
+| `get_quote`                | `symbol`, `exchange?`                                                                                    | `GET /api/v1/market/data/quote/{symbol}`                    | Live quote snapshot                              |
+| `get_price_history`        | `symbol`, `from?`, `to?`, `interval?`, `exchange?`                                                       | `GET /api/v1/market/data/prices/{symbol}`                   | Daily, weekly, or monthly OHLC history           |
+| `get_fundamentals`         | `symbol`, `sections?`, `exchange?`                                                                       | `GET /api/v1/market/data/fundamentals/{symbol}`             | Profile + key metrics + ratios aggregate         |
+| `get_financial_statements` | `symbol`, `statement`, `period?`, `limit?`, `exchange?`                                                  | `GET /api/v1/market/data/fundamentals/{symbol}/statements`  | Financial statements (income, balance, cashflow) |
+| `get_option_expirations`   | `symbol`                                                                                                 | `GET /api/v1/market/data/options/{symbol}/expirations`      | Option expiration dates                          |
+| `get_options_chain`        | `symbol`, `expiry`, `option_type?`, `strike_min?`, `strike_max?`                                         | `GET /api/v1/market/data/options/{symbol}`                  | Options chain                                    |
+| `get_technical_indicator`  | `symbol`, `indicator`, `period?`, `fast?`, `slow?`, `signal?`, `std_dev?`, `from?`, `to?`, `exchange?`    | `GET /api/v1/market/data/indicators/{symbol}`               | Technical indicator series                       |
 
 Inputs are validated or clamped in the handler before any backend call, so most
 bad arguments never reach the backend. A backend `422` that still occurs is
@@ -151,19 +153,30 @@ classified as `ErrValidation` — not `ErrNoData` — so it is reported as an
 actionable error rather than "no data":
 
 - `symbol` is trimmed, required, and at most 32 characters.
-- `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
-- `get_technical_indicator` requires `indicator` (`sma`, `ema`, `rsi`, `macd`, or `bollinger`),
-  clamps optional periods (`period`, `fast`, `slow`, `signal`) to 2–400, requires `std_dev > 0`,
-  and requires `from <= to` when provided.
-- `get_fundamentals` accepts optional `sections` subset of `profile`, `key_metrics`,
-  `ratios` (default all).
-- `get_options_chain` requires `expiry` (`YYYY-MM-DD`; use `get_option_expirations` to
-  discover valid dates), accepts `option_type` of `call` or `put`, and requires
-  `strike_min <= strike_max`.
+- `resolve_symbol` requires a trimmed query of 1–100 characters and optional supported exchange (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE). Use this first before calling price or fundamentals tools.
+- `get_quote` requires a symbol and optional supported exchange; returns timestamp and price in listing currency.
+- `get_price_history` requires `from <= to`; accepts optional `interval` (`day`, `week`, `month`) and caps results at 2,000 bars.
+- `get_fundamentals` accepts optional `sections` subset of `profile`, `key_metrics`, `ratios` (default all).
 - `get_financial_statements` requires `statement` (`income`, `balance`, or
   `cashflow`), accepts `period` of `annual` (default) or `quarter`, and clamps
   `limit` to 1–20 with a default of 5.
-- `resolve_symbol` requires a trimmed query of 1–100 characters and optional supported exchange.
+- `get_option_expirations` requires an underlying symbol.
+- `get_options_chain` requires `expiry` (`YYYY-MM-DD`; use `get_option_expirations` to
+  discover valid dates), accepts `option_type` of `call` or `put`, and requires
+  `strike_min <= strike_max`.
+- `get_technical_indicator` requires `indicator` (`sma`, `ema`, `rsi`, `macd`, or `bollinger`),
+  clamps optional periods (`period`, `fast`, `slow`, `signal`) to 2–400, requires `std_dev > 0`,
+  and requires `from <= to` when provided.
+
+### Tool descriptions and annotations
+
+Every tool is registered with `toolSpec{Name, Title, Description}` via `addTool`:
+- **Annotations**: always sets `ReadOnlyHint: true`, `IdempotentHint: true`, and `Title: <title>` so MCP clients identify tools as safe, idempotent, and titled.
+- **Descriptions**: follow a structured 4-part convention:
+  - **`Use when:`** — guidance on when an agent should invoke the tool, default behavior, and constraints (e.g. "USE THIS FIRST" for `resolve_symbol`, 2,000-bar cap for `get_price_history`).
+  - **`Examples:`** — at least two plain-language queries mapped to parameter JSON (`"..." -> {...}`) using supported exchanges.
+  - **`Returns:`** — top-level response keys, noting decimal strings in the response's `currency` field, quote `timestamp`, or `truncated` semantics.
+  - **`See also:`** — related registered tools.
 
 ### Tool result contract
 
@@ -215,14 +228,35 @@ Adding a second data plane or domain (for example, portfolios, watchlists, or or
    ```
 
 3. **Register MCP tools**:
-   Define typed tool inputs and register tools in a domain tool registration function (e.g. `registerPortfolioTools` in `tools.go` or a domain tools file) closing over the domain client:
+   Define typed tool inputs and register tools in a domain tool registration function (e.g. `registerPortfolioTools` in `tools.go` or a domain tools file) closing over the domain client using `toolSpec`:
    ```go
-   addTool(server, "create_position", "Create a new position in the portfolio.",
-       func(ctx context.Context, _ *mcp.CallToolRequest, in createPositionInput) (*mcp.CallToolResult, any, error) {
-           return runTool(ctx, "create_position", cfg, in, createPositionInput.prepare, func(ctx context.Context, r createPositionRequest) (any, error) {
-               return portfolioClient.CreatePosition(ctx, r)
-           })
+   const descCreatePosition = `Create a new position in the portfolio.
+
+   Use when:
+   Adding a newly executed trade to the portfolio holdings.
+
+   Examples:
+   - "Add 10 shares of Apple at $150" -> {"symbol": "AAPL", "quantity": 10, "price": "150.00"}
+   - "Buy 5 shares of Microsoft" -> {"symbol": "MSFT", "quantity": 5}
+
+   Returns:
+   Top-level fields:
+   - position_id: identifier of the created position.
+   - symbol: ticker symbol.
+   - quantity: position size.
+
+   See also:
+   get_quote, resolve_symbol`
+
+   addTool(server, toolSpec{
+       Name:        "create_position",
+       Title:       "Create Position",
+       Description: descCreatePosition,
+   }, func(ctx context.Context, _ *mcp.CallToolRequest, in createPositionInput) (*mcp.CallToolResult, any, error) {
+       return runTool(ctx, "create_position", cfg, in, createPositionInput.prepare, func(ctx context.Context, r createPositionRequest) (any, error) {
+           return portfolioClient.CreatePosition(ctx, r)
        })
+   })
    ```
 
 ## Development

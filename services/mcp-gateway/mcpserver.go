@@ -21,9 +21,11 @@ const (
 //
 // The tool contract:
 //
-//   - Each tool uses the generic `mcp.AddTool(server, &mcp.Tool{Name,
-//     Description}, handler)` with a typed `In` struct (jsonschema tags) so the
-//     SDK generates and validates the input schema.
+//   - Each tool is registered with a `toolSpec` (Name, Title, Description) via
+//     `addTool`, setting `Annotations` with `ReadOnlyHint: true`, `IdempotentHint: true`,
+//     and `Title`. Input schemas are inferred from typed `In` structs (jsonschema tags).
+//   - Descriptions follow a structured format with four labelled sections:
+//     "Use when:", "Examples:", "Returns:", and "See also:".
 //   - Handlers validate/normalize their input, call the BackendClient, then
 //     return a `&mcp.CallToolResult` with JSON-encoded, tool-shaped output as
 //     `mcp.TextContent` — not the backend response verbatim.
