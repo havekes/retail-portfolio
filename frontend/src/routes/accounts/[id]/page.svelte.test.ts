@@ -18,6 +18,7 @@ function makeHoldings(overrides: Partial<AccountHoldings> = {}): AccountHoldings
 		total_value: 1000,
 		total_profit_loss: 100,
 		total_profit_loss_percent: 10,
+		profit_loss_basis: 'net_deposits',
 		net_deposits: 900,
 		currency: 'CAD',
 		items: [],
@@ -45,5 +46,19 @@ describe('/accounts/[id] +page.svelte incomplete pricing warning (ARCH-T26)', ()
 		renderPage(makeHoldings({ unpriced_positions: 0, pricing_incomplete: false }));
 
 		expect(screen.queryByLabelText('Incomplete pricing')).not.toBeInTheDocument();
+	});
+});
+
+describe('/accounts/[id] +page.svelte header totals (ARCH-T30)', () => {
+	it('renders the total value and profit/loss buttons instead of the labelled stat columns', () => {
+		renderPage(makeHoldings());
+
+		expect(screen.getByTestId('total-value-btn')).toHaveTextContent('$1,000.00');
+		expect(screen.getByTestId('profit-loss-btn')).toHaveTextContent('+10.00%');
+		expect(screen.getByTestId('profit-loss-btn')).toHaveTextContent('+$100.00');
+
+		expect(screen.queryByText('Total Value')).not.toBeInTheDocument();
+		expect(screen.queryByText('Net Deposits')).not.toBeInTheDocument();
+		expect(screen.queryByText('Total P/L')).not.toBeInTheDocument();
 	});
 });

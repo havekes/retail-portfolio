@@ -18,6 +18,11 @@ export interface CurrencyTotalsBucket {
 	returnPercent: number | null;
 	basis: TotalsBasis;
 	basisLabel: string;
+	/**
+	 * Sum of the bucket's `net_deposits` when every account reports that basis,
+	 * otherwise `null` (a mixed bucket has no single basis amount to show).
+	 */
+	basisAmount: number | null;
 }
 
 export const NET_DEPOSITS_BASIS_LABEL = 'net deposits basis';
@@ -68,7 +73,8 @@ export function aggregateAccountTotals(inputs: AccountTotalsInput[]): CurrencyTo
 			profitLoss,
 			returnPercent,
 			basis: allNetDeposits ? 'net_deposits' : 'mixed',
-			basisLabel: allNetDeposits ? NET_DEPOSITS_BASIS_LABEL : MIXED_BASIS_LABEL
+			basisLabel: allNetDeposits ? NET_DEPOSITS_BASIS_LABEL : MIXED_BASIS_LABEL,
+			basisAmount: allNetDeposits ? netDeposits : null
 		};
 	});
 }

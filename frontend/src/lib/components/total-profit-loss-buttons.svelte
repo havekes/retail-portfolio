@@ -28,14 +28,15 @@
 
 	const val = $derived(typeof totalValue === 'number' ? totalValue : moneyToNumber(totalValue));
 
+	// The caller-provided basis (net deposits or cost). Kept separate from the
+	// derived `cost` below so the P/L tooltip can show the real basis amount
+	// without falling back to `value - profitLoss`.
+	const explicitCost = $derived(
+		costBasis == null ? null : typeof costBasis === 'number' ? costBasis : moneyToNumber(costBasis)
+	);
+
 	const cost = $derived(
-		costBasis == null
-			? profitLoss != null
-				? val - profitLoss
-				: null
-			: typeof costBasis === 'number'
-				? costBasis
-				: moneyToNumber(costBasis)
+		explicitCost != null ? explicitCost : profitLoss != null ? val - profitLoss : null
 	);
 
 	const effectiveCurrency = $derived(
@@ -94,6 +95,9 @@
 	const formattedTotalValue = $derived(formatCurrency(val, effectiveCurrency));
 	const formattedCostBasis = $derived(
 		cost != null ? formatCurrency(cost, effectiveCurrency) : null
+	);
+	const formattedBasisAmount = $derived(
+		explicitCost != null ? formatCurrency(explicitCost, effectiveCurrency) : null
 	);
 	const formattedProfitLoss = $derived(
 		effectiveProfitLoss != null
@@ -172,20 +176,11 @@
 					{/snippet}
 				</Tooltip.Trigger>
 				<Tooltip.Content>
-					{#if formattedProfitLoss}
-						<p>
-							Profit/Loss: {formattedProfitLoss}{formattedReturnPercent
-								? ` (${formattedReturnPercent})`
-								: ''}
-						</p>
-					{/if}
-					{#if basisLabel}
+					{#if basisLabel && formattedBasisAmount}
+						<p>{basisLabel}: {formattedBasisAmount}</p>
+					{:else if basisLabel}
 						<p>{basisLabel}</p>
 					{/if}
-					{#if formattedCostBasis}
-						<p>Total cost: {formattedCostBasis}</p>
-					{/if}
-					<p>Total value: {formattedTotalValue}</p>
 				</Tooltip.Content>
 			</Tooltip.Root>
 		</Tooltip.Provider>

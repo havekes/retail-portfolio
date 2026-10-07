@@ -164,11 +164,11 @@
 				{:then totals}
 					{@const profitLoss = moneyToNumber(totals.profit_loss)}
 					{@const returnPercent = totals.return_percent}
-					{@const basisLabel =
-						totals.basis === 'net_deposits' ? 'vs. net deposits' : 'vs. cost basis'}
+					{@const netDepositsBasis = totals.basis === 'net_deposits'}
+					{@const basisLabel = netDepositsBasis ? 'Net deposits' : 'Cost basis'}
 					<TotalProfitLossButtons
 						totalValue={totals.value}
-						costBasis={totals.cost}
+						costBasis={netDepositsBasis ? totals.net_deposits : totals.cost}
 						{profitLoss}
 						{returnPercent}
 						{basisLabel}
