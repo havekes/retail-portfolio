@@ -428,6 +428,22 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(await screen.findByText('mixed basis')).toBeInTheDocument();
 	});
 
+	it('shows the aggregated net deposits amount in the profit/loss tooltip for a net-deposits bucket', async () => {
+		const user = userEvent.setup();
+		getAccountTotals.mockResolvedValue(
+			makeTotals(1000, 100, { basis: 'net_deposits', net_deposits: { value: '850' } })
+		);
+
+		await renderWithHoldings([aaplTfsa], { accounts: [testAccount1] });
+
+		await screen.findByTestId('currency-CAD-total-value');
+		await user.hover(screen.getByTestId('currency-CAD-profit-loss'));
+
+		expect(await screen.findByText('net deposits basis: $850.00')).toBeInTheDocument();
+		// The derived cost (1000 - 100 = $900.00) must not stand in for the basis.
+		expect(screen.queryByText(/Total cost/)).not.toBeInTheDocument();
+	});
+
 	it('renders currency totals using TotalProfitLossButtons with split value and profit/loss buttons', async () => {
 		getAccountTotals.mockResolvedValue(
 			makeTotals(1000, 100, { basis: 'net_deposits', net_deposits: { value: '1000' } })

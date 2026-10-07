@@ -302,6 +302,7 @@
 						profitLoss={total.profitLoss}
 						returnPercent={total.returnPercent}
 						currency={total.currency}
+						costBasis={total.basisAmount}
 						basisLabel={total.basisLabel}
 						testIdPrefix={`currency-${total.currency}`}
 					/>

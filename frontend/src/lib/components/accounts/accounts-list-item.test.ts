@@ -848,22 +848,25 @@ describe('AccountsListItem', () => {
 			expect(screen.queryByText('+$100.00')).not.toBeInTheDocument();
 		});
 
-		it('shows "vs. net deposits" in the profit/loss tooltip when basis is net_deposits', async () => {
+		it('shows the net deposits amount (not the cost) in the profit/loss tooltip when basis is net_deposits', async () => {
 			renderWithTotals(serverTotals({ basis: 'net_deposits' }));
 
 			const trigger = await screen.findByTestId('profit-loss-btn');
 			await fireEvent.pointerEnter(trigger);
 
-			expect(await screen.findByText('vs. net deposits')).toBeInTheDocument();
+			expect(await screen.findByText('Net deposits: $1,000.00')).toBeInTheDocument();
+			// The server cost ($1,050.00) must not be advertised as the basis.
+			expect(screen.queryByText('$1,050.00')).not.toBeInTheDocument();
+			expect(screen.queryByText('Total cost: $1,050.00')).not.toBeInTheDocument();
 		});
 
-		it('shows "vs. cost basis" in the profit/loss tooltip when basis is cost', async () => {
+		it('shows the cost basis amount in the profit/loss tooltip when basis is cost', async () => {
 			renderWithTotals(serverTotals({ basis: 'cost' }));
 
 			const trigger = await screen.findByTestId('profit-loss-btn');
 			await fireEvent.pointerEnter(trigger);
 
-			expect(await screen.findByText('vs. cost basis')).toBeInTheDocument();
+			expect(await screen.findByText('Cost basis: $1,050.00')).toBeInTheDocument();
 		});
 
 		it('renders no percent when the server return_percent is null', async () => {

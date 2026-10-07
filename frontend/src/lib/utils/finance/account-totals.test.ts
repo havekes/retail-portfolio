@@ -58,9 +58,30 @@ describe('aggregateAccountTotals', () => {
 				profitLoss: 234.56,
 				returnPercent: 23.456,
 				basis: 'net_deposits',
-				basisLabel: NET_DEPOSITS_BASIS_LABEL
+				basisLabel: NET_DEPOSITS_BASIS_LABEL,
+				basisAmount: 1000
 			}
 		]);
+	});
+
+	it('sums net deposits into basisAmount for an all-net-deposits bucket', () => {
+		const buckets = aggregateAccountTotals([
+			input('acc-1', 'CAD', 1000, 100, 'net_deposits', 900),
+			input('acc-2', 'CAD', 500, 50, 'net_deposits', 450)
+		]);
+
+		expect(buckets[0].basis).toBe('net_deposits');
+		expect(buckets[0].basisAmount).toBe(1350);
+	});
+
+	it('has no basisAmount on a mixed bucket', () => {
+		const buckets = aggregateAccountTotals([
+			input('acc-1', 'CAD', 1000, 100, 'net_deposits', 900),
+			input('acc-2', 'CAD', 500, 50, 'cost')
+		]);
+
+		expect(buckets[0].basis).toBe('mixed');
+		expect(buckets[0].basisAmount).toBeNull();
 	});
 
 	it('buckets per currency and uses sum(pl)/sum(net_deposits) for an all-net-deposits bucket', () => {
