@@ -309,12 +309,10 @@ describe('ImportAccountCsvModal', () => {
 		const importBtn = screen.getByRole('button', { name: 'Import selected (1)' });
 		await fireEvent.click(importBtn);
 
-		expect(accountClient.importAccountsCsv).toHaveBeenCalledWith(
-			'1',
-			file,
-			['W123456789'],
-			expect.objectContaining({ W123456789: 'CAD' })
-		);
+		expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789'], {
+			currencies: expect.objectContaining({ W123456789: 'CAD' }),
+			netDeposits: {}
+		});
 
 		await waitFor(() => {
 			expect(mockOnSuccess).toHaveBeenCalledTimes(1);
@@ -540,10 +538,179 @@ describe('ImportAccountCsvModal', () => {
 			'1',
 			file,
 			['W123456789', 'W987654321'],
-			expect.objectContaining({
-				W123456789: 'USD',
-				W987654321: 'USD'
-			})
+			{
+				currencies: { W123456789: 'USD', W987654321: 'USD' },
+				netDeposits: {}
+			}
 		);
+	});
+
+	describe('net deposits', () => {
+		const existingAccount: CsvDiscoveredAccount = {
+			account_number: 'W123456789',
+			account_name: 'Existing TFSA',
+			account_type_id: AccountType.TFSA,
+			account_type_name: 'TFSA',
+			currency: 'CAD',
+			positions_count: 5,
+			exists: true,
+			net_deposits: 1000
+		};
+
+		const newAccount: CsvDiscoveredAccount = {
+			account_number: 'W987654321',
+			account_name: 'New RRSP',
+			account_type_id: AccountType.RRSP,
+			account_type_name: 'RRSP',
+			currency: 'USD',
+			positions_count: 2,
+			exists: false,
+			net_deposits: null
+		};
+
+		async function openStep2(accounts: CsvDiscoveredAccount[]): Promise<File> {
+			vi.mocked(accountClient.inspectCsv).mockResolvedValue(accounts);
+			modalState.open();
+
+			render(ImportAccountCsvModal, {
+				props: {
+					modalState,
+					onSuccess: () => mockOnSuccess()
+				}
+			});
+
+			await waitFor(() => {
+				const select = document.getElementById('broker-select') as HTMLSelectElement;
+				expect(select).toBeInTheDocument();
+			});
+
+			const select = document.getElementById('broker-select') as HTMLSelectElement;
+			await fireEvent.change(select, { target: { value: '1' } });
+
+			const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+			const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+			await fireEvent.change(input, { target: { files: [file] } });
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Preview accounts' }));
+
+			await waitFor(() => {
+				expect(screen.getByRole('button', { name: /Import selected/ })).toBeInTheDocument();
+			});
+
+			return file;
+		}
+
+		function netDepositInputs(): HTMLInputElement[] {
+			return screen.getAllByTestId('account-net-deposits-input') as HTMLInputElement[];
+		}
+
+		it('prefills an existing account with "Still correct?" and submits the edited value', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([existingAccount]);
+
+			const inputs = netDepositInputs();
+			expect(inputs[0]).toHaveValue('1000');
+			expect(screen.getByText('Still correct?')).toBeInTheDocument();
+
+			await fireEvent.input(inputs[0], { target: { value: '1200' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }));
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789'], {
+				currencies: expect.objectContaining({ W123456789: 'CAD' }),
+				netDeposits: { W123456789: 1200 }
+			});
+		});
+
+		it('renders an empty Optional input for a new account and omits the key when left empty', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([newAccount]);
+
+			const inputs = netDepositInputs();
+			expect(inputs[0]).toHaveValue('');
+			expect(inputs[0]).toHaveAttribute('placeholder', 'Optional');
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }));
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W987654321'], {
+				currencies: expect.objectContaining({ W987654321: 'USD' }),
+				netDeposits: {}
+			});
+		});
+
+		it('submits a typed value for a new account', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([newAccount]);
+
+			await fireEvent.input(netDepositInputs()[0], { target: { value: '500' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }));
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W987654321'], {
+				currencies: expect.objectContaining({ W987654321: 'USD' }),
+				netDeposits: { W987654321: 500 }
+			});
+		});
+
+		it('sends null when a prefilled value is cleared', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([existingAccount]);
+
+			await fireEvent.input(netDepositInputs()[0], { target: { value: '' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }));
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789'], {
+				currencies: expect.objectContaining({ W123456789: 'CAD' }),
+				netDeposits: { W123456789: null }
+			});
+		});
+
+		it('never includes unselected accounts in net deposits', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([existingAccount, { ...newAccount, net_deposits: 500 }]);
+
+			await fireEvent.click(screen.getByRole('checkbox', { name: 'Select account W987654321' }));
+			await fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }));
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789'], {
+				currencies: expect.objectContaining({ W123456789: 'CAD' }),
+				netDeposits: { W123456789: 1000 }
+			});
+		});
+
+		it('allows negative net deposits (withdrawals)', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			const file = await openStep2([existingAccount]);
+
+			await fireEvent.input(netDepositInputs()[0], { target: { value: '-500' } });
+			const importBtn = screen.getByRole('button', { name: 'Import selected (1)' });
+			expect(importBtn).not.toBeDisabled();
+
+			await fireEvent.click(importBtn);
+
+			expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789'], {
+				currencies: expect.objectContaining({ W123456789: 'CAD' }),
+				netDeposits: { W123456789: -500 }
+			});
+		});
+
+		it('blocks submit with an inline error for non-numeric input', async () => {
+			vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+			await openStep2([existingAccount]);
+
+			await fireEvent.input(netDepositInputs()[0], { target: { value: 'abc' } });
+
+			expect(screen.getByTestId('account-net-deposits-error')).toBeInTheDocument();
+			const importBtn = screen.getByRole('button', { name: 'Import selected (1)' });
+			expect(importBtn).toBeDisabled();
+
+			await fireEvent.click(importBtn);
+			expect(accountClient.importAccountsCsv).not.toHaveBeenCalled();
+		});
 	});
 });

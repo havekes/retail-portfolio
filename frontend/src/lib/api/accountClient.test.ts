@@ -79,6 +79,40 @@ describe('AccountClient', () => {
 		const call = vi.mocked(global.fetch).mock.calls[0];
 		const formData = call[1]?.body as FormData;
 		expect(formData.get('file')).toBe(file);
+		expect(formData.get('net_deposits')).toBeNull();
+	});
+
+	it('should append net_deposits to FormData when provided to syncAccountCsv', async () => {
+		const mockAccount = { id: 'acc-1', name: 'Test Account', api_sync_enabled: false };
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => mockAccount
+		} as Response);
+
+		const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+		await client.syncAccountCsv('acc-1', file, { netDeposits: 1200 });
+
+		const call = vi.mocked(global.fetch).mock.calls[0];
+		const formData = call[1]?.body as FormData;
+		expect(formData.get('file')).toBe(file);
+		expect(formData.get('net_deposits')).toBe('1200');
+	});
+
+	it('should omit net_deposits from FormData when undefined in options to syncAccountCsv', async () => {
+		const mockAccount = { id: 'acc-1', name: 'Test Account', api_sync_enabled: false };
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => mockAccount
+		} as Response);
+
+		const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+		await client.syncAccountCsv('acc-1', file, { netDeposits: undefined });
+
+		const call = vi.mocked(global.fetch).mock.calls[0];
+		const formData = call[1]?.body as FormData;
+		expect(formData.get('net_deposits')).toBeNull();
 	});
 
 	it('should send Authorization header when token is provided to syncAccountCsv', async () => {
@@ -252,6 +286,48 @@ describe('AccountClient', () => {
 			expect(formData.get('file')).toBe(file);
 			expect(formData.get('institution_id')).toBe('1');
 			expect(formData.getAll('account_numbers')).toEqual(['W123456789', 'W987654321']);
+			expect(formData.get('currencies')).toBeNull();
+			expect(formData.get('net_deposits')).toBeNull();
+		});
+
+		it('should send currencies and net_deposits JSON from options to /accounts/csv/import', async () => {
+			vi.mocked(global.fetch).mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: async () => []
+			} as Response);
+
+			const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+			await client.importAccountsCsv(1, file, ['W123456789', 'W987654321'], {
+				currencies: { W123456789: 'USD' },
+				netDeposits: { W123456789: 1000, W987654321: null }
+			});
+
+			const call = vi.mocked(global.fetch).mock.calls[0];
+			const formData = call[1]?.body as FormData;
+			expect(formData.get('currencies')).toBe(JSON.stringify({ W123456789: 'USD' }));
+			expect(formData.get('net_deposits')).toBe(
+				JSON.stringify({ W123456789: 1000, W987654321: null })
+			);
+		});
+
+		it('should omit net_deposits from FormData when the options map is empty', async () => {
+			vi.mocked(global.fetch).mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: async () => []
+			} as Response);
+
+			const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+			await client.importAccountsCsv(1, file, ['W123456789'], {
+				currencies: {},
+				netDeposits: {}
+			});
+
+			const call = vi.mocked(global.fetch).mock.calls[0];
+			const formData = call[1]?.body as FormData;
+			expect(formData.get('currencies')).toBeNull();
+			expect(formData.get('net_deposits')).toBeNull();
 		});
 
 		it('should send Authorization header when token is provided to importAccountsCsv', async () => {
