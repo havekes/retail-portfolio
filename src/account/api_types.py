@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from stockholm import Currency, Money
 
 from src.auth.api_types import UserId
@@ -13,6 +13,8 @@ from src.market.api_types import SecurityId
 type AccountId = UUID
 type PositionId = int
 type PortfolioId = UUID
+
+SUPPORTED_DISPLAY_CURRENCIES: tuple[str, ...] = ("CAD", "USD", "EUR", "GBP")
 
 
 class Account(BaseModel):
@@ -98,5 +100,22 @@ class UserPreferences(BaseModel):
     show_valuation_band: bool | None = None
     watchlist_order: list[str] | None = None
     watchlist_sort: dict[str, str] | None = None
+    display_currency: str | None = None
 
     model_config = ConfigDict(extra="allow")
+
+    @field_validator("display_currency", mode="before")
+    @classmethod
+    def _validate_display_currency(cls, value: Any) -> Any:
+        """Normalise to an upper-cased ISO code from the supported set."""
+        if value is None:
+            return value
+        if not isinstance(value, str):
+            # Defer to pydantic's own type validation (yields a 422).
+            return value
+        normalized = value.strip().upper()
+        if normalized not in SUPPORTED_DISPLAY_CURRENCIES:
+            supported = ", ".join(SUPPORTED_DISPLAY_CURRENCIES)
+            msg = f"display_currency must be one of: {supported}"
+            raise ValueError(msg)
+        return normalized

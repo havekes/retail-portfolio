@@ -774,6 +774,60 @@ async def test_preferences_holdings_period_patch(auth_client):
 
 
 @pytest.mark.anyio
+async def test_preferences_display_currency_put_normalizes(auth_client):
+    """PUT with a lower-cased ISO code stores the upper-cased value."""
+    put_resp = await auth_client.put(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "usd"}
+    )
+    assert put_resp.status_code == 200
+    assert put_resp.json() == {"display_currency": "USD"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"display_currency": "USD"}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_patch_normalizes(auth_client):
+    """PATCH with a lower-cased ISO code stores the upper-cased value."""
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "eur"}
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json() == {"display_currency": "EUR"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"display_currency": "EUR"}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_put_invalid_rejected(auth_client):
+    """PUT with an unsupported currency returns 422 and stores nothing."""
+    put_resp = await auth_client.put(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "XYZ"}
+    )
+    assert put_resp.status_code == 422
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_patch_invalid_rejected(auth_client):
+    """PATCH with an unsupported currency returns 422 and stores nothing."""
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "xyz"}
+    )
+    assert patch_resp.status_code == 422
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {}
+
+
+@pytest.mark.anyio
 async def test_preferences_elliott_waves_roundtrip(auth_client):
     """Verify elliott_waves preferences persist through PUT, GET, and PATCH."""
     payload = {
