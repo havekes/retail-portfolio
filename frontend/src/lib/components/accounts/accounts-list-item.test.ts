@@ -47,7 +47,12 @@ describe('AccountsListItem', () => {
 		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
 		vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+			net_deposits: null,
+			profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			return_percent: 100,
+			basis: 'cost'
 		});
 		vi.mocked(accountClient.getAccountHoldings).mockResolvedValue({
 			account_id: 'acc-1',
@@ -660,7 +665,12 @@ describe('AccountsListItem', () => {
 		it('displays total profit/loss with + prefix and emerald class when positive', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {
@@ -677,7 +687,12 @@ describe('AccountsListItem', () => {
 		it('displays total profit/loss with - prefix and rose class when negative', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '25', units: 25, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '-25', units: -25, nanos: 0, currencyCode: 'CAD' },
+				return_percent: -50,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {
@@ -694,7 +709,12 @@ describe('AccountsListItem', () => {
 		it('renders split total value and profit/loss buttons using TotalProfitLossButtons', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {

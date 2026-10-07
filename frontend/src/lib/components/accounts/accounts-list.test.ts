@@ -16,7 +16,12 @@ vi.mock('$lib/api/accountClient', () => ({
 		renameAccount: vi.fn(),
 		getAccountTotals: vi.fn().mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+			net_deposits: null,
+			profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			return_percent: 100,
+			basis: 'cost'
 		})
 	}
 }));

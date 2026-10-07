@@ -111,7 +111,11 @@ async def _do_sync_positions(
     if broker_account:
         await account_api.update_net_deposits(
             account.id,
-            float(broker_account.net_deposits) if broker_account.net_deposits else None,
+            (
+                float(broker_account.net_deposits)
+                if broker_account.net_deposits is not None
+                else None
+            ),
         )
         await account_api.update_last_sync_at(account.id)
 

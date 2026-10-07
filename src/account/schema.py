@@ -10,6 +10,7 @@ from src.account.api_types import (
     AccountId,
     PortfolioId,
     PositionId,
+    ProfitLossBasis,
 )
 from src.account.csv.schema import (
     CsvDiscoveredAccount,
@@ -66,7 +67,7 @@ class AccountSchema(BaseModel):
             broker_display_name=broker_account.broker_display_name,
             net_deposits=(
                 float(broker_account.net_deposits)
-                if broker_account.net_deposits
+                if broker_account.net_deposits is not None
                 else None
             ),
         )
@@ -181,6 +182,7 @@ class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     total_value: float
     total_profit_loss: float
     total_profit_loss_percent: float | None = None
+    profit_loss_basis: ProfitLossBasis
     net_deposits: float | None = None
     free_cash: float = 0.0
     currency: str

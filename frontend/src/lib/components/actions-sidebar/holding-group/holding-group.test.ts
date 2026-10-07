@@ -128,12 +128,22 @@ describe('HoldingGroup Component', () => {
 			if (id === 'acc-1') {
 				return {
 					cost: { value: '1000', units: 1000, nanos: 0, currencyCode: 'USD' },
-					value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+					value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' },
+					cash: { value: '0', units: 0, nanos: 0, currencyCode: 'USD' },
+					net_deposits: null,
+					profit_loss: { value: '4000', units: 4000, nanos: 0, currencyCode: 'USD' },
+					return_percent: 400,
+					basis: 'cost'
 				};
 			}
 			return {
 				cost: { value: '2000', units: 2000, nanos: 0, currencyCode: 'USD' },
-				value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+				value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'USD' },
+				net_deposits: null,
+				profit_loss: { value: '3000', units: 3000, nanos: 0, currencyCode: 'USD' },
+				return_percent: 150,
+				basis: 'cost'
 			};
 		});
 	});
