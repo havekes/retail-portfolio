@@ -34,6 +34,10 @@ import type {
 
 export type ChartStyle = 'heikin_ashi' | 'candlestick';
 
+export const SUPPORTED_DISPLAY_CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'] as const;
+
+export type DisplayCurrency = (typeof SUPPORTED_DISPLAY_CURRENCIES)[number];
+
 export type {
 	DegreeWaveCount,
 	SecurityElliottWaves,
@@ -81,6 +85,7 @@ export interface UserPreferences {
 	holdings_group?: HoldingsGroupMode | null;
 	indicator_pane_heights?: Record<string, number> | null;
 	expanded_account_ids?: string[] | null;
+	display_currency?: string | null;
 }
 
 export class UserPreferencesService extends ApiClient {
