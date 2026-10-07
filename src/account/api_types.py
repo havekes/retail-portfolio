@@ -52,6 +52,8 @@ class AccountTotals(BaseModel):
     profit_loss: Money
     return_percent: float | None
     basis: ProfitLossBasis
+    unpriced_positions: int = 0
+    pricing_incomplete: bool = False
 
 
 class AccountRenameRequest(BaseModel):

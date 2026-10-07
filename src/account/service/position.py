@@ -155,7 +155,9 @@ class PositionService:
         result_items: list[UserHoldingRead] = []
         for account_id, account_positions in positions_by_account.items():
             account = await self._account_service.get_account(account_id)
-            holdings, _, _ = await self._calculate_holdings(account, account_positions)
+            holdings, _, _, _ = await self._calculate_holdings(
+                account, account_positions
+            )
             result_items.extend(
                 UserHoldingRead(
                     **holding.model_dump(),
@@ -175,12 +177,18 @@ class PositionService:
 
         # Calculate totals over all positions
         all_positions, _ = await self._position_repository.get_by_account(account_id)
-        _, positions_value, positions_profit_loss = await self._calculate_holdings(
-            account, all_positions
-        )
-        positions_cost = positions_value - positions_profit_loss
+        (
+            _,
+            positions_value,
+            positions_cost,
+            unpriced_positions,
+        ) = await self._calculate_holdings(account, all_positions)
         totals = self._account_performance(
-            account, positions_value, positions_cost, str(account.currency)
+            account,
+            positions_value,
+            positions_cost,
+            str(account.currency),
+            unpriced_positions=unpriced_positions,
         )
 
         # Fetch paginated positions
@@ -188,7 +196,7 @@ class PositionService:
             account_id, offset=offset, limit=limit
         )
 
-        holdings, _, _ = await self._calculate_holdings(account, positions)
+        holdings, _, _, _ = await self._calculate_holdings(account, positions)
 
         return AccountHoldingsRead(
             items=holdings,
@@ -204,6 +212,8 @@ class PositionService:
             net_deposits=account.net_deposits,
             free_cash=account.free_cash,
             currency=str(account.currency),
+            unpriced_positions=totals.unpriced_positions,
+            pricing_incomplete=totals.pricing_incomplete,
         )
 
     async def get_total_for_account(
@@ -213,23 +223,23 @@ class PositionService:
         account = await self._account_service.get_account(account_id)
         positions, _ = await self._position_repository.get_by_account(account_id)
 
-        positions_cost = Money(0, currency)
-        positions_value = Money(0, currency)
+        (
+            _,
+            positions_value,
+            positions_cost,
+            unpriced_positions,
+        ) = await self._calculate_holdings(account, positions)
 
-        for position in positions:
-            security = await self._security_service.get_by_id(position.security_id)
-            unconverted_cost = self._compute_cost(position, security)
-            unconverted_price = await self._compute_price(position, security)
-
-            positions_cost = positions_cost + self._currency_convert(
-                unconverted_cost, str(currency)
-            )
-            positions_value = positions_value + self._currency_convert(
-                unconverted_price, str(currency)
-            )
+        if str(account.currency) != str(currency):
+            positions_value = self._currency_convert(positions_value, str(currency))
+            positions_cost = self._currency_convert(positions_cost, str(currency))
 
         return self._account_performance(
-            account, positions_value, positions_cost, str(currency)
+            account,
+            positions_value,
+            positions_cost,
+            str(currency),
+            unpriced_positions=unpriced_positions,
         )
 
     def _account_performance(
@@ -238,12 +248,17 @@ class PositionService:
         positions_value: Money,
         positions_cost: Money,
         currency: str,
+        unpriced_positions: int = 0,
     ) -> AccountTotals:
         """Compute account totals and P/L against an explicit basis.
 
         Uses net deposits as the P/L basis when they are known, and falls back
         to the positions cost basis otherwise. ``cost`` (positions cost + cash)
         and ``value`` (positions value + cash) keep their previous meaning.
+
+        ``unpriced_positions`` counts positions excluded from the totals because
+        their security is missing or has no stored price; ``pricing_incomplete``
+        reports that the totals understate the account.
         """
         cash = self._currency_convert(
             Money(account.free_cash, account.currency), currency
@@ -282,60 +297,100 @@ class PositionService:
             profit_loss=profit_loss,
             return_percent=return_percent,
             basis=basis,
+            unpriced_positions=unpriced_positions,
+            pricing_incomplete=unpriced_positions > 0,
         )
 
     async def _calculate_holdings(
         self, account: AccountSchema, positions: list[PositionSchema]
-    ) -> tuple[list[HoldingRead], Money, Money]:
-        """Calculate aggregated holdings, total value, and total P/L for an account."""
+    ) -> tuple[list[HoldingRead], Money, Money, int]:
+        """Calculate aggregated holdings, value, cost, and unpriced count.
+
+        Returns totals in the account currency. Positions whose security is
+        missing are skipped and counted. Positions without a stored price are
+        still returned as rows (``total_value=0``, ``profit_loss=None``) but are
+        excluded from value, cost and P/L, so a missing price cannot silently
+        corrupt the account totals.
+        """
         holdings: list[HoldingRead] = []
         total_value = Money(0, account.currency)
-        total_profit_loss = Money(0, account.currency)
+        total_cost = Money(0, account.currency)
+        unpriced_positions = 0
 
         for position in positions:
-            security = await self._security_service.get_by_id(position.security_id)
-            if not security:
-                logger.error(
+            try:
+                security = await self._security_service.get_by_id(position.security_id)
+            except SecurityNotFoundError:
+                logger.exception(
                     "Security not found for position %s with security_id %s",
                     position.id,
                     position.security_id,
                 )
+                unpriced_positions += 1
                 continue
 
             latest_price = await self._market_prices.get_latest_price(security.id)
-            current_price_money = (
-                Money(latest_price.close, security.currency)
-                if latest_price
-                else Money(0, security.currency)
-            )
+            if latest_price is None:
+                logger.warning(
+                    "No price for position %s with security_id %s; "
+                    "excluding it from account totals",
+                    position.id,
+                    position.security_id,
+                )
+                unpriced_positions += 1
+                holdings.append(self._unpriced_holding(account, position, security))
+                continue
 
+            current_price_money = Money(latest_price.close, security.currency)
             holding, value_money, pl_money = self._calculate_holding(
                 account, position, security, current_price_money, latest_price
             )
 
             total_value += value_money
-            total_profit_loss += pl_money
+            # cost = value - P/L (both already in the account currency)
+            total_cost += value_money - pl_money
             holdings.append(holding)
 
-        return holdings, total_value, total_profit_loss
+        return holdings, total_value, total_cost, unpriced_positions
 
-    async def _compute_price(
-        self, position: PositionSchema, security: Security
-    ) -> Money:
-        """Compute the current market value for a position."""
-        security_price = await self._market_prices.get_latest_close(security.id)
+    def _unpriced_holding(
+        self,
+        account: AccountSchema,
+        position: PositionSchema,
+        security: Security,
+    ) -> HoldingRead:
+        """Build a holding row for a position with no stored price.
 
-        if security_price is None:
-            return Money(0, security.currency)
-
-        return round(security_price * position.quantity, 2)
-
-    def _compute_cost(self, position: PositionSchema, security: Security) -> Money:
-        """Compute the total cost for a position based on quantity and average cost."""
+        The row is surfaced to the user (``profit_loss=None``, ``total_value=0``)
+        so the position is not silently dropped, while account totals exclude it.
+        """
+        quantity = position.quantity
+        avg_cost = position.average_cost or Decimal(0)
         position_currency = position.currency or str(security.currency)
-        cost = round(position.quantity * (position.average_cost or 0), 2)
+        converted_average_cost = self._currency_convert(
+            Money(avg_cost, position_currency),
+            str(account.currency),
+        )
 
-        return Money(cost, position_currency)
+        return HoldingRead(
+            id=cast("PositionId", position.id),
+            security_id=security.id,
+            security_symbol=security.symbol,
+            security_name=security.name,
+            quantity=float(quantity),
+            average_cost=float(avg_cost),
+            total_value=0.0,
+            profit_loss=None,
+            currency=str(account.currency),
+            security_currency=position_currency,
+            unconverted_total_value=0.0,
+            converted_average_cost=float(converted_average_cost.amount),
+            converted_latest_price=None,
+            unconverted_profit_loss=None,
+            latest_price=None,
+            price_date=None,
+            updated_at=position.updated_at,
+        )
 
     def _currency_convert(self, value: Money, to_currency: str) -> Money:
         """Convert a Money amount to the specified target currency."""
