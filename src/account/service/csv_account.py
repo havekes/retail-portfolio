@@ -100,16 +100,18 @@ class CsvAccountService:
                 if existing is not None:
                     acc.exists = True
                     acc.currency = str(existing.currency)
+                    acc.net_deposits = existing.net_deposits
 
         return discovered
 
-    async def import_accounts(
+    async def import_accounts(  # noqa: PLR0913, PLR0917
         self,
         user_id: UserId,
         institution_id: int | InstitutionEnum,
         account_numbers: list[str],
         csv_content: str,
         account_currencies: dict[str, str] | None = None,
+        account_net_deposits: dict[str, float | None] | None = None,
     ) -> list[AccountSchema]:
         """Import or update selected accounts and positions from CSV content."""
         institution = await self.validate_csv_institution(institution_id)
@@ -161,6 +163,13 @@ class CsvAccountService:
                 await self._account_repository.update_free_cash(
                     existing.id, disc_acc.free_cash
                 )
+                if (
+                    account_net_deposits is not None
+                    and disc_acc.account_number in account_net_deposits
+                ):
+                    await self._account_repository.update_net_deposits(
+                        existing.id, account_net_deposits[disc_acc.account_number]
+                    )
                 # update holdings
                 await self.sync_account_csv_positions(
                     account_id=existing.id,
@@ -186,6 +195,13 @@ class CsvAccountService:
                     api_sync_enabled=False,
                 )
                 created = await self._account_repository.create(account_schema)
+                if (
+                    account_net_deposits is not None
+                    and disc_acc.account_number in account_net_deposits
+                ):
+                    await self._account_repository.update_net_deposits(
+                        created.id, account_net_deposits[disc_acc.account_number]
+                    )
                 await self.sync_account_csv_positions(
                     account_id=created.id,
                     institution_id=InstitutionEnum(raw_institution_id),
@@ -200,6 +216,7 @@ class CsvAccountService:
         self,
         account: AccountSchema | AccountId,
         csv_content: str,
+        net_deposits: float | None = None,
     ) -> AccountSchema:
         """Update positions of an existing account from CSV content."""
         if isinstance(account, AccountSchema):
@@ -234,6 +251,11 @@ class CsvAccountService:
         await self._account_repository.update_free_cash(
             target_account.id, matching_account.free_cash
         )
+
+        if net_deposits is not None:
+            await self._account_repository.update_net_deposits(
+                target_account.id, net_deposits
+            )
 
         await self.sync_account_csv_positions(
             account_id=target_account.id,
