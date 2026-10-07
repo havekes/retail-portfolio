@@ -140,6 +140,36 @@ class TestPreferences:
         }
         assert await api.get_preferences(user_id) == res
 
+    @pytest.mark.asyncio
+    async def test_get_display_currency_defaults_to_cad_without_preferences(self):
+        """get_display_currency returns CAD when the user has no preferences."""
+        user_id = uuid4()
+        api = UserApi(
+            user_repository=MockUserRepository(),
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        assert await api.get_display_currency(user_id) == "CAD"
+
+    @pytest.mark.asyncio
+    async def test_get_display_currency_defaults_to_cad_when_unset(self):
+        """get_display_currency returns CAD when preferences lack the field."""
+        user_id = uuid4()
+        api = UserApi(
+            user_repository=MockUserRepository(prefs={user_id: {"timeframe": "1d"}}),
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        assert await api.get_display_currency(user_id) == "CAD"
+
+    @pytest.mark.asyncio
+    async def test_get_display_currency_returns_stored_value(self):
+        """get_display_currency returns the stored preference when present."""
+        user_id = uuid4()
+        api = UserApi(
+            user_repository=MockUserRepository(prefs={user_id: {"display_currency": "USD"}}),
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        assert await api.get_display_currency(user_id) == "USD"
+
 
 class MockTotpRepository(TotpRepository):
     """Minimal in-memory TotpRepository for UserApi tests."""
