@@ -1029,6 +1029,7 @@ class StubEodhdGateway(MarketGateway):
             )
         return OptionsChain(
             underlying_symbol=normalized,
+            currency="",
             as_of=STUB_AS_OF_DATE,
             contracts=entries,
         )

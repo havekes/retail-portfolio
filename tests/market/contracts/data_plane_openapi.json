@@ -1388,6 +1388,10 @@
             "title": "Contracts",
             "type": "array"
           },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
           "truncated": {
             "default": false,
             "title": "Truncated",
@@ -1399,7 +1403,8 @@
           }
         },
         "required": [
-          "underlying_symbol"
+          "underlying_symbol",
+          "currency"
         ],
         "title": "OptionsChain",
         "type": "object"
@@ -1711,6 +1716,10 @@
       "PriceHistoryResponse": {
         "description": "Unified daily price-history response for the data endpoints.",
         "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
           "exchange": {
             "anyOf": [
               {
@@ -1746,6 +1755,7 @@
         },
         "required": [
           "symbol",
+          "currency",
           "from_date",
           "to_date",
           "items"

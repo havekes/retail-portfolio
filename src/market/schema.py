@@ -112,6 +112,7 @@ class PriceHistoryResponse(BaseModel):
     """Unified daily price-history response for the data endpoints."""
 
     symbol: str
+    currency: str
     exchange: str | None = None
     from_date: date
     to_date: date

@@ -173,7 +173,9 @@ class FakePolygonGateway(MarketGateway):
                 },
             )
         )
-        return OptionsChain(underlying_symbol=symbol, as_of=None, contracts=[])
+        return OptionsChain(
+            underlying_symbol=symbol, currency="USD", as_of=None, contracts=[]
+        )
 
     def get_option_expirations(self, symbol: str) -> OptionExpirations:
         self.calls.append(("get_option_expirations", (symbol,), {}))
