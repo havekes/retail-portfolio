@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import override
 
@@ -168,6 +169,20 @@ class SqlAlchemyAccountRepository(AccountRepository):
         account_model = await self._session.get(AccountModel, account_id)
         if account_model:
             account_model.free_cash = free_cash
+            await self._session.commit()
+
+    @override
+    async def update_broker_value(
+        self, account_id: AccountId, broker_value: float | None
+    ) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            account_model.broker_value = (
+                Decimal(str(broker_value)) if broker_value is not None else None
+            )
+            account_model.broker_value_at = (
+                datetime.now(UTC) if broker_value is not None else None
+            )
             await self._session.commit()
 
     @override

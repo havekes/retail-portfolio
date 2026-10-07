@@ -66,6 +66,12 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    async def update_broker_value(
+        self, account_id: AccountId, broker_value: float | None
+    ) -> None:
+        pass
+
+    @abstractmethod
     async def update_currency(
         self, account_id: AccountId, currency: str
     ) -> AccountSchema:

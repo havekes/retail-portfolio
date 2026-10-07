@@ -46,6 +46,12 @@ class AccountApi:
         """Update free cash for an account."""
         await self._account_repository.update_free_cash(account_id, amount)
 
+    async def update_broker_value(
+        self, account_id: AccountId, value: float | None
+    ) -> None:
+        """Update the broker-reported account value for an account."""
+        await self._account_repository.update_broker_value(account_id, value)
+
     async def update_last_sync_at(self, account_id: AccountId) -> None:
         """Update last sync timestamp for an account."""
         await self._account_repository.update_last_sync_at(account_id)

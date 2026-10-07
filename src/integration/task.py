@@ -136,7 +136,37 @@ async def _do_sync_positions(
                 else None
             ),
         )
+        broker_value = float(broker_account.value)
+        await account_api.update_broker_value(account.id, broker_value)
+        await _reconcile_broker_value(account, broker_value, svcs_container)
         await account_api.update_last_sync_at(account.id)
+
+
+async def _reconcile_broker_value(
+    account: Account, broker_value: float, svcs_container: Container
+) -> None:
+    """Log when our computed present value disagrees with the broker value.
+
+    A mismatch larger than 1% of the broker value usually means a valuation gap
+    (missing cash, a stale price or a bad FX rate).
+
+    ``PositionService`` is imported locally because this module is imported by
+    ``src.integration.api``, which the position service imports in turn; a
+    module-level import would create an import cycle.
+    """
+    from src.account.service.position import PositionService  # noqa: PLC0415
+
+    position_service = await svcs_container.aget(PositionService)
+    totals = await position_service.get_total_for_account(account.id, account.currency)
+    computed_value = float(totals.value.amount)
+
+    if abs(computed_value - broker_value) > 0.01 * abs(broker_value):
+        logger.warning(
+            "Broker value mismatch for account %s: broker_value=%s computed_value=%s",
+            account.id,
+            broker_value,
+            computed_value,
+        )
 
 
 def _broker_reports_cash_balances(broker: BrokerApiGateway) -> bool:
