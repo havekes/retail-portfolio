@@ -19,6 +19,7 @@ from src.market.api_types import (
     HistoricalPrice,
     IncomeStatement,
     KeyMetrics,
+    OptionExpirations,
     OptionsChain,
     SecuritySearchResult,
     SymbolLookupResult,
@@ -176,6 +177,10 @@ class FakePolygonGateway(MarketGateway):
             underlying_symbol=symbol, currency="USD", as_of=None, contracts=[]
         )
 
+    def get_option_expirations(self, symbol: str) -> OptionExpirations:
+        self.calls.append(("get_option_expirations", (symbol,), {}))
+        return OptionExpirations(underlying_symbol=symbol, expirations=[EXPIRY])
+
     # The composite must never route price/search capabilities to Polygon; if it
     # did, these would fail loudly.
     def search(self, query):
@@ -274,6 +279,19 @@ def test_options_route_to_polygon_with_filters(fakes):
     }
     # Options never leak to FMP.
     assert all(name != "get_options_chain" for name, *_ in fmp.calls)
+
+
+def test_option_expirations_route_to_polygon(fakes):
+    fmp, polygon, composite = fakes
+
+    expirations = composite.get_option_expirations("AAPL")
+
+    assert [name for name, *_ in polygon.calls] == ["get_option_expirations"]
+    assert polygon.calls[0][1] == ("AAPL",)
+    assert expirations.underlying_symbol == "AAPL"
+    assert expirations.expirations == [EXPIRY]
+    # Expirations never leak to FMP.
+    assert all(name != "get_option_expirations" for name, *_ in fmp.calls)
 
 
 def test_unsupported_capability_error_surfaces_unchanged(fakes):

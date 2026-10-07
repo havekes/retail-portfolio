@@ -18,6 +18,7 @@ EXPECTED_ROUTES = {
     "/api/v1/market/data/prices/{symbol}",
     "/api/v1/market/data/symbols/search",
     "/api/v1/market/data/options/{symbol}",
+    "/api/v1/market/data/options/{symbol}/expirations",
     "/api/v1/market/data/fundamentals/{symbol}",
     "/api/v1/market/data/fundamentals/{symbol}/statements",
 }
@@ -50,8 +51,8 @@ def test_data_plane_openapi_artifact_matches_live_fastapi() -> None:
         )
 
 
-def test_data_plane_contract_covers_all_five_routes() -> None:
-    """Contract covers exactly the 5 data-plane routes and no extra endpoints leaked in."""
+def test_data_plane_contract_covers_all_routes() -> None:
+    """Contract covers exactly the expected data-plane routes and no extra endpoints leaked in."""
     schema = get_data_plane_openapi(app)
     paths = schema.get("paths", {})
 
@@ -89,10 +90,15 @@ def test_data_plane_contract_parameters() -> None:
     options_params = get_params("/api/v1/market/data/options/{symbol}")
     assert options_params["symbol"]["in"] == "path"
     assert options_params["expiry"]["in"] == "query"
-    assert options_params["expiry"]["required"] is False
+    assert options_params["expiry"]["required"] is True
     assert options_params["option_type"]["in"] == "query"
     assert options_params["strike_min"]["in"] == "query"
     assert options_params["strike_max"]["in"] == "query"
+
+    # /options/{symbol}/expirations
+    expirations_params = get_params("/api/v1/market/data/options/{symbol}/expirations")
+    assert expirations_params["symbol"]["in"] == "path"
+    assert expirations_params["symbol"]["required"] is True
 
     # /fundamentals/{symbol}
     fund_params = get_params("/api/v1/market/data/fundamentals/{symbol}")
@@ -142,3 +148,13 @@ def test_data_plane_contract_requires_currency_on_price_responses() -> None:
     options_schema = schemas.get("OptionsChain", {})
     assert "currency" in options_schema.get("required", [])
     assert options_schema["properties"]["currency"]["type"] == "string"
+
+
+def test_data_plane_contract_options_chain_has_truncated_field() -> None:
+    """OptionsChain schema exposes the truncated boolean flag."""
+    schema = get_data_plane_openapi(app)
+    components = schema.get("components", {}).get("schemas", {})
+    options_chain = components.get("OptionsChain", {})
+    props = options_chain.get("properties", {})
+    assert "truncated" in props
+    assert props["truncated"]["type"] == "boolean"

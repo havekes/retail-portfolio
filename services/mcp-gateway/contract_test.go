@@ -180,6 +180,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 		"/api/v1/market/data/prices/{symbol}",
 		"/api/v1/market/data/symbols/search",
 		"/api/v1/market/data/options/{symbol}",
+		"/api/v1/market/data/options/{symbol}/expirations",
 		"/api/v1/market/data/fundamentals/{symbol}",
 		"/api/v1/market/data/fundamentals/{symbol}/statements",
 	}
@@ -229,6 +230,8 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 			_, _ = w.Write([]byte(`{"symbol":"AAPL","exchange":"NASDAQ","from_date":"2024-01-01","to_date":"2024-01-02","items":[]}`))
 		case strings.Contains(r.URL.Path, "/symbols/search"):
 			_, _ = w.Write([]byte(`[]`))
+		case strings.HasSuffix(r.URL.Path, "/expirations"):
+			_, _ = w.Write([]byte(`{"underlying_symbol":"AAPL","expirations":["2025-01-17"],"truncated":false}`))
 		case strings.Contains(r.URL.Path, "/options/"):
 			_, _ = w.Write([]byte(`{"underlying_symbol":"AAPL","as_of":"2024-01-01","contracts":[]}`))
 		case strings.HasSuffix(r.URL.Path, "/statements"):
@@ -263,14 +266,19 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	expiry := time.Date(2025, 1, 17, 0, 0, 0, 0, time.UTC)
 	strikeMin := 100.0
 	strikeMax := 200.0
-	if _, err := client.OptionsChain(ctx, "AAPL", &expiry, "call", &strikeMin, &strikeMax); err != nil {
+	if _, err := client.OptionsChain(ctx, "AAPL", expiry, "call", &strikeMin, &strikeMax); err != nil {
 		t.Fatalf("OptionsChain with filters failed: %v", err)
 	}
-	if _, err := client.OptionsChain(ctx, "AAPL", nil, "", nil, nil); err != nil {
-		t.Fatalf("OptionsChain without filters failed: %v", err)
+	if _, err := client.OptionsChain(ctx, "AAPL", expiry, "", nil, nil); err != nil {
+		t.Fatalf("OptionsChain without optional filters failed: %v", err)
 	}
 
-	// 4. Fundamentals (with and without exchange)
+	// 4. OptionExpirations
+	if _, err := client.OptionExpirations(ctx, "AAPL"); err != nil {
+		t.Fatalf("OptionExpirations failed: %v", err)
+	}
+
+	// 5. Fundamentals (with and without exchange)
 	if _, err := client.Fundamentals(ctx, "AAPL", "NASDAQ"); err != nil {
 		t.Fatalf("Fundamentals with exchange failed: %v", err)
 	}
@@ -278,7 +286,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		t.Fatalf("Fundamentals without exchange failed: %v", err)
 	}
 
-	// 5. Statements (with all parameters, and with minimal)
+	// 6. Statements (with all parameters, and with minimal)
 	if _, err := client.Statements(ctx, "AAPL", "income", "annual", 5, "NASDAQ"); err != nil {
 		t.Fatalf("Statements with all parameters failed: %v", err)
 	}
@@ -342,6 +350,12 @@ func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
 			url:         "/api/v1/market/data/fundamentals/AAPL/statements",
 			headerToken: "test-token",
 			wantErrMsg:  "required query parameter \"statement\" missing",
+		},
+		{
+			name:        "missing required query param 'expiry' on options",
+			url:         "/api/v1/market/data/options/AAPL",
+			headerToken: "test-token",
+			wantErrMsg:  "required query parameter \"expiry\" missing",
 		},
 		{
 			name:        "unknown query param on prices",
@@ -444,5 +458,48 @@ func TestExchangeVocabularyMatchesContract(t *testing.T) {
 	expectedRouteCount := 3
 	if routesChecked != expectedRouteCount {
 		t.Errorf("expected %d routes with exchange parameter, checked %d", expectedRouteCount, routesChecked)
+	}
+}
+
+func TestOptionsChainContractSchema(t *testing.T) {
+	doc := loadOpenAPIContract(t)
+
+	// Verify expiry is required parameter on GET /api/v1/market/data/options/{symbol}
+	optionsOp, ok := doc.Paths["/api/v1/market/data/options/{symbol}"]["get"]
+	if !ok {
+		t.Fatalf("GET /api/v1/market/data/options/{symbol} missing from contract")
+	}
+	var foundExpiry bool
+	for _, p := range optionsOp.Parameters {
+		if p.Name == "expiry" && p.In == "query" {
+			foundExpiry = true
+			if !p.Required {
+				t.Errorf("expected expiry query param to be required")
+			}
+		}
+	}
+	if !foundExpiry {
+		t.Fatalf("expiry query param not found in options route parameters")
+	}
+
+	// Verify OptionsChain schema has truncated boolean property
+	schemas, ok := doc.Components["schemas"].(map[string]any)
+	if !ok {
+		t.Fatalf("components.schemas missing from contract")
+	}
+	optionsChainSchema, ok := schemas["OptionsChain"].(map[string]any)
+	if !ok {
+		t.Fatalf("OptionsChain schema missing from contract")
+	}
+	properties, ok := optionsChainSchema["properties"].(map[string]any)
+	if !ok {
+		t.Fatalf("OptionsChain properties missing")
+	}
+	truncatedProp, ok := properties["truncated"].(map[string]any)
+	if !ok {
+		t.Fatalf("truncated property missing from OptionsChain schema")
+	}
+	if truncatedProp["type"] != "boolean" {
+		t.Errorf("OptionsChain.truncated type = %v, want boolean", truncatedProp["type"])
 	}
 }

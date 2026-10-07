@@ -125,7 +125,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 			name: "options chain",
 			body: `{"underlying_symbol":"AAPL","contracts":[]}`,
 			call: func(ctx context.Context, c *BackendClient) error {
-				_, err := c.OptionsChain(ctx, "aapl", &expiry, "call", &strikeMin, &strikeMax)
+				_, err := c.OptionsChain(ctx, "aapl", expiry, "call", &strikeMin, &strikeMax)
 				return err
 			},
 			wantPath: "/api/v1/market/data/options/AAPL",
@@ -135,6 +135,16 @@ func TestBackendClientEndpoints(t *testing.T) {
 				"strike_min":  "100",
 				"strike_max":  "200",
 			},
+		},
+		{
+			name: "option expirations",
+			body: `{"underlying_symbol":"AAPL","expirations":["2026-01-16"],"truncated":false}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				_, err := c.OptionExpirations(ctx, "aapl")
+				return err
+			},
+			wantPath:  "/api/v1/market/data/options/AAPL/expirations",
+			wantQuery: map[string]string{},
 		},
 		{
 			name: "fundamentals",
@@ -186,8 +196,9 @@ func TestBackendClientEndpoints(t *testing.T) {
 func TestBackendClientSendsServiceToken(t *testing.T) {
 	srv, cap := newStubBackend(t, http.StatusOK, `{"underlying_symbol":"AAPL","contracts":[]}`)
 	client := mustClient(t, srv.URL+"/", "super-secret-token") // trailing slash tolerated
+	expiry := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
 
-	if _, err := client.OptionsChain(context.Background(), "AAPL", nil, "", nil, nil); err != nil {
+	if _, err := client.OptionsChain(context.Background(), "AAPL", expiry, "", nil, nil); err != nil {
 		t.Fatalf("call returned error: %v", err)
 	}
 	if got := cap.header.Get(serviceTokenHeader); got != "super-secret-token" {
@@ -390,8 +401,9 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 						"theta": "-0.0731", "vega": "0.3412", "rho": null}}}
 			]
 		}`)
+		expiry := time.Date(2026, 1, 16, 0, 0, 0, 0, time.UTC)
 		raw, err := mustClient(t, srv.URL, "test-token").OptionsChain(
-			context.Background(), "AAPL", nil, "", nil, nil,
+			context.Background(), "AAPL", expiry, "", nil, nil,
 		)
 		if err != nil {
 			t.Fatalf("OptionsChain: %v", err)
@@ -409,6 +421,34 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		}
 		if len(contracts) != 1 {
 			t.Fatalf("contracts len = %d, want 1", len(contracts))
+		}
+	})
+
+	t.Run("option expirations", func(t *testing.T) {
+		srv, _ := newStubBackend(t, http.StatusOK, `{
+			"underlying_symbol": "AAPL",
+			"expirations": ["2026-01-16", "2026-02-20"],
+			"truncated": false
+		}`)
+		raw, err := mustClient(t, srv.URL, "test-token").OptionExpirations(
+			context.Background(), "AAPL",
+		)
+		if err != nil {
+			t.Fatalf("OptionExpirations: %v", err)
+		}
+		var exp map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &exp); err != nil {
+			t.Fatalf("raw is not a JSON object: %v", err)
+		}
+		if string(exp["underlying_symbol"]) != `"AAPL"` {
+			t.Errorf("underlying_symbol = %s, want %q", exp["underlying_symbol"], "AAPL")
+		}
+		var dates []string
+		if err := json.Unmarshal(exp["expirations"], &dates); err != nil {
+			t.Fatalf("expirations is not an array: %v", err)
+		}
+		if len(dates) != 2 || dates[0] != "2026-01-16" || dates[1] != "2026-02-20" {
+			t.Fatalf("dates = %v", dates)
 		}
 	})
 

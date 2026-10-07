@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,8 +20,9 @@ var expectedToolNames = []string{
 	"get_price_history",
 	"get_fundamentals",
 	"get_options_chain",
+	"get_option_expirations",
 	"get_financial_statements",
-	"search_symbols",
+	"resolve_symbol",
 }
 
 // assertNoProviderName fails if text mentions an upstream provider brand.
@@ -100,8 +102,11 @@ const (
 				"strike_price": "150", "expiration_date": "2026-01-16",
 				"contract_type": "call", "shares_per_contract": 100, "active": true},
 			"quote": {"implied_volatility": "0.24", "open_interest": "8421"}
-		}]
+		}],
+		"truncated": false
 	}`
+
+	optionExpirationsBody = `{"underlying_symbol": "AAPL", "expirations": ["2026-01-16"], "truncated": false}`
 
 	symbolSearchBody = `[{"symbol": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ"}]`
 
@@ -119,9 +124,16 @@ type toolCall struct {
 var validToolCalls = []toolCall{
 	{"get_price_history", map[string]any{"symbol": "AAPL", "from": "2026-01-01", "to": "2026-01-31"}},
 	{"get_fundamentals", map[string]any{"symbol": "AAPL"}},
-	{"get_options_chain", map[string]any{"symbol": "AAPL"}},
+	{"get_options_chain", map[string]any{"symbol": "AAPL", "expiry": "2026-01-16"}},
+	{"get_option_expirations", map[string]any{"symbol": "AAPL"}},
 	{"get_financial_statements", map[string]any{"symbol": "AAPL", "statement": "income"}},
-	{"search_symbols", map[string]any{"q": "apple"}},
+	{"resolve_symbol", map[string]any{"query": "apple"}},
+}
+
+// resolveSymbolPayload is the decoded shape of the resolve_symbol tool result.
+type resolveSymbolPayload struct {
+	BestMatch    map[string]any   `json:"best_match"`
+	Alternatives []map[string]any `json:"alternatives"`
 }
 
 // statementPayload is the decoded shape of the statement tools' envelope.
@@ -217,11 +229,60 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				var got struct {
 					UnderlyingSymbol string `json:"underlying_symbol"`
 					Contracts        []any  `json:"contracts"`
+					Truncated        bool   `json:"truncated"`
 				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode OptionsChain: %v", err)
 				}
 				if got.UnderlyingSymbol != "AAPL" || len(got.Contracts) != 1 {
+					t.Errorf("payload = %+v", got)
+				}
+				if got.Truncated {
+					t.Errorf("truncated = %v, want false", got.Truncated)
+				}
+			},
+		},
+		{
+			name: "get_options_chain with truncated true",
+			tool: "get_options_chain",
+			args: map[string]any{
+				"symbol": "aapl", "expiry": "2026-01-16",
+			},
+			body:     `{"underlying_symbol":"AAPL","contracts":[],"truncated":true}`,
+			wantPath: "/api/v1/market/data/options/AAPL",
+			wantQuery: map[string]string{
+				"expiry": "2026-01-16",
+			},
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					UnderlyingSymbol string `json:"underlying_symbol"`
+					Truncated        bool   `json:"truncated"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode OptionsChain: %v", err)
+				}
+				if got.UnderlyingSymbol != "AAPL" || !got.Truncated {
+					t.Errorf("payload = %+v, want truncated true", got)
+				}
+			},
+		},
+		{
+			name:      "get_option_expirations",
+			tool:      "get_option_expirations",
+			args:      map[string]any{"symbol": "aapl"},
+			body:      optionExpirationsBody,
+			wantPath:  "/api/v1/market/data/options/AAPL/expirations",
+			wantQuery: nil,
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					UnderlyingSymbol string   `json:"underlying_symbol"`
+					Expirations      []string `json:"expirations"`
+					Truncated        bool     `json:"truncated"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode OptionExpirations: %v", err)
+				}
+				if got.UnderlyingSymbol != "AAPL" || len(got.Expirations) != 1 || got.Expirations[0] != "2026-01-16" || got.Truncated {
 					t.Errorf("payload = %+v", got)
 				}
 			},
@@ -312,19 +373,22 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			},
 		},
 		{
-			name:      "search_symbols",
-			tool:      "search_symbols",
-			args:      map[string]any{"q": "apple"},
+			name:      "resolve_symbol",
+			tool:      "resolve_symbol",
+			args:      map[string]any{"query": "apple"},
 			body:      symbolSearchBody,
 			wantPath:  "/api/v1/market/data/symbols/search",
 			wantQuery: map[string]string{"q": "apple"},
 			assert: func(t *testing.T, raw string) {
-				var got []map[string]any
+				var got resolveSymbolPayload
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode search results: %v", err)
+					t.Fatalf("decode resolve results: %v", err)
 				}
-				if len(got) != 1 || got[0]["symbol"] != "AAPL" {
-					t.Errorf("payload = %+v", got)
+				if got.BestMatch["symbol"] != "AAPL" {
+					t.Errorf("best match = %+v", got.BestMatch)
+				}
+				if len(got.Alternatives) != 0 {
+					t.Errorf("alternatives = %+v", got.Alternatives)
 				}
 			},
 		},
@@ -610,15 +674,18 @@ func TestRemovedToolsNotRegistered(t *testing.T) {
 		registeredNames[tool.Name] = true
 	}
 
-	// Must contain get_fundamentals and get_financial_statements
+	// Must contain get_fundamentals, get_financial_statements, and resolve_symbol
 	if !registeredNames["get_fundamentals"] {
 		t.Errorf("get_fundamentals is not registered")
 	}
 	if !registeredNames["get_financial_statements"] {
 		t.Errorf("get_financial_statements is not registered")
 	}
+	if !registeredNames["resolve_symbol"] {
+		t.Errorf("resolve_symbol is not registered")
+	}
 
-	// Must NOT contain any of the six removed tools
+	// Must NOT contain any of the seven removed tools
 	removed := []string{
 		"get_key_metrics",
 		"get_financial_ratios",
@@ -626,6 +693,7 @@ func TestRemovedToolsNotRegistered(t *testing.T) {
 		"get_income_statement",
 		"get_balance_sheet",
 		"get_cash_flow_statement",
+		"search_symbols",
 	}
 	for _, rem := range removed {
 		if registeredNames[rem] {
@@ -924,10 +992,26 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 		{
 			name: "bad option type",
 			prepare: func() error {
-				_, err := (optionsChainInput{Symbol: "AAPL", OptionType: "straddle"}).prepare()
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "2026-01-16", OptionType: "straddle"}).prepare()
 				return err
 			},
 			want: "option_type must be 'call' or 'put'",
+		},
+		{
+			name: "missing expiry",
+			prepare: func() error {
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: ""}).prepare()
+				return err
+			},
+			want: "expiry is required; use get_option_expirations to list available dates",
+		},
+		{
+			name: "blank expiry",
+			prepare: func() error {
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "   "}).prepare()
+				return err
+			},
+			want: "expiry is required; use get_option_expirations to list available dates",
 		},
 		{
 			name: "bad expiry",
@@ -941,7 +1025,7 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			name: "strike min after max",
 			prepare: func() error {
 				min, max := 200.0, 100.0
-				_, err := (optionsChainInput{Symbol: "AAPL", StrikeMin: &min, StrikeMax: &max}).prepare()
+				_, err := (optionsChainInput{Symbol: "AAPL", Expiry: "2026-01-16", StrikeMin: &min, StrikeMax: &max}).prepare()
 				return err
 			},
 			want: "strike_min must be on or before strike_max",
@@ -949,18 +1033,29 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 		{
 			name: "empty query",
 			prepare: func() error {
-				_, err := (searchSymbolsInput{Query: "   "}).prepare()
+				_, err := (resolveSymbolInput{Query: "   "}).prepare()
 				return err
 			},
-			want: "q must be between 1 and 100 characters",
+			want: "query must be between 1 and 100 characters",
 		},
 		{
 			name: "query too long",
 			prepare: func() error {
-				_, err := (searchSymbolsInput{Query: strings.Repeat("a", maxQueryLength+1)}).prepare()
+				_, err := (resolveSymbolInput{Query: strings.Repeat("a", maxQueryLength+1)}).prepare()
 				return err
 			},
-			want: "q must be between 1 and 100 characters",
+			want: "query must be between 1 and 100 characters",
+		},
+		{
+			name: "bad exchange on resolve symbol",
+			prepare: func() error {
+				_, err := (resolveSymbolInput{
+					Query:    "apple",
+					Exchange: "XETRA",
+				}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
 		},
 		{
 			name: "bad exchange on price history",
@@ -1046,6 +1141,13 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 	if !resultStmt.IsError {
 		t.Fatalf("expected the SDK to reject missing statement argument, got %q", resultText(t, resultStmt))
 	}
+
+	// `expiry` is non-omitempty on get_options_chain, so the SDK rejects
+	// the call before the handler runs when omitted.
+	resultChain := callTool(t, session, "get_options_chain", map[string]any{"symbol": "AAPL"})
+	if !resultChain.IsError {
+		t.Fatalf("expected the SDK to reject missing expiry argument, got %q", resultText(t, resultChain))
+	}
 }
 
 func TestToolsRejectBeforeBackendCall(t *testing.T) {
@@ -1095,6 +1197,24 @@ func TestToolsRejectBeforeBackendCall(t *testing.T) {
 		})
 		if !res.IsError {
 			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		if captured.path != "" {
+			t.Errorf("backend called unexpectedly: %s", captured.path)
+		}
+	})
+
+	t.Run("missing or blank expiry rejected before backend call naming get_option_expirations", func(t *testing.T) {
+		captured.path = ""
+		res := callTool(t, session, "get_options_chain", map[string]any{
+			"symbol": "AAPL",
+			"expiry": "   ",
+		})
+		if !res.IsError {
+			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		text := resultText(t, res)
+		if !strings.Contains(text, "get_option_expirations") {
+			t.Errorf("expected error naming get_option_expirations, got %q", text)
 		}
 		if captured.path != "" {
 			t.Errorf("backend called unexpectedly: %s", captured.path)
@@ -1511,6 +1631,16 @@ func TestExchangeNormalizationInPrepare(t *testing.T) {
 			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
 		}
 	})
+
+	t.Run("resolveSymbolInput normalizes lowercase", func(t *testing.T) {
+		req, err := (resolveSymbolInput{Query: "AAPL", Exchange: "tsx"}).prepare()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if req.exchange != "TSX" {
+			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
+		}
+	})
 }
 
 func TestToolsExchangeValidationAndWireValue(t *testing.T) {
@@ -1582,4 +1712,330 @@ func TestToolsExchangeValidationAndWireValue(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRankSymbolMatches(t *testing.T) {
+	t.Run("tier 1 exact symbol on preferred exchange beats earlier matches", func(t *testing.T) {
+		// Acceptance criterion 2:
+		// [SHOPX/NYSE, SHOP/NYSE, SHOP/TSX] and query="shop", exchange="TSX" =>
+		// best_match.symbol == "SHOP" with exchange_short_name == "TSX", and
+		// alternatives contain the other two in backend order.
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"SHOPX","name":"Shopify X","exchange_short_name":"NYSE"}`),
+			json.RawMessage(`{"symbol":"SHOP","name":"Shopify US","exchange_short_name":"NYSE"}`),
+			json.RawMessage(`{"symbol":"SHOP","name":"Shopify CA","exchange_short_name":"TSX"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "shop", "TSX")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SHOP" || bestItem["exchange_short_name"] != "TSX" {
+			t.Errorf("bestItem = %+v, want SHOP/TSX", bestItem)
+		}
+
+		if len(alts) != 2 {
+			t.Fatalf("len(alts) = %d, want 2", len(alts))
+		}
+		var alt0, alt1 map[string]any
+		if err := json.Unmarshal(alts[0], &alt0); err != nil {
+			t.Fatalf("unmarshal alt0: %v", err)
+		}
+		if err := json.Unmarshal(alts[1], &alt1); err != nil {
+			t.Fatalf("unmarshal alt1: %v", err)
+		}
+		if alt0["symbol"] != "SHOPX" || alt0["exchange_short_name"] != "NYSE" {
+			t.Errorf("alt0 = %+v, want SHOPX/NYSE", alt0)
+		}
+		if alt1["symbol"] != "SHOP" || alt1["exchange_short_name"] != "NYSE" {
+			t.Errorf("alt1 = %+v, want SHOP/NYSE", alt1)
+		}
+	})
+
+	t.Run("tier 2 exact symbol match anywhere beats earlier partial match without exchange", func(t *testing.T) {
+		// Acceptance criterion 3:
+		// Without exchange, an exact symbol match beats an earlier partial match.
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"SHOPPING","name":"Shopping Inc","exchange_short_name":"NYSE"}`),
+			json.RawMessage(`{"symbol":"SHOP","name":"Shopify","exchange_short_name":"NASDAQ"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "SHOP", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SHOP" {
+			t.Errorf("bestItem symbol = %v, want SHOP", bestItem["symbol"])
+		}
+		if len(alts) != 1 {
+			t.Fatalf("len(alts) = %d, want 1", len(alts))
+		}
+		var altItem map[string]any
+		if err := json.Unmarshal(alts[0], &altItem); err != nil {
+			t.Fatalf("unmarshal alt: %v", err)
+		}
+		if altItem["symbol"] != "SHOPPING" {
+			t.Errorf("altItem symbol = %v, want SHOPPING", altItem["symbol"])
+		}
+	})
+
+	t.Run("tier 2 exact symbol match anywhere beats tier 3 partial match on preferred exchange", func(t *testing.T) {
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"SHOPPING","name":"Shopping CA","exchange_short_name":"TSX"}`),
+			json.RawMessage(`{"symbol":"SHOP","name":"Shopify US","exchange_short_name":"NYSE"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "SHOP", "TSX")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SHOP" || bestItem["exchange_short_name"] != "NYSE" {
+			t.Errorf("bestItem = %+v, want SHOP/NYSE", bestItem)
+		}
+		if len(alts) != 1 {
+			t.Fatalf("len(alts) = %d, want 1", len(alts))
+		}
+	})
+
+	t.Run("tier 3 first result on preferred exchange beats earlier partial match on other exchange", func(t *testing.T) {
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"SHOP-US","name":"Shop US","exchange_short_name":"NYSE"}`),
+			json.RawMessage(`{"symbol":"SHOP-CA1","name":"Shop CA 1","exchange_short_name":"TSX"}`),
+			json.RawMessage(`{"symbol":"SHOP-CA2","name":"Shop CA 2","exchange_short_name":"TSX"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "SHOP", "TSX")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SHOP-CA1" {
+			t.Errorf("bestItem symbol = %v, want SHOP-CA1", bestItem["symbol"])
+		}
+		if len(alts) != 2 {
+			t.Fatalf("len(alts) = %d, want 2", len(alts))
+		}
+	})
+
+	t.Run("tier 4 first result when preferred exchange matches nothing", func(t *testing.T) {
+		// Risk mitigation: if preferred exchange matches nothing, fall back cleanly to tier 4
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"SHOP-A","name":"Shop A","exchange_short_name":"NYSE"}`),
+			json.RawMessage(`{"symbol":"SHOP-B","name":"Shop B","exchange_short_name":"NASDAQ"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "xyz", "LSE")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SHOP-A" {
+			t.Errorf("bestItem symbol = %v, want SHOP-A", bestItem["symbol"])
+		}
+		if len(alts) != 1 {
+			t.Fatalf("len(alts) = %d, want 1", len(alts))
+		}
+	})
+
+	t.Run("capping alternatives at max 10", func(t *testing.T) {
+		// Acceptance criterion 4:
+		// With 15 backend results, alternatives has 10 items.
+		items := make([]json.RawMessage, 15)
+		for i := 0; i < 15; i++ {
+			items[i] = json.RawMessage(fmt.Sprintf(`{"symbol":"SYM%d","exchange_short_name":"NYSE"}`, i))
+		}
+
+		best, alts, err := rankSymbolMatches(items, "query", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		var bestItem map[string]any
+		if err := json.Unmarshal(best, &bestItem); err != nil {
+			t.Fatalf("unmarshal best: %v", err)
+		}
+		if bestItem["symbol"] != "SYM0" {
+			t.Errorf("bestItem symbol = %v, want SYM0", bestItem["symbol"])
+		}
+		if len(alts) != 10 {
+			t.Fatalf("len(alts) = %d, want 10", len(alts))
+		}
+	})
+
+	t.Run("single result yields empty alternatives slice", func(t *testing.T) {
+		items := []json.RawMessage{
+			json.RawMessage(`{"symbol":"AAPL","exchange_short_name":"NASDAQ"}`),
+		}
+
+		best, alts, err := rankSymbolMatches(items, "AAPL", "NASDAQ")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if best == nil {
+			t.Fatal("expected non-nil best")
+		}
+		if len(alts) != 0 {
+			t.Fatalf("len(alts) = %d, want 0", len(alts))
+		}
+		out, err := json.Marshal(resolveSymbolResult{BestMatch: best, Alternatives: alts})
+		if err != nil {
+			t.Fatalf("marshal resolveSymbolResult: %v", err)
+		}
+		if !strings.Contains(string(out), `"alternatives":[]`) {
+			t.Errorf("expected alternatives:[], got: %s", string(out))
+		}
+	})
+
+	t.Run("unknown fields pass through unchanged", func(t *testing.T) {
+		// Acceptance criterion 6:
+		// Unknown fields on result items pass through unchanged.
+		rawItem := `{"symbol":"SHOP","exchange_short_name":"TSX","custom_field":"hello","nested":{"key":123}}`
+		items := []json.RawMessage{
+			json.RawMessage(rawItem),
+		}
+
+		best, _, err := rankSymbolMatches(items, "shop", "TSX")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if string(best) != rawItem {
+			t.Errorf("best = %s, want %s", string(best), rawItem)
+		}
+	})
+
+	t.Run("empty items returns ErrNoData", func(t *testing.T) {
+		_, _, err := rankSymbolMatches([]json.RawMessage{}, "shop", "TSX")
+		if !errors.Is(err, ErrNoData) {
+			t.Fatalf("expected ErrNoData, got: %v", err)
+		}
+	})
+
+	t.Run("malformed json returns ErrProvider", func(t *testing.T) {
+		items := []json.RawMessage{
+			json.RawMessage(`not-json`),
+		}
+		_, _, err := rankSymbolMatches(items, "shop", "TSX")
+		if !errors.Is(err, ErrProvider) {
+			t.Fatalf("expected ErrProvider, got: %v", err)
+		}
+	})
+}
+
+func TestResolveSymbolToolIntegration(t *testing.T) {
+	t.Run("unsupported exchange rejected before backend call", func(t *testing.T) {
+		// Acceptance criterion 5:
+		// An unsupported exchange is rejected before any backend call (T01 validator)
+		backendCalls := 0
+		backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			backendCalls++
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer backend.Close()
+
+		session := newTestSession(t, backend.URL)
+		res := callTool(t, session, "resolve_symbol", map[string]any{
+			"query":    "apple",
+			"exchange": "INVALID",
+		})
+		if !res.IsError {
+			t.Fatal("expected error result for unsupported exchange")
+		}
+		if backendCalls != 0 {
+			t.Errorf("backend calls = %d, want 0", backendCalls)
+		}
+		msg := resultText(t, res)
+		if !strings.Contains(msg, "exchange must be one of") {
+			t.Errorf("error text = %q, want exchange must be one of", msg)
+		}
+	})
+
+	t.Run("backend 404 yields no-data result", func(t *testing.T) {
+		// Acceptance criterion 5:
+		// backend 404 still yields the no-data result
+		backend, _ := newStubBackend(t, http.StatusNotFound, `{"detail":"No market data found for 'unknown'."}`)
+		session := newTestSession(t, backend.URL)
+
+		res := callTool(t, session, "resolve_symbol", map[string]any{"query": "unknown"})
+		if res.IsError {
+			t.Fatalf("expected successful no-data result, got error: %s", resultText(t, res))
+		}
+		msg := resultText(t, res)
+		if msg != noDataMessage {
+			t.Errorf("result text = %q, want %q", msg, noDataMessage)
+		}
+	})
+
+	t.Run("end to end ranking and unknown fields pass-through", func(t *testing.T) {
+		// Acceptance criteria 2 and 6 end-to-end
+		fixture := `[
+			{"symbol":"SHOPX","name":"Shopify X","exchange_short_name":"NYSE","custom_score":10},
+			{"symbol":"SHOP","name":"Shopify US","exchange_short_name":"NYSE","custom_score":20},
+			{"symbol":"SHOP","name":"Shopify CA","exchange_short_name":"TSX","custom_score":30}
+		]`
+		backend, captured := newStubBackend(t, http.StatusOK, fixture)
+		session := newTestSession(t, backend.URL)
+
+		res := callTool(t, session, "resolve_symbol", map[string]any{
+			"query":    "shop",
+			"exchange": "TSX",
+		})
+		if res.IsError {
+			t.Fatalf("callTool failed: %s", resultText(t, res))
+		}
+
+		if captured.path != "/api/v1/market/data/symbols/search" {
+			t.Errorf("path = %q, want /api/v1/market/data/symbols/search", captured.path)
+		}
+		if captured.query.Get("q") != "shop" {
+			t.Errorf("query q = %q, want shop", captured.query.Get("q"))
+		}
+
+		var payload struct {
+			BestMatch    map[string]any   `json:"best_match"`
+			Alternatives []map[string]any `json:"alternatives"`
+		}
+		if err := json.Unmarshal([]byte(resultText(t, res)), &payload); err != nil {
+			t.Fatalf("unmarshal payload: %v", err)
+		}
+
+		if payload.BestMatch["symbol"] != "SHOP" || payload.BestMatch["exchange_short_name"] != "TSX" {
+			t.Errorf("best match = %+v, want SHOP/TSX", payload.BestMatch)
+		}
+		if payload.BestMatch["custom_score"] != float64(30) {
+			t.Errorf("custom_score = %v, want 30", payload.BestMatch["custom_score"])
+		}
+
+		if len(payload.Alternatives) != 2 {
+			t.Fatalf("len(alternatives) = %d, want 2", len(payload.Alternatives))
+		}
+		if payload.Alternatives[0]["symbol"] != "SHOPX" || payload.Alternatives[0]["custom_score"] != float64(10) {
+			t.Errorf("alt 0 = %+v", payload.Alternatives[0])
+		}
+		if payload.Alternatives[1]["symbol"] != "SHOP" || payload.Alternatives[1]["custom_score"] != float64(20) {
+			t.Errorf("alt 1 = %+v", payload.Alternatives[1])
+		}
+	})
 }

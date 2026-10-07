@@ -53,6 +53,7 @@ from src.market.api_types import (
     CompanyFundamentals,
     HistoricalPrice,
     IncomeStatement,
+    OptionExpirations,
     OptionsChain,
     SupportedExchange,
     SymbolLookupResult,
@@ -239,12 +240,49 @@ async def market_data_symbol_search(
     return results
 
 
+@data_router.get("/options/{symbol}/expirations")
+async def market_data_option_expirations(
+    _svc: Annotated[None, Depends(require_service_token)],
+    symbol: str,
+    services: DepContainer,
+) -> OptionExpirations:
+    """Available option expiration dates for an underlying symbol."""
+    normalized_symbol = symbol.upper()
+    gateway = services.get(DataPlaneMarketGateway)
+    cache = await services.aget(EndpointResponseCache)
+
+    params = {"symbol": normalized_symbol}
+
+    async def fetch() -> OptionExpirations:
+        try:
+            return await asyncio.to_thread(
+                gateway.get_option_expirations,
+                normalized_symbol,
+            )
+        except (
+            MarketDataProviderError,
+            MarketDataConfigurationError,
+        ) as exc:
+            raise _map_market_error(normalized_symbol, exc) from exc
+
+    try:
+        return await cache.cached_response(
+            data_class="options",
+            endpoint="expirations",
+            params=params,
+            fetch=fetch,
+            model=OptionExpirations,
+        )
+    except MarketDataNotFoundError as exc:
+        raise _map_market_error(normalized_symbol, exc) from exc
+
+
 @data_router.get("/options/{symbol}")
 async def market_data_options(  # noqa: PLR0913, PLR0917
     _svc: Annotated[None, Depends(require_service_token)],
     symbol: str,
     services: DepContainer,
-    expiry: Annotated[date | None, Query()] = None,
+    expiry: Annotated[date, Query()],
     option_type: Annotated[Literal["call", "put"] | None, Query()] = None,
     strike_min: Annotated[Decimal | None, Query()] = None,
     strike_max: Annotated[Decimal | None, Query()] = None,
