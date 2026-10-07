@@ -294,6 +294,39 @@ def _normalize_account_numbers(raw: list[str] | None) -> list[str]:
     return list(dict.fromkeys(result))
 
 
+def _parse_net_deposits(raw: str | None) -> dict[str, float | None] | None:
+    """Parse a strict ``{account_number: number | null}`` net-deposits value.
+
+    Unlike ``currencies``, malformed JSON or non-numeric values raise 422 rather
+    than being silently dropped, because a dropped amount would quietly change
+    the P/L basis.
+    """
+    if raw is None or not raw.strip():
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=422, detail="net_deposits must be a valid JSON object"
+        ) from e
+    if not isinstance(parsed, dict):
+        raise HTTPException(
+            status_code=422, detail="net_deposits must be a valid JSON object"
+        )
+    result: dict[str, float | None] = {}
+    for key, value in parsed.items():
+        if value is None:
+            result[str(key)] = None
+        elif isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise HTTPException(
+                status_code=422,
+                detail=f"net_deposits value for '{key}' must be a number or null",
+            )
+        else:
+            result[str(key)] = float(value)
+    return result
+
+
 @account_router.post("/csv/import")
 async def account_csv_import(  # noqa: PLR0913, PLR0917
     user: Annotated[User, Depends(current_user)],
@@ -307,6 +340,8 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
     ] = None,
     currencies: Annotated[str | None, Form()] = None,
     currencies_query: Annotated[str | None, Query(alias="currencies")] = None,
+    net_deposits: Annotated[str | None, Form()] = None,
+    net_deposits_query: Annotated[str | None, Query(alias="net_deposits")] = None,
 ) -> list[AccountSchema]:
     """Import selected accounts and positions from an uploaded CSV file."""
     actual_institution_id = (
@@ -332,6 +367,9 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
         except json.JSONDecodeError, ValueError:
             pass
 
+    raw_net_deposits = net_deposits if net_deposits is not None else net_deposits_query
+    parsed_net_deposits = _parse_net_deposits(raw_net_deposits)
+
     try:
         content_bytes = await file.read()
         content_str = content_bytes.decode("utf-8-sig")
@@ -349,6 +387,7 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
             account_numbers=normalized_account_numbers,
             csv_content=content_str,
             account_currencies=parsed_currencies,
+            account_net_deposits=parsed_net_deposits,
         )
     except InstitutionNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -369,6 +408,7 @@ async def account_csv_sync(
     user: Annotated[User, Depends(current_user)],
     file: Annotated[UploadFile, File(...)],
     services: DepContainer,
+    net_deposits: Annotated[float | None, Form()] = None,
 ) -> AccountSchema:
     """Update positions of an existing account from an uploaded CSV file."""
     authorization_api = await services.aget(AuthorizationApi)
@@ -394,6 +434,7 @@ async def account_csv_sync(
         return await csv_account_service.sync_account_from_csv(
             account=account,
             csv_content=content_str,
+            net_deposits=net_deposits,
         )
     except AccountNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
