@@ -142,9 +142,18 @@ class PositionService:
         return result_items, total
 
     async def get_user_holdings(
-        self, user_id: UserId, offset: int = 0, limit: int = 50
+        self,
+        user_id: UserId,
+        offset: int = 0,
+        limit: int = 50,
+        display_currency: str = "CAD",
     ) -> tuple[list[UserHoldingRead], int]:
-        """Get holdings across every account owned by the user."""
+        """Get holdings across every account owned by the user.
+
+        Native values stay in each account's currency; ``display_total_value``
+        converts them to ``display_currency`` so callers can aggregate rows
+        without adding different currencies together.
+        """
         positions, total = await self._position_repository.get_by_user(
             user_id, offset, limit
         )
@@ -157,7 +166,7 @@ class PositionService:
         for account_id, account_positions in positions_by_account.items():
             account = await self._account_service.get_account(account_id)
             holdings, _, _, _ = await self._calculate_holdings(
-                account, account_positions
+                account, account_positions, display_currency
             )
             result_items.extend(
                 UserHoldingRead(
@@ -303,7 +312,10 @@ class PositionService:
         )
 
     async def _calculate_holdings(
-        self, account: AccountSchema, positions: list[PositionSchema]
+        self,
+        account: AccountSchema,
+        positions: list[PositionSchema],
+        display_currency: str | None = None,
     ) -> tuple[list[HoldingRead], Money, Money, int]:
         """Calculate aggregated holdings, value, cost, and unpriced count.
 
@@ -312,7 +324,12 @@ class PositionService:
         still returned as rows (``total_value=0``, ``profit_loss=None``) but are
         excluded from value, cost and P/L, so a missing price cannot silently
         corrupt the account totals.
+
+        ``display_currency`` defaults to the account currency, so account-scoped
+        holdings report ``display_total_value == total_value``. The user-wide
+        holdings call passes the user's preferred display currency instead.
         """
+        target_currency = display_currency or str(account.currency)
         holdings: list[HoldingRead] = []
         total_value = Money(0, account.currency)
         total_cost = Money(0, account.currency)
@@ -339,12 +356,19 @@ class PositionService:
                     position.security_id,
                 )
                 unpriced_positions += 1
-                holdings.append(self._unpriced_holding(account, position, security))
+                holdings.append(
+                    self._unpriced_holding(account, position, security, target_currency)
+                )
                 continue
 
             current_price_money = Money(latest_price.close, security.currency)
             holding, value_money, pl_money = self._calculate_holding(
-                account, position, security, current_price_money, latest_price
+                account,
+                position,
+                security,
+                current_price_money,
+                latest_price,
+                target_currency,
             )
 
             total_value += value_money
@@ -359,6 +383,7 @@ class PositionService:
         account: AccountSchema,
         position: PositionSchema,
         security: Security,
+        display_currency: str | None = None,
     ) -> HoldingRead:
         """Build a holding row for a position with no stored price.
 
@@ -372,6 +397,7 @@ class PositionService:
             Money(avg_cost, position_currency),
             str(account.currency),
         )
+        target_currency = display_currency or str(account.currency)
 
         return HoldingRead(
             id=cast("PositionId", position.id),
@@ -383,6 +409,8 @@ class PositionService:
             total_value=0.0,
             profit_loss=None,
             currency=str(account.currency),
+            display_total_value=0.0,
+            display_currency=target_currency,
             security_currency=position_currency,
             unconverted_total_value=0.0,
             converted_average_cost=float(converted_average_cost.amount),
@@ -409,13 +437,14 @@ class PositionService:
 
         return Money(converted, to_currency)
 
-    def _calculate_holding(
+    def _calculate_holding(  # noqa: PLR0913, PLR0917
         self,
         account: AccountSchema,
         position: PositionSchema,
         security: Security,
         current_price_money: Money,
         latest_price_schema: PriceSchema | None = None,
+        display_currency: str | None = None,
     ) -> tuple[HoldingRead, Money, Money]:
         """Calculate holding details, value, and profit/loss for a single position."""
         quantity = position.quantity
@@ -454,6 +483,11 @@ class PositionService:
             str(account.currency),
         )
 
+        # Display value for cross-currency aggregation (e.g. user-wide holdings)
+        target_currency = display_currency or str(account.currency)
+        display_value_money = self._currency_convert(value_money, target_currency)
+        display_currency = target_currency
+
         holding = HoldingRead(
             id=cast("PositionId", position.id),
             security_id=security.id,
@@ -464,6 +498,8 @@ class PositionService:
             total_value=float(value_money.amount),
             profit_loss=float(pl_money.amount),
             currency=str(account.currency),
+            display_total_value=float(display_value_money.amount),
+            display_currency=display_currency,
             security_currency=position_currency,
             unconverted_total_value=float(converted_unconverted_total_value.amount),
             converted_average_cost=float(converted_average_cost.amount),

@@ -86,6 +86,10 @@ export interface Holding {
 	total_value: number;
 	profit_loss: number | null;
 	currency: string;
+	/** Value converted to the user's display currency (see backend `HoldingRead`). */
+	display_total_value: number;
+	/** The user's display-currency preference these display values are in. */
+	display_currency: string;
 	security_currency: string;
 	unconverted_total_value: number;
 	converted_average_cost: number | null;

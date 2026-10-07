@@ -49,12 +49,13 @@ function makeRow(
 	overrides: Partial<UserHolding> &
 		Pick<UserHolding, 'id' | 'security_id' | 'security_symbol' | 'security_name'>
 ): UserHolding {
-	return {
+	const merged = {
 		quantity: 1,
 		average_cost: 100,
 		total_value: 100,
 		profit_loss: 0,
 		currency: 'CAD',
+		display_currency: 'CAD',
 		security_currency: 'CAD',
 		unconverted_total_value: 100,
 		converted_average_cost: 100,
@@ -65,6 +66,7 @@ function makeRow(
 		account_name: 'TFSA',
 		...overrides
 	};
+	return { ...merged, display_total_value: overrides.display_total_value ?? merged.total_value };
 }
 
 const aaplTfsa = makeRow({
