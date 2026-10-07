@@ -17,6 +17,7 @@ from src.commands.export_data_plane_contract import (
 EXPECTED_ROUTES = {
     "/api/v1/market/data/prices/{symbol}",
     "/api/v1/market/data/quote/{symbol}",
+    "/api/v1/market/data/indicators/{symbol}",
     "/api/v1/market/data/symbols/search",
     "/api/v1/market/data/options/{symbol}",
     "/api/v1/market/data/options/{symbol}/expirations",
@@ -91,6 +92,29 @@ def test_data_plane_contract_parameters() -> None:
     assert quote_params["exchange"]["in"] == "query"
     assert quote_params["exchange"]["required"] is False
 
+    # /indicators/{symbol}
+    ind_params = get_params("/api/v1/market/data/indicators/{symbol}")
+    assert ind_params["symbol"]["in"] == "path"
+    assert ind_params["symbol"]["required"] is True
+    assert ind_params["indicator"]["in"] == "query"
+    assert ind_params["indicator"]["required"] is True
+    assert ind_params["period"]["in"] == "query"
+    assert ind_params["period"]["required"] is False
+    assert ind_params["fast"]["in"] == "query"
+    assert ind_params["fast"]["required"] is False
+    assert ind_params["slow"]["in"] == "query"
+    assert ind_params["slow"]["required"] is False
+    assert ind_params["signal"]["in"] == "query"
+    assert ind_params["signal"]["required"] is False
+    assert ind_params["std_dev"]["in"] == "query"
+    assert ind_params["std_dev"]["required"] is False
+    assert ind_params["from"]["in"] == "query"
+    assert ind_params["from"]["required"] is False
+    assert ind_params["to"]["in"] == "query"
+    assert ind_params["to"]["required"] is False
+    assert ind_params["exchange"]["in"] == "query"
+    assert ind_params["exchange"]["required"] is False
+
     # /symbols/search
     search_params = get_params("/api/v1/market/data/symbols/search")
     assert search_params["q"]["in"] == "query"
@@ -154,6 +178,10 @@ def test_data_plane_contract_requires_currency_on_price_responses() -> None:
     prices_schema = schemas.get("PriceHistoryResponse", {})
     assert "currency" in prices_schema.get("required", [])
     assert prices_schema["properties"]["currency"]["type"] == "string"
+
+    indicator_schema = schemas.get("IndicatorSeriesResponse", {})
+    assert "currency" in indicator_schema.get("required", [])
+    assert indicator_schema["properties"]["currency"]["type"] == "string"
 
     options_schema = schemas.get("OptionsChain", {})
     assert "currency" in options_schema.get("required", [])

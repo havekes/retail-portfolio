@@ -194,6 +194,55 @@ func TestBackendClientEndpoints(t *testing.T) {
 				"exchange":  "nasdaq",
 			},
 		},
+		{
+			name: "technical indicator with all params",
+			body: `{"symbol":"AAPL","indicator":"bollinger","currency":"USD","from_date":"2026-01-01","to_date":"2026-01-31","params":{"period":20,"std_dev":2},"points":[]}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				periodVal := 20
+				fastVal := 12
+				slowVal := 26
+				signalVal := 9
+				stdDevVal := 2.0
+				_, err := c.TechnicalIndicator(ctx, "aapl", indicatorQuery{
+					indicator: "bollinger",
+					period:    &periodVal,
+					fast:      &fastVal,
+					slow:      &slowVal,
+					signal:    &signalVal,
+					stdDev:    &stdDevVal,
+					from:      &from,
+					to:        &to,
+					exchange:  "nasdaq",
+				})
+				return err
+			},
+			wantPath: "/api/v1/market/data/indicators/AAPL",
+			wantQuery: map[string]string{
+				"indicator": "bollinger",
+				"period":    "20",
+				"fast":      "12",
+				"slow":      "26",
+				"signal":    "9",
+				"std_dev":   "2",
+				"from":      "2026-01-01",
+				"to":        "2026-01-31",
+				"exchange":  "nasdaq",
+			},
+		},
+		{
+			name: "technical indicator minimal (rsi default)",
+			body: `{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2025-10-01","to_date":"2026-01-01","params":{"period":14},"points":[]}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				_, err := c.TechnicalIndicator(ctx, "aapl", indicatorQuery{
+					indicator: "rsi",
+				})
+				return err
+			},
+			wantPath: "/api/v1/market/data/indicators/AAPL",
+			wantQuery: map[string]string{
+				"indicator": "rsi",
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -519,6 +568,23 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		}
 		if string(item["extra_backend_field"]) != `"test"` {
 			t.Errorf("extra_backend_field = %s", item["extra_backend_field"])
+		}
+	})
+
+	t.Run("technical indicators stay raw", func(t *testing.T) {
+		srv, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2026-01-01","to_date":"2026-01-31","params":{"period":14},"points":[{"time":"2026-01-02","value":55.0,"rsi":55.0}]}`)
+		raw, err := mustClient(t, srv.URL, "test-token").TechnicalIndicator(
+			context.Background(), "AAPL", indicatorQuery{indicator: "rsi"},
+		)
+		if err != nil {
+			t.Fatalf("TechnicalIndicator: %v", err)
+		}
+		var decoded map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &decoded); err != nil {
+			t.Fatalf("raw is not a JSON object: %v", err)
+		}
+		if string(decoded["indicator"]) != `"rsi"` || string(decoded["currency"]) != `"USD"` {
+			t.Errorf("decoded = %v", decoded)
 		}
 	})
 }

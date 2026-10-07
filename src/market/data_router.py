@@ -20,6 +20,9 @@ gateway (T10/T11); do not rename them:
   (``SupportedExchange``)
 * ``GET /api/v1/market/data/quote/{symbol}`` — ``exchange``
   (``SupportedExchange``)
+* ``GET /api/v1/market/data/indicators/{symbol}`` — ``indicator``, ``period``,
+  ``fast``, ``slow``, ``signal``, ``std_dev``, ``from``, ``to``, ``exchange``
+  (``SupportedExchange``)
 * ``GET /api/v1/market/data/symbols/search`` — ``q``
 * ``GET /api/v1/market/data/options/{symbol}`` — ``expiry``, ``option_type``,
   ``strike_min``, ``strike_max``
@@ -41,9 +44,9 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from svcs.fastapi import DepContainer
@@ -55,10 +58,12 @@ from src.market.api_types import (
     CompanyFundamentals,
     HistoricalPrice,
     IncomeStatement,
+    IndicatorSeriesResponse,
     OptionExpirations,
     OptionsChain,
     Quote,
     SupportedExchange,
+    SupportedIndicator,
     SymbolLookupResult,
 )
 from src.market.currency import resolve_listing_currency
@@ -74,7 +79,13 @@ from src.market.price_aggregation import (
     aggregate_bars,
     resolve_price_range,
 )
-from src.market.schema import PriceBar, PriceHistoryResponse
+from src.market.schema import (
+    IndicatorCandleSchema,
+    IndicatorSpecSchema,
+    PriceBar,
+    PriceHistoryResponse,
+)
+from src.market.service import IndicatorServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -258,6 +269,232 @@ async def market_data_quote(
         )
     except MarketDataNotFoundError as exc:
         raise _map_market_error(normalized_symbol, exc) from exc
+
+
+def _to_indicator_candles(
+    prices: list[HistoricalPrice],
+) -> list[IndicatorCandleSchema]:
+    """Convert historical prices to candles expected by the indicator service."""
+    candles: list[IndicatorCandleSchema] = []
+    for p in sorted(prices, key=lambda item: item.date):
+        split_ratio = (
+            float(p.adjusted_close) / float(p.close)
+            if p.adjusted_close is not None
+            and p.close is not None
+            and float(p.close) != 0
+            and float(p.adjusted_close) != float(p.close)
+            else 1.0
+        )
+        candles.append(
+            IndicatorCandleSchema(
+                time=p.date.isoformat(),
+                open=float(p.open) * split_ratio,
+                high=float(p.high) * split_ratio,
+                low=float(p.low) * split_ratio,
+                close=(
+                    float(p.adjusted_close) if split_ratio != 1.0 else float(p.close)
+                ),
+                volume=float(p.volume),
+            )
+        )
+    return candles
+
+
+def _parse_point_date(pt: dict[str, Any]) -> date | None:
+    time_val = pt.get("time")
+    if isinstance(time_val, date) and not isinstance(time_val, datetime):
+        return time_val
+    if isinstance(time_val, datetime):
+        return time_val.date()
+    if isinstance(time_val, str):
+        try:
+            return date.fromisoformat(time_val[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def _resolve_indicator_spec(  # noqa: PLR0913, PLR0917
+    indicator: SupportedIndicator,
+    period: int | None,
+    fast: int | None,
+    slow: int | None,
+    signal: int | None,
+    std_dev: float | None,
+) -> tuple[IndicatorSpecSchema, dict[str, Any], int]:
+    """Resolve default parameters, indicator spec, and longest lookback."""
+    if indicator == "bollinger":
+        resolved_period = period if period is not None else 20
+        resolved_std_dev = std_dev if std_dev is not None else 2.0
+        return (
+            IndicatorSpecSchema(
+                type="bb",
+                period=resolved_period,
+                std_dev=resolved_std_dev,
+            ),
+            {"period": resolved_period, "std_dev": resolved_std_dev},
+            resolved_period,
+        )
+    if indicator == "macd":
+        resolved_fast = fast if fast is not None else 12
+        resolved_slow = slow if slow is not None else 26
+        resolved_signal = signal if signal is not None else 9
+        return (
+            IndicatorSpecSchema(
+                type="macd",
+                fast=resolved_fast,
+                slow=resolved_slow,
+                signal=resolved_signal,
+            ),
+            {"fast": resolved_fast, "slow": resolved_slow, "signal": resolved_signal},
+            resolved_slow + resolved_signal,
+        )
+    if indicator in ("sma", "ema", "rsi"):
+        resolved_period = period if period is not None else 14
+        return (
+            IndicatorSpecSchema(type=indicator, period=resolved_period),
+            {"period": resolved_period},
+            resolved_period,
+        )
+    raise HTTPException(
+        status_code=422,
+        detail=f"Unsupported indicator '{indicator}'.",
+    )
+
+
+def _trim_indicator_points(
+    computed: Any,
+    spec: IndicatorSpecSchema,
+    indicator: str,
+    from_date: date,
+    to_date: date,
+) -> list[dict[str, Any]]:
+    """Trim computed indicator points to [from_date, to_date]."""
+    raw_points: list[dict[str, Any]] = []
+    if isinstance(computed, dict):
+        raw_points = (
+            computed.get(spec.type)
+            or computed.get("bb")
+            or computed.get(indicator)
+            or (next(iter(computed.values())) if computed else [])
+        )
+    elif isinstance(computed, list):
+        raw_points = computed
+
+    return [
+        pt
+        for pt in raw_points
+        if (d := _parse_point_date(pt)) is not None and from_date <= d <= to_date
+    ]
+
+
+@data_router.get("/indicators/{symbol}")
+async def market_data_indicator(  # noqa: PLR0913, PLR0917
+    _svc: Annotated[None, Depends(require_service_token)],
+    symbol: str,
+    services: DepContainer,
+    indicator: Annotated[SupportedIndicator, Query()],
+    period: Annotated[int | None, Query(ge=2, le=400)] = None,
+    fast: Annotated[int | None, Query(ge=2, le=400)] = None,
+    slow: Annotated[int | None, Query(ge=2, le=400)] = None,
+    signal: Annotated[int | None, Query(ge=2, le=400)] = None,
+    std_dev: Annotated[float | None, Query(gt=0)] = None,
+    from_: Annotated[date | None, Query(alias="from")] = None,
+    to: Annotated[date | None, Query()] = None,
+    exchange: Annotated[SupportedExchange | None, Query()] = None,
+) -> IndicatorSeriesResponse:
+    """Technical indicator series for a symbol, served through the endpoint cache."""
+    resolved_from, resolved_to = resolve_price_range(from_, to, "day")
+    spec, resolved_params, longest_lookback = _resolve_indicator_spec(
+        indicator, period, fast, slow, signal, std_dev
+    )
+
+    # Warm-up length = 3 * longest lookback, converted to calendar days * 7/5 + 10.
+    warmup_bars = 3 * longest_lookback
+    warmup_days = int(warmup_bars * 7 / 5) + 10
+    fetch_from = resolved_from - timedelta(days=warmup_days)
+
+    normalized_symbol = symbol.upper()
+    gateway = services.get(DataPlaneMarketGateway)
+    cache = await services.aget(EndpointResponseCache)
+
+    cache_params: dict[str, Any] = {
+        "symbol": normalized_symbol,
+        "exchange": exchange,
+        "indicator": indicator,
+        "from": resolved_from,
+        "to": resolved_to,
+    }
+    cache_params.update(resolved_params)
+
+    async def fetch() -> IndicatorSeriesResponse:
+        prices_task = _fetch_prices(
+            gateway, normalized_symbol, exchange, fetch_from, resolved_to
+        )
+        currency_task = resolve_listing_currency(
+            gateway, cache, normalized_symbol, exchange
+        )
+        try:
+            prices, currency = await asyncio.gather(prices_task, currency_task)
+        except (
+            MarketDataProviderError,
+            MarketDataConfigurationError,
+        ) as exc:
+            raise _map_market_error(normalized_symbol, exc) from exc
+
+        candles = _to_indicator_candles(prices)
+        if not candles:
+            return IndicatorSeriesResponse(
+                symbol=normalized_symbol,
+                indicator=indicator,
+                currency=currency,
+                exchange=exchange,
+                params=resolved_params,
+                from_date=resolved_from,
+                to_date=resolved_to,
+                points=[],
+            )
+
+        indicator_client = await services.aget(IndicatorServiceClient)
+        computed = await indicator_client.compute(
+            interval="1d",
+            candles=candles,
+            indicators=[spec],
+        )
+
+        trimmed_points = _trim_indicator_points(
+            computed, spec, indicator, resolved_from, resolved_to
+        )
+
+        return IndicatorSeriesResponse(
+            symbol=normalized_symbol,
+            indicator=indicator,
+            currency=currency,
+            exchange=exchange,
+            params=resolved_params,
+            from_date=resolved_from,
+            to_date=resolved_to,
+            points=trimmed_points,
+        )
+
+    try:
+        response = await cache.cached_response(
+            data_class="prices",
+            endpoint="indicator",
+            params=cache_params,
+            fetch=fetch,
+            model=IndicatorSeriesResponse,
+        )
+    except MarketDataNotFoundError as exc:
+        raise _map_market_error(normalized_symbol, exc) from exc
+
+    if not response.points:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No market data found for symbol '{normalized_symbol}'.",
+        )
+
+    return response
 
 
 @data_router.get("/symbols/search")

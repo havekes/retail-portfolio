@@ -138,6 +138,7 @@ it. Every tool name, description and result string is provider-agnostic.
 | Tool                       | Inputs                                                          | Backend route                                                   | Returns                                           |
 | -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------- |
 | `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                                |
+| `get_technical_indicator`  | `symbol`, `indicator`, `period?`, `fast?`, `slow?`, `signal?`, `std_dev?`, `from?`, `to?`, `exchange?` | `GET /api/v1/market/data/indicators/{symbol}`                   | Technical indicator series                        |
 | `get_fundamentals`         | `symbol`, `sections?`, `exchange?`                              | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate          |
 | `get_options_chain`        | `symbol`, `expiry`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
 | `get_option_expirations`   | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                           |
@@ -151,6 +152,9 @@ actionable error rather than "no data":
 
 - `symbol` is trimmed, required, and at most 32 characters.
 - `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
+- `get_technical_indicator` requires `indicator` (`sma`, `ema`, `rsi`, `macd`, or `bollinger`),
+  clamps optional periods (`period`, `fast`, `slow`, `signal`) to 2–400, requires `std_dev > 0`,
+  and requires `from <= to` when provided.
 - `get_fundamentals` accepts optional `sections` subset of `profile`, `key_metrics`,
   `ratios` (default all).
 - `get_options_chain` requires `expiry` (`YYYY-MM-DD`; use `get_option_expirations` to
