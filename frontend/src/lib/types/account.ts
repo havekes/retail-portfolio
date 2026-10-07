@@ -21,6 +21,11 @@ export type AccountGroupKeys = 'account_type_id' | 'institution_id';
 export interface AccountTotals {
 	cost: Money;
 	value: Money;
+	cash: Money;
+	net_deposits: Money | null;
+	profit_loss: Money;
+	return_percent: number | null;
+	basis: 'net_deposits' | 'cost';
 }
 
 export enum AccountType {

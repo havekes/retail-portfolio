@@ -65,6 +65,11 @@ async def test_recalculate_all_account_totals_success():
     fake_totals = AccountTotals(
         cost=Money(500, Currency.USD),
         value=Money(650, Currency.USD),
+        cash=Money(0, Currency.USD),
+        net_deposits=None,
+        profit_loss=Money(150, Currency.USD),
+        return_percent=30.0,
+        basis="cost",
     )
     mock_position_service = AsyncMock(spec=PositionService)
     mock_position_service.get_total_for_account.return_value = fake_totals
@@ -124,6 +129,11 @@ async def test_recalculate_all_account_totals_per_account_error_resilience():
     totals2 = AccountTotals(
         cost=Money(100, Currency.CAD),
         value=Money(150, Currency.CAD),
+        cash=Money(0, Currency.CAD),
+        net_deposits=None,
+        profit_loss=Money(50, Currency.CAD),
+        return_percent=50.0,
+        basis="cost",
     )
 
     async def mock_get_total(account_id, currency):

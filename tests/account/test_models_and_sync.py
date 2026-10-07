@@ -1,10 +1,13 @@
 """Tests for AccountModel, InstitutionModel, schemas, and PositionService sync guard."""
 
+from datetime import UTC, datetime
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from stockholm import Currency
 
 from src.account.api_types import Account, Institution
 from src.account.exception import ApiSyncDisabledError
@@ -12,6 +15,7 @@ from src.account.model import AccountModel, InstitutionModel
 from src.account.schema import AccountSchema, InstitutionSchema
 from src.account.service.position import PositionService
 from src.core.enum import AccountTypeEnum, InstitutionEnum
+from src.integration.brokers.api_types import BrokerAccount
 
 
 @pytest.mark.anyio
@@ -157,6 +161,36 @@ def test_schema_and_api_types_serialization() -> None:
         currency="CAD",
     )
     assert account_api.api_sync_enabled is True
+
+
+def _broker_account(net_deposits: Decimal | None) -> BrokerAccount:
+    return BrokerAccount(
+        id="broker-1",
+        type=AccountTypeEnum.TFSA,
+        institution=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency("CAD"),
+        display_name="Test Account",
+        value=Decimal("1000"),
+        net_deposits=net_deposits,
+        created_at=datetime.now(UTC),
+    )
+
+
+def test_from_broker_preserves_zero_net_deposits() -> None:
+    """A broker account with netDeposits == 0 maps to 0.0, not None."""
+    schema = AccountSchema.from_broker(
+        _broker_account(Decimal("0")), uuid4(), uuid4()
+    )
+
+    assert schema.net_deposits == 0.0
+    assert schema.net_deposits is not None
+
+
+def test_from_broker_keeps_missing_net_deposits_none() -> None:
+    """A broker account with no netDeposits stays None."""
+    schema = AccountSchema.from_broker(_broker_account(None), uuid4(), uuid4())
+
+    assert schema.net_deposits is None
 
 
 @pytest.mark.anyio
