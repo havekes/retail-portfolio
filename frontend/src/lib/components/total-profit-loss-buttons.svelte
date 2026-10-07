@@ -8,7 +8,8 @@
 		totalValue,
 		costBasis = null,
 		profitLoss = null,
-		returnPercent = null,
+		returnPercent = undefined,
+		basisLabel = null,
 		currency = 'CAD',
 		showTooltip = true,
 		testIdPrefix = undefined,
@@ -18,6 +19,7 @@
 		costBasis?: number | Money | null;
 		profitLoss?: number | null;
 		returnPercent?: number | null;
+		basisLabel?: string | null;
 		currency?: string;
 		showTooltip?: boolean;
 		testIdPrefix?: string;
@@ -51,7 +53,7 @@
 	);
 
 	const effectiveReturnPercent = $derived(
-		returnPercent != null
+		returnPercent !== undefined
 			? returnPercent
 			: effectiveProfitLoss != null && cost != null && cost !== 0
 				? (effectiveProfitLoss / cost) * 100
@@ -176,6 +178,9 @@
 								? ` (${formattedReturnPercent})`
 								: ''}
 						</p>
+					{/if}
+					{#if basisLabel}
+						<p>{basisLabel}</p>
 					{/if}
 					{#if formattedCostBasis}
 						<p>Total cost: {formattedCostBasis}</p>
