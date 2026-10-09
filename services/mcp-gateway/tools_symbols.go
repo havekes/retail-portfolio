@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 const descResolveSymbol = `USE THIS FIRST to look up or verify the ticker symbol for a company or asset before calling price, fundamentals, or options tools. Resolves search queries to the best matching symbol and alternative candidates.
@@ -26,20 +28,20 @@ See also:
 get_quote, get_price_history, get_fundamentals`
 
 // registerSymbolTools attaches symbol resolution tools to server.
-func registerSymbolTools(server *mcp.Server, client *BackendClient, cfg Config) {
+func registerSymbolTools(server *mcp.Server, client *backend.MarketClient) {
 	addTool(server, toolSpec{
 		Name:        "resolve_symbol",
 		Title:       "Resolve Symbol",
 		Description: descResolveSymbol,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in resolveSymbolInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "resolve_symbol", cfg, in, resolveSymbolInput.prepare, func(ctx context.Context, r resolveSymbolRequest) (any, error) {
+		return runTool(ctx, "resolve_symbol", in, resolveSymbolInput.prepare, func(ctx context.Context, r resolveSymbolRequest) (any, error) {
 			raw, err := client.SymbolSearch(ctx, r.query)
 			if err != nil {
 				return nil, err
 			}
 			var items []json.RawMessage
 			if err := json.Unmarshal(raw, &items); err != nil {
-				return nil, &backendError{class: ErrProvider, detail: err.Error()}
+				return nil, backend.NewError(backend.ErrProvider, err.Error())
 			}
 			best, alts, err := rankSymbolMatches(items, r.query, r.exchange)
 			if err != nil {
@@ -108,7 +110,7 @@ const maxAlternatives = 10
 // Alternatives are the remaining results in backend order, capped at 10.
 func rankSymbolMatches(items []json.RawMessage, query, exchange string) (json.RawMessage, []json.RawMessage, error) {
 	if len(items) == 0 {
-		return nil, nil, &backendError{class: ErrNoData}
+		return nil, nil, backend.NewError(backend.ErrNoData, "")
 	}
 
 	cleanQuery := strings.TrimSpace(query)
@@ -117,7 +119,7 @@ func rankSymbolMatches(items []json.RawMessage, query, exchange string) (json.Ra
 	summaries := make([]symbolMatchSummary, len(items))
 	for i, item := range items {
 		if err := json.Unmarshal(item, &summaries[i]); err != nil {
-			return nil, nil, &backendError{class: ErrProvider, detail: err.Error()}
+			return nil, nil, backend.NewError(backend.ErrProvider, err.Error())
 		}
 	}
 

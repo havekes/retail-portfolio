@@ -12,6 +12,10 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
+	"retail-portfolio/services/mcp-gateway/internal/config"
+	"retail-portfolio/services/mcp-gateway/internal/logging"
 )
 
 // healthResponse is a fixed liveness payload that does not depend on backend
@@ -19,32 +23,36 @@ import (
 var healthResponse = json.RawMessage(`{"status":"ok"}`)
 
 func main() {
-	cfg, err := loadConfig(os.Getenv)
+	cfg, err := config.Load(os.Getenv)
 	if err != nil {
 		slog.Error("mcp-gateway configuration error", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	if _, err := initLogger(cfg); err != nil {
+	if _, err := logging.Init(cfg); err != nil {
 		slog.Error("mcp-gateway logger initialization error", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	client, err := NewBackendClient(cfg)
+	logger := slog.With(
+		slog.String("service", "mcp-gateway"),
+		slog.String("port", cfg.Port),
+		slog.String("backend_url", cfg.BackendBaseURL),
+		slog.String("environment", cfg.Environment),
+		slog.Int("max_concurrency", cfg.MaxConcurrency),
+	)
+
+	client, err := backend.NewMarketClient(backend.Options{
+		BaseURL:        cfg.BackendBaseURL,
+		MaxConcurrency: cfg.MaxConcurrency,
+	}, cfg.ServiceToken)
 	if err != nil {
-		slog.Error("mcp-gateway backend client error",
-			slog.String("service", "mcp-gateway"),
-			slog.String("port", cfg.Port),
-			slog.String("backend_url", cfg.BackendBaseURL),
-			slog.String("environment", cfg.Environment),
-			slog.Int("max_concurrency", cfg.MaxConcurrency),
-			slog.Any("error", err),
-		)
+		logger.Error("mcp-gateway backend client error", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	router := newRouter(newMCPServer(client, cfg), cfg)
-	handler := loggingMiddleware(router, cfg.Environment)
+	router := newRouter(newMCPServer(client), cfg)
+	handler := logging.Middleware(router, cfg.Environment)
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
@@ -68,13 +76,7 @@ func main() {
 
 	go func() {
 		<-sig
-		slog.Info("mcp-gateway shutting down",
-			slog.String("service", "mcp-gateway"),
-			slog.String("port", cfg.Port),
-			slog.String("backend_url", cfg.BackendBaseURL),
-			slog.String("environment", cfg.Environment),
-			slog.Int("max_concurrency", cfg.MaxConcurrency),
-		)
+		logger.Info("mcp-gateway shutting down")
 
 		// Shutdown signal with grace period of 10 seconds
 		shutdownCtx, shutdownCancel := context.WithTimeout(serverCtx, 10*time.Second)
@@ -83,60 +85,28 @@ func main() {
 		go func() {
 			<-shutdownCtx.Done()
 			if errors.Is(shutdownCtx.Err(), context.DeadlineExceeded) {
-				slog.Error("graceful shutdown timed out.. forcing exit",
-					slog.String("service", "mcp-gateway"),
-					slog.String("port", cfg.Port),
-					slog.String("backend_url", cfg.BackendBaseURL),
-					slog.String("environment", cfg.Environment),
-					slog.Int("max_concurrency", cfg.MaxConcurrency),
-				)
+				logger.Error("graceful shutdown timed out.. forcing exit")
 			}
 		}()
 
 		// Trigger graceful shutdown
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			slog.Error("server shutdown error",
-				slog.String("service", "mcp-gateway"),
-				slog.String("port", cfg.Port),
-				slog.String("backend_url", cfg.BackendBaseURL),
-				slog.String("environment", cfg.Environment),
-				slog.Int("max_concurrency", cfg.MaxConcurrency),
-				slog.Any("error", err),
-			)
+			logger.Error("server shutdown error", slog.Any("error", err))
 		}
 		serverStopCtx()
 	}()
 
-	slog.Info("mcp-gateway listening",
-		slog.String("service", "mcp-gateway"),
-		slog.String("port", cfg.Port),
-		slog.String("backend_url", cfg.BackendBaseURL),
-		slog.String("environment", cfg.Environment),
-		slog.Int("max_concurrency", cfg.MaxConcurrency),
-	)
+	logger.Info("mcp-gateway listening")
 	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("server failed to start",
-			slog.String("service", "mcp-gateway"),
-			slog.String("port", cfg.Port),
-			slog.String("backend_url", cfg.BackendBaseURL),
-			slog.String("environment", cfg.Environment),
-			slog.Int("max_concurrency", cfg.MaxConcurrency),
-			slog.Any("error", err),
-		)
+		logger.Error("server failed to start", slog.Any("error", err))
 		os.Exit(1)
 	}
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
-	slog.Info("mcp-gateway stopped",
-		slog.String("service", "mcp-gateway"),
-		slog.String("port", cfg.Port),
-		slog.String("backend_url", cfg.BackendBaseURL),
-		slog.String("environment", cfg.Environment),
-		slog.Int("max_concurrency", cfg.MaxConcurrency),
-	)
+	logger.Info("mcp-gateway stopped")
 }
 
 var newStreamableHTTPHandler = mcp.NewStreamableHTTPHandler
@@ -146,7 +116,7 @@ var newStreamableHTTPHandler = mcp.NewStreamableHTTPHandler
 // The MCP listener is unauthenticated: the shared-secret trust boundary is the
 // backend data plane (T08/T09), not the MCP transport. Cross-origin browser
 // requests are rejected via http.NewCrossOriginProtection.
-func newRouter(server *mcp.Server, cfg Config) http.Handler {
+func newRouter(server *mcp.Server, cfg config.Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
 	mcpHandler := newStreamableHTTPHandler(

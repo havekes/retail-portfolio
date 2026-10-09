@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,36 +17,37 @@ import (
 	"time"
 )
 
+func setSlogDefault(logger *slog.Logger) *slog.Logger {
+	prev := slog.Default()
+	slog.SetDefault(logger)
+	return prev
+}
+
 func TestTransport_NewTransport(t *testing.T) {
 	t.Run("valid configuration", func(t *testing.T) {
-		cfg := Config{
-			BackendBaseURL: "http://backend:8000",
-			ServiceToken:   "valid-token",
+		opts := Options{
+			BaseURL:        "http://backend:8000",
 			MaxConcurrency: 5,
-			Environment:    "dev",
 		}
-		tr, err := NewTransport(cfg)
+		tr, err := NewTransport(opts)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if tr.MaxConcurrency() != 5 {
-			t.Errorf("MaxConcurrency() = %d, want 5", tr.MaxConcurrency())
+		if tr.maxConcurrency != 5 {
+			t.Errorf("maxConcurrency = %d, want 5", tr.maxConcurrency)
 		}
-		if tr.BaseURL().String() != "http://backend:8000" {
-			t.Errorf("BaseURL() = %s, want http://backend:8000", tr.BaseURL().String())
-		}
-		if !tr.isDev() {
-			t.Errorf("expected isDev to be true for environment 'dev'")
+		if tr.baseURL.String() != "http://backend:8000" {
+			t.Errorf("baseURL = %s, want http://backend:8000", tr.baseURL.String())
 		}
 	})
 
 	t.Run("rejects non-positive max concurrency", func(t *testing.T) {
 		for _, val := range []int{0, -1, -10} {
-			cfg := Config{
-				BackendBaseURL: "http://backend:8000",
+			opts := Options{
+				BaseURL:        "http://backend:8000",
 				MaxConcurrency: val,
 			}
-			if _, err := NewTransport(cfg); err == nil {
+			if _, err := NewTransport(opts); err == nil {
 				t.Errorf("NewTransport with MaxConcurrency=%d expected error, got nil", val)
 			}
 		}
@@ -53,11 +55,11 @@ func TestTransport_NewTransport(t *testing.T) {
 
 	t.Run("rejects bad base URLs", func(t *testing.T) {
 		for _, raw := range []string{"", "   ", "not-a-url", "ftp://backend:8000", "http://"} {
-			cfg := Config{
-				BackendBaseURL: raw,
+			opts := Options{
+				BaseURL:        raw,
 				MaxConcurrency: 10,
 			}
-			if _, err := NewTransport(cfg); err == nil {
+			if _, err := NewTransport(opts); err == nil {
 				t.Errorf("NewTransport(%q) expected error, got nil", raw)
 			}
 		}
@@ -87,13 +89,11 @@ func TestTransport_GetAndPost(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	cfg := Config{
-		BackendBaseURL: srv.URL,
-		ServiceToken:   "secret-token-123",
+	opts := Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 5,
-		Environment:    "dev",
 	}
-	tr, err := NewTransport(cfg)
+	tr, err := NewTransport(opts)
 	if err != nil {
 		t.Fatalf("NewTransport: %v", err)
 	}
@@ -205,12 +205,11 @@ func TestTransport_RouteGroupIsolation(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	cfg := Config{
-		BackendBaseURL: srv.URL,
+	opts := Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 5,
-		Environment:    "dev",
 	}
-	tr, err := NewTransport(cfg)
+	tr, err := NewTransport(opts)
 	if err != nil {
 		t.Fatalf("NewTransport: %v", err)
 	}
@@ -218,21 +217,21 @@ func TestTransport_RouteGroupIsolation(t *testing.T) {
 	groupMarket := tr.NewRouteGroup("/api/v1/market/data", "token-market-xxx")
 	groupPortfolio := tr.NewRouteGroup("/api/v1/portfolio", "token-portfolio-yyy")
 
-	if groupMarket.Prefix() != "/api/v1/market/data" {
-		t.Errorf("groupMarket prefix = %s, want /api/v1/market/data", groupMarket.Prefix())
+	if groupMarket.prefix != "/api/v1/market/data" {
+		t.Errorf("groupMarket prefix = %s, want /api/v1/market/data", groupMarket.prefix)
 	}
-	if groupMarket.Token() != "token-market-xxx" {
-		t.Errorf("groupMarket token = %s, want token-market-xxx", groupMarket.Token())
+	if groupMarket.token != "token-market-xxx" {
+		t.Errorf("groupMarket token = %s, want token-market-xxx", groupMarket.token)
 	}
-	if groupMarket.Transport() != tr {
+	if groupMarket.transport != tr {
 		t.Errorf("groupMarket transport does not match parent transport")
 	}
 
-	if groupPortfolio.Prefix() != "/api/v1/portfolio" {
-		t.Errorf("groupPortfolio prefix = %s, want /api/v1/portfolio", groupPortfolio.Prefix())
+	if groupPortfolio.prefix != "/api/v1/portfolio" {
+		t.Errorf("groupPortfolio prefix = %s, want /api/v1/portfolio", groupPortfolio.prefix)
 	}
-	if groupPortfolio.Token() != "token-portfolio-yyy" {
-		t.Errorf("groupPortfolio token = %s, want token-portfolio-yyy", groupPortfolio.Token())
+	if groupPortfolio.token != "token-portfolio-yyy" {
+		t.Errorf("groupPortfolio token = %s, want token-portfolio-yyy", groupPortfolio.token)
 	}
 
 	var out json.RawMessage
@@ -258,8 +257,8 @@ func TestTransport_RouteGroupIsolation(t *testing.T) {
 	}
 }
 
-func TestTransport_ErrorClassification(t *testing.T) {
-	tests := []struct {
+func TestTransport_ErrorTaxonomy(t *testing.T) {
+	cases := []struct {
 		name       string
 		status     int
 		body       string
@@ -270,9 +269,9 @@ func TestTransport_ErrorClassification(t *testing.T) {
 		{
 			name:       "404 not found maps to ErrNoData",
 			status:     http.StatusNotFound,
-			body:       `{"detail":"no data"}`,
+			body:       `{"detail":"symbol not found"}`,
 			wantErr:    ErrNoData,
-			wantDetail: `{"detail":"no data"}`,
+			wantDetail: `{"detail":"symbol not found"}`,
 		},
 		{
 			name:       "422 unprocessable maps to ErrValidation with parsed message",
@@ -285,9 +284,9 @@ func TestTransport_ErrorClassification(t *testing.T) {
 		{
 			name:       "401 unauthorized maps to ErrConfiguration",
 			status:     http.StatusUnauthorized,
-			body:       `{"detail":"bad token"}`,
+			body:       `{"detail":"invalid token"}`,
 			wantErr:    ErrConfiguration,
-			wantDetail: `{"detail":"bad token"}`,
+			wantDetail: `{"detail":"invalid token"}`,
 		},
 		{
 			name:       "403 forbidden maps to ErrConfiguration",
@@ -299,13 +298,20 @@ func TestTransport_ErrorClassification(t *testing.T) {
 		{
 			name:       "500 internal server error maps to ErrProvider",
 			status:     http.StatusInternalServerError,
-			body:       `backend crashed`,
+			body:       `{"detail":"upstream crash"}`,
 			wantErr:    ErrProvider,
-			wantDetail: `backend crashed`,
+			wantDetail: `{"detail":"upstream crash"}`,
+		},
+		{
+			name:       "502 bad gateway maps to ErrProvider",
+			status:     http.StatusBadGateway,
+			body:       `{"detail":"provider down"}`,
+			wantErr:    ErrProvider,
+			wantDetail: `{"detail":"provider down"}`,
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -314,13 +320,11 @@ func TestTransport_ErrorClassification(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			cfg := Config{
-				BackendBaseURL: srv.URL,
-				ServiceToken:   "token",
+			opts := Options{
+				BaseURL:        srv.URL,
 				MaxConcurrency: 5,
-				Environment:    "prod",
 			}
-			tr, err := NewTransport(cfg)
+			tr, err := NewTransport(opts)
 			if err != nil {
 				t.Fatalf("NewTransport: %v", err)
 			}
@@ -336,9 +340,9 @@ func TestTransport_ErrorClassification(t *testing.T) {
 				t.Errorf("errors.Is(%v, %v) = false", err, tc.wantErr)
 			}
 
-			var bErr *backendError
+			var bErr *Error
 			if !errors.As(err, &bErr) {
-				t.Fatalf("err is not *backendError: %T", err)
+				t.Fatalf("err is not *Error: %T", err)
 			}
 			if bErr.Status() != tc.status {
 				t.Errorf("Status() = %d, want %d", bErr.Status(), tc.status)
@@ -358,10 +362,7 @@ func TestTransport_Logging(t *testing.T) {
 
 	t.Run("dev debug request and response logging", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "dev", "DEBUG")
-		if err != nil {
-			t.Fatalf("newLogger: %v", err)
-		}
+		logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug}))
 		prev := setSlogDefault(logger)
 		defer setSlogDefault(prev)
 
@@ -372,13 +373,11 @@ func TestTransport_Logging(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		cfg := Config{
-			BackendBaseURL: srv.URL,
-			ServiceToken:   secretToken,
+		opts := Options{
+			BaseURL:        srv.URL,
 			MaxConcurrency: 5,
-			Environment:    "dev",
 		}
-		tr, err := NewTransport(cfg)
+		tr, err := NewTransport(opts)
 		if err != nil {
 			t.Fatalf("NewTransport: %v", err)
 		}
@@ -423,10 +422,7 @@ func TestTransport_Logging(t *testing.T) {
 
 	t.Run("non-2xx error logging at ERROR level", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
-		if err != nil {
-			t.Fatalf("newLogger: %v", err)
-		}
+		logger := slog.New(slog.NewJSONHandler(&buf, &slog.HandlerOptions{Level: slog.LevelInfo}))
 		prev := setSlogDefault(logger)
 		defer setSlogDefault(prev)
 
@@ -437,13 +433,11 @@ func TestTransport_Logging(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		cfg := Config{
-			BackendBaseURL: srv.URL,
-			ServiceToken:   secretToken,
+		opts := Options{
+			BaseURL:        srv.URL,
 			MaxConcurrency: 5,
-			Environment:    "prod",
 		}
-		tr, err := NewTransport(cfg)
+		tr, err := NewTransport(opts)
 		if err != nil {
 			t.Fatalf("NewTransport: %v", err)
 		}
@@ -486,12 +480,11 @@ func TestTransport_ConcurrencyCap(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	cfg := Config{
-		BackendBaseURL: srv.URL,
+	opts := Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 2,
-		Environment:    "prod",
 	}
-	tr, err := NewTransport(cfg)
+	tr, err := NewTransport(opts)
 	if err != nil {
 		t.Fatalf("NewTransport: %v", err)
 	}
@@ -553,12 +546,11 @@ func TestTransport_SaturatedSemaphoreTimeout(t *testing.T) {
 		}
 	}()
 
-	cfg := Config{
-		BackendBaseURL: srv.URL,
+	opts := Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 1,
-		Environment:    "prod",
 	}
-	tr, err := NewTransport(cfg)
+	tr, err := NewTransport(opts)
 	if err != nil {
 		t.Fatalf("NewTransport: %v", err)
 	}

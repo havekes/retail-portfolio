@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var supportedExchanges = []string{"NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"}
+
 type openAPIDoc struct {
 	OpenAPI    string                                 `json:"openapi"`
 	Info       openAPIInfo                            `json:"info"`
@@ -45,6 +47,7 @@ type openAPIParameter struct {
 func findContractPath(t *testing.T) string {
 	t.Helper()
 	candidates := []string{
+		"../../../tests/market/contracts/data_plane_openapi.json",
 		"../../tests/market/contracts/data_plane_openapi.json",
 		"../tests/market/contracts/data_plane_openapi.json",
 		"tests/market/contracts/data_plane_openapi.json",
@@ -208,7 +211,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 	}
 }
 
-func TestBackendClientOpenAPIParity(t *testing.T) {
+func TestMarketClientOpenAPIParity(t *testing.T) {
 	doc := loadOpenAPIContract(t)
 
 	exercisedRoutes := make(map[string]int)
@@ -317,21 +320,21 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	slowVal := 26
 	signalVal := 9
 	stdDevVal := 2.0
-	if _, err := client.TechnicalIndicator(ctx, "AAPL", indicatorQuery{
-		indicator: "bollinger",
-		period:    &periodVal,
-		fast:      &fastVal,
-		slow:      &slowVal,
-		signal:    &signalVal,
-		stdDev:    &stdDevVal,
-		from:      &from,
-		to:        &to,
-		exchange:  "NASDAQ",
+	if _, err := client.TechnicalIndicator(ctx, "AAPL", IndicatorQuery{
+		Indicator: "bollinger",
+		Period:    &periodVal,
+		Fast:      &fastVal,
+		Slow:      &slowVal,
+		Signal:    &signalVal,
+		StdDev:    &stdDevVal,
+		From:      &from,
+		To:        &to,
+		Exchange:  "NASDAQ",
 	}); err != nil {
 		t.Fatalf("TechnicalIndicator with all parameters failed: %v", err)
 	}
-	if _, err := client.TechnicalIndicator(ctx, "AAPL", indicatorQuery{
-		indicator: "rsi",
+	if _, err := client.TechnicalIndicator(ctx, "AAPL", IndicatorQuery{
+		Indicator: "rsi",
 	}); err != nil {
 		t.Fatalf("TechnicalIndicator minimal failed: %v", err)
 	}
@@ -340,7 +343,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	for route := range doc.Paths {
 		count := exercisedRoutes[route]
 		if count == 0 {
-			t.Errorf("contract route %q was never exercised by BackendClient methods", route)
+			t.Errorf("contract route %q was never exercised by MarketClient methods", route)
 		}
 	}
 	if len(exercisedRoutes) != len(doc.Paths) {
@@ -348,7 +351,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	}
 }
 
-func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
+func TestMarketClientOpenAPINegativeDrift(t *testing.T) {
 	doc := loadOpenAPIContract(t)
 
 	cases := []struct {

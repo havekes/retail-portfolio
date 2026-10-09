@@ -6,12 +6,14 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+
+	"retail-portfolio/services/mcp-gateway/internal/config"
 )
 
-// parseLogLevel parses a log level string case-insensitively into slog.Level.
+// ParseLogLevel parses a log level string case-insensitively into slog.Level.
 // Supported levels: DEBUG, INFO, WARN / WARNING, ERROR.
 // If levelStr is empty, defaultLevel is returned without error.
-func parseLogLevel(levelStr string, defaultLevel slog.Level) (slog.Level, error) {
+func ParseLogLevel(levelStr string, defaultLevel slog.Level) (slog.Level, error) {
 	trimmed := strings.ToUpper(strings.TrimSpace(levelStr))
 	if trimmed == "" {
 		return defaultLevel, nil
@@ -30,11 +32,11 @@ func parseLogLevel(levelStr string, defaultLevel slog.Level) (slog.Level, error)
 	}
 }
 
-// newLogger constructs an *slog.Logger writing to w.
+// New constructs an *slog.Logger writing to w.
 // If env is "prod", a JSON handler is configured with default level slog.LevelInfo.
 // Otherwise (dev, unset, etc.), a text handler is configured with default level slog.LevelDebug.
 // If levelStr is non-empty, it overrides the default level.
-func newLogger(w io.Writer, env string, levelStr string) (*slog.Logger, error) {
+func New(w io.Writer, env string, levelStr string) (*slog.Logger, error) {
 	if w == nil {
 		w = os.Stdout
 	}
@@ -50,7 +52,7 @@ func newLogger(w io.Writer, env string, levelStr string) (*slog.Logger, error) {
 	level := defaultLevel
 	if strings.TrimSpace(levelStr) != "" {
 		var err error
-		level, err = parseLogLevel(levelStr, defaultLevel)
+		level, err = ParseLogLevel(levelStr, defaultLevel)
 		if err != nil {
 			return nil, err
 		}
@@ -70,9 +72,9 @@ func newLogger(w io.Writer, env string, levelStr string) (*slog.Logger, error) {
 	return slog.New(handler), nil
 }
 
-// initLogger constructs an *slog.Logger from cfg and sets it as the default slog logger.
-func initLogger(cfg Config) (*slog.Logger, error) {
-	logger, err := newLogger(os.Stdout, cfg.Environment, cfg.LogLevel)
+// Init constructs an *slog.Logger from cfg and sets it as the default slog logger.
+func Init(cfg config.Config) (*slog.Logger, error) {
+	logger, err := New(os.Stdout, cfg.Environment, cfg.LogLevel)
 	if err != nil {
 		return nil, err
 	}

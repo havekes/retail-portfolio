@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 // Server identity reported to MCP clients during initialize. The name is
@@ -15,7 +17,7 @@ const (
 // newMCPServer builds the MCP server and registers every market-data tool.
 //
 // Tools are registered by tools.go::registerTools, which closes over the
-// BackendClient. The server identity and every tool name, description and
+// MarketClient. The server identity and every tool name, description and
 // result string are provider-agnostic on purpose: an agent must never learn
 // which upstream provider serves the data.
 //
@@ -26,7 +28,7 @@ const (
 //     and `Title`. Input schemas are inferred from typed `In` structs (jsonschema tags).
 //   - Descriptions follow a structured format with four labelled sections:
 //     "Use when:", "Examples:", "Returns:", and "See also:".
-//   - Handlers validate/normalize their input, call the BackendClient, then
+//   - Handlers validate/normalize their input, call the MarketClient, then
 //     return a `&mcp.CallToolResult` with JSON-encoded, tool-shaped output as
 //     `mcp.TextContent` — not the backend response verbatim.
 //   - Error mapping: `errors.Is(err, ErrNoData)` is a *successful* result whose
@@ -37,11 +39,11 @@ const (
 //     the client's generic message. Backend status/body detail is never
 //     unwrapped; only the parsed validation message is forwarded.
 //   - Tool names, descriptions, and result text contain no provider name.
-func newMCPServer(client *BackendClient, cfg Config) *mcp.Server {
+func newMCPServer(client *backend.MarketClient) *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    serverName,
 		Version: serverVersion,
 	}, nil)
-	registerTools(server, client, cfg)
+	registerTools(server, client)
 	return server
 }

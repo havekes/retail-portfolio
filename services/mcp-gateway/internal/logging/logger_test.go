@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log/slog"
+	"retail-portfolio/services/mcp-gateway/internal/config"
 	"strings"
 	"testing"
 )
@@ -35,17 +36,17 @@ func TestParseLogLevel(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := parseLogLevel(tc.levelStr, tc.defaultLevel)
+			actual, err := ParseLogLevel(tc.levelStr, tc.defaultLevel)
 			if tc.expectErr {
 				if err == nil {
-					t.Errorf("parseLogLevel(%q) expected error, got nil", tc.levelStr)
+					t.Errorf("ParseLogLevel(%q) expected error, got nil", tc.levelStr)
 				}
 			} else {
 				if err != nil {
-					t.Errorf("parseLogLevel(%q) unexpected error: %v", tc.levelStr, err)
+					t.Errorf("ParseLogLevel(%q) unexpected error: %v", tc.levelStr, err)
 				}
 				if actual != tc.expected {
-					t.Errorf("parseLogLevel(%q) = %v, want %v", tc.levelStr, actual, tc.expected)
+					t.Errorf("ParseLogLevel(%q) = %v, want %v", tc.levelStr, actual, tc.expected)
 				}
 			}
 		})
@@ -114,7 +115,7 @@ func TestLogger_HandlerSelection(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			logger, err := newLogger(&buf, tc.env, "")
+			logger, err := New(&buf, tc.env, "")
 			if err != nil {
 				t.Fatalf("unexpected error from newLogger: %v", err)
 			}
@@ -246,7 +247,7 @@ func TestLogger_LogLevelOverride(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			logger, err := newLogger(&buf, tc.env, tc.levelStr)
+			logger, err := New(&buf, tc.env, tc.levelStr)
 			if tc.expectErr {
 				if err == nil {
 					t.Fatalf("expected error for levelStr %q, got nil", tc.levelStr)
@@ -280,7 +281,7 @@ func TestLogger_LogLevelOverride(t *testing.T) {
 
 func TestLogger_TokenRedaction(t *testing.T) {
 	const secretToken = "super-secret-market-data-token-987"
-	cfg := Config{
+	cfg := config.Config{
 		BackendBaseURL: "http://backend:8000",
 		ServiceToken:   secretToken,
 		Port:           "8080",
@@ -289,7 +290,7 @@ func TestLogger_TokenRedaction(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	logger, err := newLogger(&buf, cfg.Environment, cfg.LogLevel)
+	logger, err := New(&buf, cfg.Environment, cfg.LogLevel)
 	if err != nil {
 		t.Fatalf("unexpected error creating logger: %v", err)
 	}
@@ -336,7 +337,7 @@ func TestLogger_TokenRedaction(t *testing.T) {
 }
 
 func TestInitLogger(t *testing.T) {
-	cfg := Config{
+	cfg := config.Config{
 		BackendBaseURL: "http://backend:8000",
 		ServiceToken:   "test-token",
 		Port:           "8080",
@@ -344,7 +345,7 @@ func TestInitLogger(t *testing.T) {
 		LogLevel:       "DEBUG",
 	}
 
-	logger, err := initLogger(cfg)
+	logger, err := Init(cfg)
 	if err != nil {
 		t.Fatalf("unexpected error from initLogger: %v", err)
 	}

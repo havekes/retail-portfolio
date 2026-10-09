@@ -15,40 +15,28 @@ import (
 // (src/market/data_router.py). It is a stable contract: do not rename it.
 const dataPlanePath = "/api/v1/market/data"
 
-// BackendClient is a typed HTTP client for the market data plane. It sends the
+// MarketClient is a typed HTTP client for the market data plane. It sends the
 // shared service token on every request and never touches a provider directly.
-type BackendClient struct {
+type MarketClient struct {
 	group *RouteGroup
-	cfg   Config
 }
 
-// NewBackendClient builds a client for the market data plane using cfg.
-func NewBackendClient(cfg Config) (*BackendClient, error) {
-	transport, err := NewTransport(cfg)
+// NewMarketClient builds a client for the market data plane using opts and token.
+func NewMarketClient(opts Options, token string) (*MarketClient, error) {
+	transport, err := NewTransport(opts)
 	if err != nil {
 		return nil, err
 	}
-	group := transport.NewRouteGroup(dataPlanePath, cfg.ServiceToken)
-	return &BackendClient{
+	group := transport.NewRouteGroup(dataPlanePath, token)
+	return &MarketClient{
 		group: group,
-		cfg:   cfg,
 	}, nil
-}
-
-// MaxConcurrency returns the maximum number of concurrent outbound requests allowed.
-func (c *BackendClient) MaxConcurrency() int {
-	return c.group.transport.MaxConcurrency()
-}
-
-// Config returns the configuration used by this client.
-func (c *BackendClient) Config() Config {
-	return c.cfg
 }
 
 // Prices returns daily OHLC history for symbol.
 //
 // GET /api/v1/market/data/prices/{symbol}?from=&to=&interval=&exchange=
-func (c *BackendClient) Prices(
+func (c *MarketClient) Prices(
 	ctx context.Context,
 	symbol string,
 	from, to *time.Time,
@@ -78,7 +66,7 @@ func (c *BackendClient) Prices(
 // Quote returns the live quote snapshot for symbol.
 //
 // GET /api/v1/market/data/quote/{symbol}?exchange=
-func (c *BackendClient) Quote(
+func (c *MarketClient) Quote(
 	ctx context.Context,
 	symbol, exchange string,
 ) (json.RawMessage, error) {
@@ -97,7 +85,7 @@ func (c *BackendClient) Quote(
 // SymbolSearch looks up symbols/companies by free-text query.
 //
 // GET /api/v1/market/data/symbols/search?q=
-func (c *BackendClient) SymbolSearch(ctx context.Context, query string) (json.RawMessage, error) {
+func (c *MarketClient) SymbolSearch(ctx context.Context, query string) (json.RawMessage, error) {
 	values := url.Values{}
 	values.Set("q", query)
 
@@ -111,7 +99,7 @@ func (c *BackendClient) SymbolSearch(ctx context.Context, query string) (json.Ra
 // OptionsChain returns the options chain for an underlying symbol.
 //
 // GET /api/v1/market/data/options/{symbol}?expiry=&option_type=&strike_min=&strike_max=
-func (c *BackendClient) OptionsChain(
+func (c *MarketClient) OptionsChain(
 	ctx context.Context,
 	symbol string,
 	expiry time.Time,
@@ -140,7 +128,7 @@ func (c *BackendClient) OptionsChain(
 // OptionExpirations returns available option expiration dates for an underlying symbol.
 //
 // GET /api/v1/market/data/options/{symbol}/expirations
-func (c *BackendClient) OptionExpirations(ctx context.Context, symbol string) (json.RawMessage, error) {
+func (c *MarketClient) OptionExpirations(ctx context.Context, symbol string) (json.RawMessage, error) {
 	var out json.RawMessage
 	if err := c.group.Get(ctx, "/options/"+url.PathEscape(normalizeSymbol(symbol))+"/expirations", nil, &out); err != nil {
 		return nil, err
@@ -151,7 +139,7 @@ func (c *BackendClient) OptionExpirations(ctx context.Context, symbol string) (j
 // Fundamentals returns the company profile plus key metrics and ratios.
 //
 // GET /api/v1/market/data/fundamentals/{symbol}?exchange=
-func (c *BackendClient) Fundamentals(
+func (c *MarketClient) Fundamentals(
 	ctx context.Context,
 	symbol, exchange string,
 ) (json.RawMessage, error) {
@@ -172,8 +160,8 @@ func (c *BackendClient) Fundamentals(
 // GET /api/v1/market/data/fundamentals/{symbol}/statements?statement=&period=&limit=&exchange=
 //
 // The backend response is returned as json.RawMessage and validated/decoded by
-// decodeStatementList into a slice of raw JSON items.
-func (c *BackendClient) Statements(
+// DecodeStatementList into a slice of raw JSON items.
+func (c *MarketClient) Statements(
 	ctx context.Context,
 	symbol, statement, period string,
 	limit int,
@@ -199,54 +187,54 @@ func (c *BackendClient) Statements(
 	return out, nil
 }
 
-// indicatorQuery holds query parameters for TechnicalIndicator.
-type indicatorQuery struct {
-	indicator string
-	period    *int
-	fast      *int
-	slow      *int
-	signal    *int
-	stdDev    *float64
-	from      *time.Time
-	to        *time.Time
-	exchange  string
+// IndicatorQuery holds query parameters for TechnicalIndicator.
+type IndicatorQuery struct {
+	Indicator string
+	Period    *int
+	Fast      *int
+	Slow      *int
+	Signal    *int
+	StdDev    *float64
+	From      *time.Time
+	To        *time.Time
+	Exchange  string
 }
 
 // TechnicalIndicator returns technical indicator series for symbol.
 //
 // GET /api/v1/market/data/indicators/{symbol}?indicator=&period=&fast=&slow=&signal=&std_dev=&from=&to=&exchange=
-func (c *BackendClient) TechnicalIndicator(
+func (c *MarketClient) TechnicalIndicator(
 	ctx context.Context,
 	symbol string,
-	params indicatorQuery,
+	params IndicatorQuery,
 ) (json.RawMessage, error) {
 	query := url.Values{}
-	if params.indicator != "" {
-		query.Set("indicator", params.indicator)
+	if params.Indicator != "" {
+		query.Set("indicator", params.Indicator)
 	}
-	if params.period != nil {
-		query.Set("period", fmt.Sprintf("%d", *params.period))
+	if params.Period != nil {
+		query.Set("period", fmt.Sprintf("%d", *params.Period))
 	}
-	if params.fast != nil {
-		query.Set("fast", fmt.Sprintf("%d", *params.fast))
+	if params.Fast != nil {
+		query.Set("fast", fmt.Sprintf("%d", *params.Fast))
 	}
-	if params.slow != nil {
-		query.Set("slow", fmt.Sprintf("%d", *params.slow))
+	if params.Slow != nil {
+		query.Set("slow", fmt.Sprintf("%d", *params.Slow))
 	}
-	if params.signal != nil {
-		query.Set("signal", fmt.Sprintf("%d", *params.signal))
+	if params.Signal != nil {
+		query.Set("signal", fmt.Sprintf("%d", *params.Signal))
 	}
-	if params.stdDev != nil {
-		query.Set("std_dev", formatFloat(*params.stdDev))
+	if params.StdDev != nil {
+		query.Set("std_dev", formatFloat(*params.StdDev))
 	}
-	if params.from != nil {
-		query.Set("from", params.from.Format("2006-01-02"))
+	if params.From != nil {
+		query.Set("from", params.From.Format("2006-01-02"))
 	}
-	if params.to != nil {
-		query.Set("to", params.to.Format("2006-01-02"))
+	if params.To != nil {
+		query.Set("to", params.To.Format("2006-01-02"))
 	}
-	if params.exchange != "" {
-		query.Set("exchange", params.exchange)
+	if params.Exchange != "" {
+		query.Set("exchange", params.Exchange)
 	}
 
 	var out json.RawMessage
@@ -274,12 +262,12 @@ func formatFloat(v float64) string {
 // (data_router.market_data_statements). They are the only values ever placed on
 // the wire.
 const (
-	statementIncome   = "income"
-	statementBalance  = "balance"
-	statementCashflow = "cashflow"
+	StatementIncome   = "income"
+	StatementBalance  = "balance"
+	StatementCashflow = "cashflow"
 )
 
-// decodeStatementList decodes the raw statements body for statement into a
+// DecodeStatementList decodes the raw statements body for statement into a
 // slice of raw JSON items.
 //
 // The backend statements route returns a bare list whose item type is a union
@@ -291,9 +279,9 @@ const (
 // A decode failure is a plain error: the tool layer maps it onto the generic
 // provider-failure result, so a cache-hit shape change is never reported as
 // "no data".
-func decodeStatementList(raw json.RawMessage, statement string) ([]json.RawMessage, error) {
+func DecodeStatementList(raw json.RawMessage, statement string) ([]json.RawMessage, error) {
 	switch statement {
-	case statementIncome, statementBalance, statementCashflow:
+	case StatementIncome, StatementBalance, StatementCashflow:
 	default:
 		return nil, fmt.Errorf("unknown statement type %q", statement)
 	}

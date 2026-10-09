@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 // This file registers the provider-agnostic MCP tools. Every tool:
@@ -19,7 +21,7 @@ import (
 //     input is rejected before the backend is called; a backend 422 that still
 //     slips through is classified as ErrValidation and surfaced as an actionable
 //     error rather than "no data";
-//   - calls the backend through the BackendClient and shapes the result through
+//   - calls the backend through the MarketClient and shapes the result through
 //     runTool, implementing the T10 error contract.
 //
 // Tool names, descriptions and result text use only "market data" vocabulary:
@@ -49,11 +51,11 @@ type toolSpec struct {
 }
 
 // registerTools attaches every market-data tool to server, closing over client.
-func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
-	registerPriceTools(server, client, cfg)
-	registerFundamentalsTools(server, client, cfg)
-	registerOptionsTools(server, client, cfg)
-	registerSymbolTools(server, client, cfg)
+func registerTools(server *mcp.Server, client *backend.MarketClient) {
+	registerPriceTools(server, client)
+	registerFundamentalsTools(server, client)
+	registerOptionsTools(server, client)
+	registerSymbolTools(server, client)
 }
 
 // addTool is a thin wrapper over the SDK generic mcp.AddTool. Out is always any
@@ -83,18 +85,15 @@ func addTool[In any](
 func runTool[In, Req any](
 	ctx context.Context,
 	toolName string,
-	cfg Config,
 	in In,
 	prepare func(In) (Req, error),
 	doBackend func(context.Context, Req) (any, error),
 ) (*mcp.CallToolResult, any, error) {
 	start := time.Now()
-	if isDev(cfg.Environment) {
-		slog.DebugContext(ctx, "tool invocation",
-			slog.String("tool", toolName),
-			slog.Any("arguments", in),
-		)
-	}
+	slog.DebugContext(ctx, "tool invocation",
+		slog.String("tool", toolName),
+		slog.Any("arguments", in),
+	)
 
 	req, err := prepare(in)
 	if err != nil {
@@ -112,20 +111,18 @@ func runTool[In, Req any](
 	duration := time.Since(start)
 
 	if err != nil {
-		if errors.Is(err, ErrNoData) {
-			if isDev(cfg.Environment) {
-				slog.DebugContext(ctx, "tool execution completed",
-					slog.String("tool", toolName),
-					slog.Duration("duration", duration),
-					slog.String("response", noDataMessage),
-				)
-			}
+		if errors.Is(err, backend.ErrNoData) {
+			slog.DebugContext(ctx, "tool execution completed",
+				slog.String("tool", toolName),
+				slog.Duration("duration", duration),
+				slog.String("response", noDataMessage),
+			)
 			return noDataResult(), nil, nil
 		}
 
 		status := 0
 		detail := err.Error()
-		var backendErr *backendError
+		var backendErr *backend.Error
 		if errors.As(err, &backendErr) {
 			status = backendErr.Status()
 			detail = backendErr.Detail()
@@ -133,11 +130,11 @@ func runTool[In, Req any](
 
 		var errorClass string
 		switch {
-		case errors.Is(err, ErrValidation):
+		case errors.Is(err, backend.ErrValidation):
 			errorClass = "ErrValidation"
-		case errors.Is(err, ErrConfiguration):
+		case errors.Is(err, backend.ErrConfiguration):
 			errorClass = "ErrConfiguration"
-		case errors.Is(err, ErrProvider):
+		case errors.Is(err, backend.ErrProvider):
 			errorClass = "ErrProvider"
 		default:
 			errorClass = "ErrUnknown"
@@ -154,7 +151,7 @@ func runTool[In, Req any](
 	}
 
 	res, out, retErr := successResult(payload)
-	if isDev(cfg.Environment) && res != nil && len(res.Content) > 0 {
+	if res != nil && len(res.Content) > 0 {
 		var responseText string
 		if tc, ok := res.Content[0].(*mcp.TextContent); ok {
 			responseText = tc.Text
@@ -198,22 +195,22 @@ func errorResult(err error) *mcp.CallToolResult {
 	return result
 }
 
-// mapBackendError maps a BackendClient error onto a tool result:
+// mapBackendError maps a MarketClient error onto a tool result:
 //
 //   - ErrValidation ⇒ an error result carrying the backend's validation message
 //     (falling back to the generic sentinel text), so an agent can correct its
 //     parameters instead of being told there is no data;
 //   - ErrNoData ⇒ a successful "no data" result;
 //   - ErrConfiguration / ErrProvider ⇒ an error result carrying the generic
-//     sentinel text (backendError hides the status/body detail);
+//     sentinel text (Error hides the status/body detail);
 //   - anything else ⇒ a generic catch-all error.
 func mapBackendError(err error) *mcp.CallToolResult {
 	switch {
-	case errors.Is(err, ErrValidation):
+	case errors.Is(err, backend.ErrValidation):
 		return errorResult(errors.New(validationErrorMessage(err)))
-	case errors.Is(err, ErrNoData):
+	case errors.Is(err, backend.ErrNoData):
 		return noDataResult()
-	case errors.Is(err, ErrConfiguration), errors.Is(err, ErrProvider):
+	case errors.Is(err, backend.ErrConfiguration), errors.Is(err, backend.ErrProvider):
 		return errorResult(err)
 	default:
 		return errorResult(errors.New("tool call failed"))
@@ -221,14 +218,14 @@ func mapBackendError(err error) *mcp.CallToolResult {
 }
 
 // validationErrorMessage returns the agent-safe validation text carried by an
-// ErrValidation backendError, falling back to the generic sentinel text when the
+// ErrValidation Error, falling back to the generic sentinel text when the
 // 422 body was unparsable.
 func validationErrorMessage(err error) string {
-	var backendErr *backendError
+	var backendErr *backend.Error
 	if errors.As(err, &backendErr) {
 		if message := backendErr.ValidationMessage(); message != "" {
 			return message
 		}
 	}
-	return ErrValidation.Error()
+	return backend.ErrValidation.Error()
 }

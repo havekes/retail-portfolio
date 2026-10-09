@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 func TestFundamentalsSectionSelectionAndNullHandling(t *testing.T) {
@@ -459,25 +461,25 @@ func TestDecodeStatementListPreservesFields(t *testing.T) {
 			name    string
 			fixture string
 		}{
-			{statementIncome, incomeStatementFixture},
-			{statementBalance, balanceSheetFixture},
-			{statementCashflow, cashFlowStatementFixture},
+			{backend.StatementIncome, incomeStatementFixture},
+			{backend.StatementBalance, balanceSheetFixture},
+			{backend.StatementCashflow, cashFlowStatementFixture},
 		} {
-			items, err := decodeStatementList([]byte(stmt.fixture), stmt.name)
+			items, err := backend.DecodeStatementList([]byte(stmt.fixture), stmt.name)
 			if err != nil {
-				t.Fatalf("decodeStatementList(%s): %v", stmt.name, err)
+				t.Fatalf("backend.DecodeStatementList(%s): %v", stmt.name, err)
 			}
 			if len(items) != 1 {
-				t.Fatalf("decodeStatementList(%s) len = %d, want 1", stmt.name, len(items))
+				t.Fatalf("backend.DecodeStatementList(%s) len = %d, want 1", stmt.name, len(items))
 			}
 		}
 	})
 
 	t.Run("tolerates and preserves unknown fields", func(t *testing.T) {
 		raw := `[{"date": "2024-09-28", "symbol": "AAPL", "custom_line_item": "100"}]`
-		items, err := decodeStatementList([]byte(raw), statementIncome)
+		items, err := backend.DecodeStatementList([]byte(raw), backend.StatementIncome)
 		if err != nil {
-			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
+			t.Fatalf("backend.DecodeStatementList failed on unknown field: %v", err)
 		}
 		if len(items) != 1 {
 			t.Fatalf("unexpected items count: %d", len(items))
@@ -509,7 +511,7 @@ func TestDecodeStatementListPreservesFields(t *testing.T) {
 		}
 		for _, tc := range cases {
 			t.Run(tc.name, func(t *testing.T) {
-				if _, err := decodeStatementList([]byte(tc.raw), statementIncome); err == nil {
+				if _, err := backend.DecodeStatementList([]byte(tc.raw), backend.StatementIncome); err == nil {
 					t.Errorf("raw %s decoded, want error", tc.raw)
 				}
 			})
@@ -517,7 +519,7 @@ func TestDecodeStatementListPreservesFields(t *testing.T) {
 	})
 
 	t.Run("unknown statement fails", func(t *testing.T) {
-		if _, err := decodeStatementList([]byte(incomeStatementFixture), "metrics"); err == nil {
+		if _, err := backend.DecodeStatementList([]byte(incomeStatementFixture), "metrics"); err == nil {
 			t.Error("unknown statement decoded, want error")
 		}
 	})

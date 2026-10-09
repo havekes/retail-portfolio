@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 const (
@@ -60,13 +62,13 @@ get_fundamentals, get_quote, resolve_symbol`
 )
 
 // registerFundamentalsTools attaches fundamentals and financial statement tools to server.
-func registerFundamentalsTools(server *mcp.Server, client *BackendClient, cfg Config) {
+func registerFundamentalsTools(server *mcp.Server, client *backend.MarketClient) {
 	addTool(server, toolSpec{
 		Name:        "get_fundamentals",
 		Title:       "Get Fundamentals",
 		Description: descGetFundamentals,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+		return runTool(ctx, "get_fundamentals", in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 			raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
 			if err != nil {
 				return nil, err
@@ -80,12 +82,12 @@ func registerFundamentalsTools(server *mcp.Server, client *BackendClient, cfg Co
 		Title:       "Get Financial Statements",
 		Description: descGetFinancialStatements,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in financialStatementsInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_financial_statements", cfg, in, financialStatementsInput.prepare, func(ctx context.Context, r financialStatementsRequest) (any, error) {
+		return runTool(ctx, "get_financial_statements", in, financialStatementsInput.prepare, func(ctx context.Context, r financialStatementsRequest) (any, error) {
 			raw, err := client.Statements(ctx, r.symbol, r.statement, r.period, r.limit, r.exchange)
 			if err != nil {
 				return nil, err
 			}
-			items, err := decodeStatementList(raw, r.statement)
+			items, err := backend.DecodeStatementList(raw, r.statement)
 			if err != nil {
 				return nil, err
 			}
@@ -107,7 +109,7 @@ func registerFundamentalsTools(server *mcp.Server, client *BackendClient, cfg Co
 func filterFundamentalsSections(raw json.RawMessage, requestedSections []string) (map[string]json.RawMessage, error) {
 	var sections map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &sections); err != nil {
-		return nil, &backendError{class: ErrProvider, detail: err.Error()}
+		return nil, backend.NewError(backend.ErrProvider, err.Error())
 	}
 
 	out := make(map[string]json.RawMessage, len(requestedSections))
@@ -124,7 +126,7 @@ func filterFundamentalsSections(raw json.RawMessage, requestedSections []string)
 	}
 
 	if allNullOrAbsent {
-		return nil, &backendError{class: ErrNoData}
+		return nil, backend.NewError(backend.ErrNoData, "")
 	}
 	return out, nil
 }
@@ -239,12 +241,12 @@ func validateFundamentalsSections(sections []string) ([]string, error) {
 // validateStatementType validates that statement is one of 'income', 'balance', or 'cashflow'.
 func validateStatementType(v string) (string, error) {
 	switch strings.ToLower(strings.TrimSpace(v)) {
-	case statementIncome:
-		return statementIncome, nil
-	case statementBalance:
-		return statementBalance, nil
-	case statementCashflow:
-		return statementCashflow, nil
+	case backend.StatementIncome:
+		return backend.StatementIncome, nil
+	case backend.StatementBalance:
+		return backend.StatementBalance, nil
+	case backend.StatementCashflow:
+		return backend.StatementCashflow, nil
 	default:
 		return "", errors.New("statement must be 'income', 'balance', or 'cashflow'")
 	}

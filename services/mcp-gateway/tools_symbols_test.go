@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 func TestRankSymbolMatches(t *testing.T) {
@@ -224,7 +226,7 @@ func TestRankSymbolMatches(t *testing.T) {
 
 	t.Run("empty items returns ErrNoData", func(t *testing.T) {
 		_, _, err := rankSymbolMatches([]json.RawMessage{}, "shop", "TSX")
-		if !errors.Is(err, ErrNoData) {
+		if !errors.Is(err, backend.ErrNoData) {
 			t.Fatalf("expected ErrNoData, got: %v", err)
 		}
 	})
@@ -234,7 +236,7 @@ func TestRankSymbolMatches(t *testing.T) {
 			json.RawMessage(`not-json`),
 		}
 		_, _, err := rankSymbolMatches(items, "shop", "TSX")
-		if !errors.Is(err, ErrProvider) {
+		if !errors.Is(err, backend.ErrProvider) {
 			t.Fatalf("expected ErrProvider, got: %v", err)
 		}
 	})

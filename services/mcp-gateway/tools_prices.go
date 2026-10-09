@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 const (
@@ -75,13 +77,13 @@ get_price_history, get_quote, resolve_symbol`
 )
 
 // registerPriceTools attaches price and technical indicator tools to server.
-func registerPriceTools(server *mcp.Server, client *BackendClient, cfg Config) {
+func registerPriceTools(server *mcp.Server, client *backend.MarketClient) {
 	addTool(server, toolSpec{
 		Name:        "get_price_history",
 		Title:       "Get Price History",
 		Description: descGetPriceHistory,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in priceHistoryInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_price_history", cfg, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
+		return runTool(ctx, "get_price_history", in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
 			return client.Prices(ctx, r.symbol, r.from, r.to, r.interval, r.exchange)
 		})
 	})
@@ -91,7 +93,7 @@ func registerPriceTools(server *mcp.Server, client *BackendClient, cfg Config) {
 		Title:       "Get Quote",
 		Description: descGetQuote,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in quoteInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_quote", cfg, in, quoteInput.prepare, func(ctx context.Context, r quoteRequest) (any, error) {
+		return runTool(ctx, "get_quote", in, quoteInput.prepare, func(ctx context.Context, r quoteRequest) (any, error) {
 			return client.Quote(ctx, r.symbol, r.exchange)
 		})
 	})
@@ -101,7 +103,7 @@ func registerPriceTools(server *mcp.Server, client *BackendClient, cfg Config) {
 		Title:       "Get Technical Indicator",
 		Description: descGetTechnicalIndicator,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in technicalIndicatorInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_technical_indicator", cfg, in, technicalIndicatorInput.prepare, func(ctx context.Context, r technicalIndicatorRequest) (any, error) {
+		return runTool(ctx, "get_technical_indicator", in, technicalIndicatorInput.prepare, func(ctx context.Context, r technicalIndicatorRequest) (any, error) {
 			return client.TechnicalIndicator(ctx, r.symbol, r.query)
 		})
 	})
@@ -203,7 +205,7 @@ type technicalIndicatorInput struct {
 
 type technicalIndicatorRequest struct {
 	symbol string
-	query  indicatorQuery
+	query  backend.IndicatorQuery
 }
 
 func (in technicalIndicatorInput) prepare() (technicalIndicatorRequest, error) {
@@ -254,16 +256,16 @@ func (in technicalIndicatorInput) prepare() (technicalIndicatorRequest, error) {
 	}
 	return technicalIndicatorRequest{
 		symbol: symbol,
-		query: indicatorQuery{
-			indicator: indicator,
-			period:    in.Period,
-			fast:      in.Fast,
-			slow:      in.Slow,
-			signal:    in.Signal,
-			stdDev:    in.StdDev,
-			from:      fromPtr,
-			to:        toPtr,
-			exchange:  exchange,
+		query: backend.IndicatorQuery{
+			Indicator: indicator,
+			Period:    in.Period,
+			Fast:      in.Fast,
+			Slow:      in.Slow,
+			Signal:    in.Signal,
+			StdDev:    in.StdDev,
+			From:      fromPtr,
+			To:        toPtr,
+			Exchange:  exchange,
 		},
 	}, nil
 }

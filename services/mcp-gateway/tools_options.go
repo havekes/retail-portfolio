@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 const (
@@ -50,13 +52,13 @@ get_options_chain, get_quote, resolve_symbol`
 )
 
 // registerOptionsTools attaches option chain and expiration tools to server.
-func registerOptionsTools(server *mcp.Server, client *BackendClient, cfg Config) {
+func registerOptionsTools(server *mcp.Server, client *backend.MarketClient) {
 	addTool(server, toolSpec{
 		Name:        "get_options_chain",
 		Title:       "Get Options Chain",
 		Description: descGetOptionsChain,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in optionsChainInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_options_chain", cfg, in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
+		return runTool(ctx, "get_options_chain", in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
 			return client.OptionsChain(ctx, r.symbol, r.expiry, r.optionType, r.strikeMin, r.strikeMax)
 		})
 	})
@@ -66,7 +68,7 @@ func registerOptionsTools(server *mcp.Server, client *BackendClient, cfg Config)
 		Title:       "Get Option Expirations",
 		Description: descGetOptionExpirations,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in optionExpirationsInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, "get_option_expirations", cfg, in, optionExpirationsInput.prepare, func(ctx context.Context, r optionExpirationsRequest) (any, error) {
+		return runTool(ctx, "get_option_expirations", in, optionExpirationsInput.prepare, func(ctx context.Context, r optionExpirationsRequest) (any, error) {
 			return client.OptionExpirations(ctx, r.symbol)
 		})
 	})
