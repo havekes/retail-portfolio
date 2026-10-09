@@ -235,7 +235,7 @@ Adding a second data plane or domain (for example, portfolios, watchlists, or or
    ```
 
 3. **Register MCP tools**:
-   Define typed tool inputs and register tools in a domain tool registration function (e.g. `registerPortfolioTools` in `tools.go` or a domain tools file) closing over the domain client using `toolSpec`:
+   Define typed tool inputs and register tools in a dedicated per-family file (e.g. `tools_portfolio.go`) with a `register<Family>Tools` registration function (e.g. `registerPortfolioTools`) closing over the domain client using `toolSpec`, and call it from `registerTools` in `tools.go`:
    ```go
    const descCreatePosition = `Create a new position in the portfolio.
 
@@ -255,15 +255,17 @@ Adding a second data plane or domain (for example, portfolios, watchlists, or or
    See also:
    get_quote, resolve_symbol`
 
-   addTool(server, toolSpec{
-       Name:        "create_position",
-       Title:       "Create Position",
-       Description: descCreatePosition,
-   }, func(ctx context.Context, _ *mcp.CallToolRequest, in createPositionInput) (*mcp.CallToolResult, any, error) {
-       return runTool(ctx, "create_position", cfg, in, createPositionInput.prepare, func(ctx context.Context, r createPositionRequest) (any, error) {
-           return portfolioClient.CreatePosition(ctx, r)
+   func registerPortfolioTools(server *mcp.Server, portfolioClient *PortfolioClient, cfg Config) {
+       addTool(server, toolSpec{
+           Name:        "create_position",
+           Title:       "Create Position",
+           Description: descCreatePosition,
+       }, func(ctx context.Context, _ *mcp.CallToolRequest, in createPositionInput) (*mcp.CallToolResult, any, error) {
+           return runTool(ctx, "create_position", cfg, in, createPositionInput.prepare, func(ctx context.Context, r createPositionRequest) (any, error) {
+               return portfolioClient.CreatePosition(ctx, r)
+           })
        })
-   })
+   }
    ```
 
 ## Running with Docker Compose
