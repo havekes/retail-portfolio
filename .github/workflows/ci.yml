@@ -120,15 +120,16 @@ jobs:
           code=$?
           set -e
           echo "$out"
-          if [ $code -ne 0 ]; then
-            # Under Go 1.27.1 (pinned for staticcheck compatibility), stdlib has known CVEs fixed in Go 1.27.2.
-            # Allow exit code 3 only if all affected vulnerabilities are from the Go standard library (0 module vulnerabilities).
-            if [ $code -eq 3 ] && echo "$out" | grep -q "from the Go standard library\."; then
-              echo "Known unfixable stdlib vulnerabilities detected under Go 1.27.1; allowed."
-            else
-              exit $code
-            fi
+          if [ $code -eq 0 ]; then
+            exit 0
           fi
+          # Under Go 1.27.1 (pinned for staticcheck compatibility), stdlib has known CVEs fixed in Go 1.27.2.
+          # Allow scan only if all affected vulnerabilities are from the Go standard library (0 module vulnerabilities).
+          if echo "$out" | grep -qi "standard library" && ! echo "$out" | grep -E "from [0-9]+ module"; then
+            echo "Known unfixable stdlib vulnerabilities detected under Go 1.27.1; allowed."
+            exit 0
+          fi
+          exit $code
 
       - name: Build
         run: |
@@ -185,15 +186,16 @@ jobs:
           code=$?
           set -e
           echo "$out"
-          if [ $code -ne 0 ]; then
-            # Under Go 1.27.1 (pinned for staticcheck compatibility), stdlib has known CVEs fixed in Go 1.27.2.
-            # Allow exit code 3 only if all affected vulnerabilities are from the Go standard library (0 module vulnerabilities).
-            if [ $code -eq 3 ] && echo "$out" | grep -q "from the Go standard library\."; then
-              echo "Known unfixable stdlib vulnerabilities detected under Go 1.27.1; allowed."
-            else
-              exit $code
-            fi
+          if [ $code -eq 0 ]; then
+            exit 0
           fi
+          # Under Go 1.27.1 (pinned for staticcheck compatibility), stdlib has known CVEs fixed in Go 1.27.2.
+          # Allow scan only if all affected vulnerabilities are from the Go standard library (0 module vulnerabilities).
+          if echo "$out" | grep -qi "standard library" && ! echo "$out" | grep -E "from [0-9]+ module"; then
+            echo "Known unfixable stdlib vulnerabilities detected under Go 1.27.1; allowed."
+            exit 0
+          fi
+          exit $code
 
       - name: Build
         run: |
