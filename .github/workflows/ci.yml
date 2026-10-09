@@ -112,6 +112,11 @@ jobs:
           cd services/indicator-service
           go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
 
+      - name: Vulnerability scan
+        run: |
+          cd services/indicator-service
+          go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+
       - name: Build
         run: |
           cd services/indicator-service
@@ -158,6 +163,11 @@ jobs:
         run: |
           cd services/mcp-gateway
           go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+
+      - name: Vulnerability scan
+        run: |
+          cd services/mcp-gateway
+          go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
       - name: Build
         run: |
