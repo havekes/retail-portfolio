@@ -1,25 +1,26 @@
-package main
+package server
 
 import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"retail-portfolio/services/mcp-gateway/internal/backend"
+	"retail-portfolio/services/mcp-gateway/internal/tools"
 )
 
 // Server identity reported to MCP clients during initialize. The name is
 // provider-agnostic on purpose: an agent must never learn which upstream
 // provider serves the data.
 const (
-	serverName    = "market-data-gateway"
-	serverVersion = "0.0.1"
+	ServerName    = "market-data-gateway"
+	ServerVersion = "0.0.1"
 )
 
-// newMCPServer builds the MCP server and registers every market-data tool.
+// New builds the MCP server and registers every market-data tool.
 //
-// Tools are registered by tools.go::registerTools, which closes over the
-// MarketClient. The server identity and every tool name, description and
-// result string are provider-agnostic on purpose: an agent must never learn
-// which upstream provider serves the data.
+// Tools are registered by tools.Register, which closes over the MarketClient.
+// The server identity and every tool name, description and result string are
+// provider-agnostic on purpose: an agent must never learn which upstream
+// provider serves the data.
 //
 // The tool contract:
 //
@@ -39,11 +40,11 @@ const (
 //     the client's generic message. Backend status/body detail is never
 //     unwrapped; only the parsed validation message is forwarded.
 //   - Tool names, descriptions, and result text contain no provider name.
-func newMCPServer(client *backend.MarketClient) *mcp.Server {
-	server := mcp.NewServer(&mcp.Implementation{
-		Name:    serverName,
-		Version: serverVersion,
+func New(client *backend.MarketClient) *mcp.Server {
+	s := mcp.NewServer(&mcp.Implementation{
+		Name:    ServerName,
+		Version: ServerVersion,
 	}, nil)
-	registerTools(server, client)
-	return server
+	tools.Register(s, client)
+	return s
 }

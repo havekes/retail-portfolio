@@ -61,7 +61,7 @@ All inbound HTTP requests to `/health` and `/mcp` pass through structured loggin
 
 ### Tool execution logging
 
-MCP tool calls in `tools.go` are instrumented:
+MCP tool calls in `internal/tools/registry.go` are instrumented:
 - Debug logging follows the logger level alone: tool invocations are logged at `DEBUG` level with `tool` and `arguments`, and tool completions are logged at `DEBUG` level with `tool`, `duration`, and `response` payload content. With `LOG_LEVEL=DEBUG` (including in `ENVIRONMENT=prod`), tool invocation and completion debug records appear. In `ENVIRONMENT=prod` with default `LOG_LEVEL=INFO`, they are suppressed.
 - Tool execution errors (validation failures, 422 backend parameter errors, 401 configuration issues, 500 provider errors) are logged at `ERROR` level with `tool`, `arguments`, `error_class`, `status`, and diagnostic `detail` (from Go-side `backend.Error.Detail()`).
 - Diagnostic `detail` is retained only for Go-side logging and is never exposed in user-facing tool error results.
@@ -136,10 +136,10 @@ mention an upstream provider brand. Keep the vocabulary provider-agnostic
 
 ## Tools
 
-Tools are registered by a single `tools.go::registerTools(*mcp.Server,
-*BackendClient)` function using `addTool` with typed input structs (the SDK
+Tools are registered by `tools.Register(*mcp.Server, *backend.MarketClient)` (in
+`internal/tools/registry.go`) using `addTool` with typed input structs (the SDK
 infers and validates the input schema from struct fields and `jsonschema` tags).
-`newMCPServer` (in `mcpserver.go`) accepts the `*backend.MarketClient` so the tool
+`server.New` (in `internal/server/server.go`) accepts the `*backend.MarketClient` so the tool
 handlers can close over it. Every tool name, description and result string is
 provider-agnostic.
 
@@ -237,7 +237,7 @@ Adding a second data plane or domain (for example, portfolios, watchlists, or or
    ```
 
 3. **Register MCP tools**:
-   Define typed tool inputs and register tools in a dedicated per-family file (e.g. `tools_portfolio.go`) with a `register<Family>Tools` registration function (e.g. `registerPortfolioTools`) closing over the domain client using `toolSpec`, and call it from `registerTools` in `tools.go`:
+   Define typed tool inputs and register tools in a dedicated per-family file in `internal/tools/<domain>.go` (e.g. `internal/tools/portfolio.go`) with a `register<Family>Tools` registration function (e.g. `registerPortfolioTools`) closing over the domain client using `toolSpec`, and call it from `tools.Register` in `internal/tools/registry.go`:
    ```go
    const descCreatePosition = `Create a new position in the portfolio.
 
@@ -291,7 +291,8 @@ docker compose up mcp-gateway
 ```sh
 go mod tidy
 go vet ./...
-go build ./...
+go build ./cmd/mcp-gateway
+go run ./cmd/mcp-gateway
 go test ./...
 ```
 

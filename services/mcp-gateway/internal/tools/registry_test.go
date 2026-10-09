@@ -1,4 +1,4 @@
-package main
+package tools
 
 import (
 	"bytes"
@@ -12,22 +12,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"retail-portfolio/services/mcp-gateway/internal/backend"
-	"retail-portfolio/services/mcp-gateway/internal/config"
 	"retail-portfolio/services/mcp-gateway/internal/logging"
 )
-
-// expectedToolNames is the exact, provider-agnostic tool set this ticket
-// registers. Order is irrelevant; tests compare as a set.
-var expectedToolNames = []string{
-	"get_price_history",
-	"get_quote",
-	"get_fundamentals",
-	"get_options_chain",
-	"get_option_expirations",
-	"get_financial_statements",
-	"resolve_symbol",
-	"get_technical_indicator",
-}
 
 // assertNoProviderName fails if text mentions an upstream provider brand.
 func assertNoProviderName(t *testing.T, label, text string) {
@@ -39,14 +25,19 @@ func assertNoProviderName(t *testing.T, label, text string) {
 	}
 }
 
-// newTestSession wires a stub backend through the real client and MCP router
-// and returns a connected SDK client session.
-
+// newTestSession wires a stub backend through the real client and MCP streamable
+// handler and returns a connected SDK client session.
 func newTestSession(t *testing.T, backendURL string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token")
-	cfg := config.Config{Environment: "dev"}
-	srv := httptest.NewServer(newRouter(newMCPServer(client), cfg))
+	server := mcp.NewServer(&mcp.Implementation{Name: "test-server", Version: "0.0.1"}, nil)
+	Register(server, client)
+	mux := http.NewServeMux()
+	mux.Handle("/mcp", mcp.NewStreamableHTTPHandler(
+		func(*http.Request) *mcp.Server { return server },
+		nil,
+	))
+	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
@@ -512,19 +503,8 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 }
 
 func TestRemovedToolsNotRegistered(t *testing.T) {
-	srv := httptest.NewServer(newTestRouter(t))
-	t.Cleanup(srv.Close)
-
 	ctx := context.Background()
-	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
-	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
-		Endpoint:             srv.URL + "/mcp",
-		DisableStandaloneSSE: true,
-	}, nil)
-	if err != nil {
-		t.Fatalf("connect: %v", err)
-	}
-	t.Cleanup(func() { _ = session.Close() })
+	session := newTestSession(t, "http://backend.invalid")
 
 	tools, err := session.ListTools(ctx, nil)
 	if err != nil {
@@ -1151,8 +1131,14 @@ func TestRequireSymbol(t *testing.T) {
 func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token", env)
-	cfg := config.Config{Environment: env}
-	srv := httptest.NewServer(newRouter(newMCPServer(client), cfg))
+	server := mcp.NewServer(&mcp.Implementation{Name: "test-server", Version: "0.0.1"}, nil)
+	Register(server, client)
+	mux := http.NewServeMux()
+	mux.Handle("/mcp", mcp.NewStreamableHTTPHandler(
+		func(*http.Request) *mcp.Server { return server },
+		nil,
+	))
+	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -11,16 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
-
 	"retail-portfolio/services/mcp-gateway/internal/backend"
 	"retail-portfolio/services/mcp-gateway/internal/config"
 	"retail-portfolio/services/mcp-gateway/internal/logging"
+	"retail-portfolio/services/mcp-gateway/internal/server"
 )
-
-// healthResponse is a fixed liveness payload that does not depend on backend
-// reachability.
-var healthResponse = json.RawMessage(`{"status":"ok"}`)
 
 func main() {
 	cfg, err := config.Load(os.Getenv)
@@ -51,10 +45,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := newRouter(newMCPServer(client), cfg)
+	router := server.NewRouter(server.New(client), cfg)
 	handler := logging.Middleware(router, cfg.Environment)
 
-	server := &http.Server{
+	httpServer := &http.Server{
 		Addr:    ":" + cfg.Port,
 		Handler: handler,
 		// ReadTimeout bounds how long a client may take to send a request.
@@ -90,7 +84,7 @@ func main() {
 		}()
 
 		// Trigger graceful shutdown
-		err := server.Shutdown(shutdownCtx)
+		err := httpServer.Shutdown(shutdownCtx)
 		if err != nil {
 			logger.Error("server shutdown error", slog.Any("error", err))
 		}
@@ -98,7 +92,7 @@ func main() {
 	}()
 
 	logger.Info("mcp-gateway listening")
-	err = server.ListenAndServe()
+	err = httpServer.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error("server failed to start", slog.Any("error", err))
 		os.Exit(1)
@@ -107,36 +101,4 @@ func main() {
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
 	logger.Info("mcp-gateway stopped")
-}
-
-var newStreamableHTTPHandler = mcp.NewStreamableHTTPHandler
-
-// newRouter wires the liveness probe and the MCP streamable HTTP endpoint.
-//
-// The MCP listener is unauthenticated: the shared-secret trust boundary is the
-// backend data plane (T08/T09), not the MCP transport. Cross-origin browser
-// requests are rejected via http.NewCrossOriginProtection.
-func newRouter(server *mcp.Server, cfg config.Config) http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
-	mcpHandler := newStreamableHTTPHandler(
-		func(*http.Request) *mcp.Server { return server },
-		&mcp.StreamableHTTPOptions{
-			SessionTimeout: cfg.SessionIdleTimeout,
-		},
-	)
-	mux.Handle("/mcp", http.NewCrossOriginProtection().Handler(mcpHandler))
-	return mux
-}
-
-// healthHandler serves GET /health with a fixed 200 payload.
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", http.MethodGet)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(healthResponse)
 }
