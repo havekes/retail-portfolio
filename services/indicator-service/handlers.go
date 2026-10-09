@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -29,6 +30,22 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		Status:  "ok",
 		Service: "indicator-service",
 	})
+}
+
+// validateComputeRequest validates bounds for POST /compute payloads before computation.
+func validateComputeRequest(req ComputeRequest) error {
+	if len(req.Indicators) > maxIndicators {
+		return fmt.Errorf("indicators count %d exceeds limit of %d", len(req.Indicators), maxIndicators)
+	}
+	if len(req.Candles) > maxCandles {
+		return fmt.Errorf("candles count %d exceeds limit of %d", len(req.Candles), maxCandles)
+	}
+	for i := range req.Indicators {
+		if err := req.Indicators[i].validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ComputeHandler handles POST /compute requests.
@@ -65,6 +82,17 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 		)
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(ErrorResponse{Error: "invalid json body: " + err.Error()})
+		return
+	}
+
+	if err := validateComputeRequest(req); err != nil {
+		logger.Warn("compute request validation failed",
+			slog.String("request_id", reqID),
+			slog.String("path", r.URL.Path),
+			slog.String("error", err.Error()),
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
 		return
 	}
 
