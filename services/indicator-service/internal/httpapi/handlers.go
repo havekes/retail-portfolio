@@ -2,9 +2,10 @@ package httpapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
+
+	"retail-portfolio/services/indicator-service/internal/indicators"
 )
 
 // HealthHandler handles GET /health requests.
@@ -30,22 +31,6 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		Status:  "ok",
 		Service: "indicator-service",
 	})
-}
-
-// validateComputeRequest validates bounds for POST /compute payloads before computation.
-func validateComputeRequest(req ComputeRequest) error {
-	if len(req.Indicators) > maxIndicators {
-		return fmt.Errorf("indicators count %d exceeds limit of %d", len(req.Indicators), maxIndicators)
-	}
-	if len(req.Candles) > maxCandles {
-		return fmt.Errorf("candles count %d exceeds limit of %d", len(req.Candles), maxCandles)
-	}
-	for i := range req.Indicators {
-		if err := req.Indicators[i].validate(); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // ComputeHandler handles POST /compute requests.
@@ -106,7 +91,7 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, spec := range req.Indicators {
-		result, err := ComputeIndicator(req.Candles, spec, interval)
+		result, err := indicators.Compute(req.Candles, spec, interval)
 		if err != nil {
 			logger.Error("indicator calculation failed",
 				slog.String("request_id", reqID),
@@ -122,19 +107,4 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(resp)
-}
-
-// NewRouter constructs the http.ServeMux with registered handlers wrapped with LoggingMiddleware.
-func NewRouter(loggers ...*slog.Logger) http.Handler {
-	var logger *slog.Logger
-	if len(loggers) > 0 && loggers[0] != nil {
-		logger = loggers[0]
-	} else {
-		logger = slog.Default()
-	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", HealthHandler)
-	mux.HandleFunc("/compute", ComputeHandler)
-	return LoggingMiddleware(logger)(mux)
 }

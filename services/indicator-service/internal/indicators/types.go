@@ -8,8 +8,6 @@ import (
 )
 
 const (
-	maxIndicators  = 32
-	maxCandles     = 50000
 	minPeriodParam = 1
 	maxPeriodParam = 1000
 	minStdDev      = 0.0
@@ -164,8 +162,8 @@ func (s *IndicatorSpec) GetStdDev(fallback float64) float64 {
 	return fallback
 }
 
-// validate checks that the indicator spec parameters are within allowable bounds.
-func (s *IndicatorSpec) validate() error {
+// Validate checks that the indicator spec parameters are within allowable bounds.
+func (s *IndicatorSpec) Validate() error {
 	period := s.GetPeriod(1)
 	if period < minPeriodParam {
 		return fmt.Errorf("indicator %s: period %d must be at least %d", s.ResultKey(), period, minPeriodParam)
@@ -242,27 +240,4 @@ type RSIPoint struct {
 type OBVPoint struct {
 	Time  any     `json:"time"`
 	Value float64 `json:"value"`
-}
-
-// ComputeRequest is the payload for POST /compute.
-type ComputeRequest struct {
-	Interval   string          `json:"interval"`
-	Candles    []Candle        `json:"candles"`
-	Indicators []IndicatorSpec `json:"indicators"`
-}
-
-// ComputeResponse is the response payload for POST /compute.
-type ComputeResponse struct {
-	Indicators map[string]any `json:"indicators"`
-}
-
-// HealthResponse is the payload for GET /health.
-type HealthResponse struct {
-	Status  string `json:"status"`
-	Service string `json:"service"`
-}
-
-// ErrorResponse represents a JSON error response.
-type ErrorResponse struct {
-	Error string `json:"error"`
 }

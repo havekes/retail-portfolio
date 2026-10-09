@@ -136,7 +136,7 @@ Notes:
 ## Interval scaling of moving-average periods
 
 The `ma50`/`ma200`/`ma50w`/`ma200w` types rescale their period from daily or
-weekly units to the requested `interval` (`ScalePeriod` in `timeframe.go`).
+weekly units to the requested `interval` (`ScalePeriod` in `internal/indicators/timeframe.go`).
 Intervals are matched case-insensitively; unknown intervals are returned
 unscaled.
 
@@ -169,14 +169,14 @@ Requires Go 1.24+.
 
 ```bash
 cd services/indicator-service
-go run .
+go run ./cmd/indicator-service
 ```
 
 The server listens on `PORT` (default `8080`) and shuts down gracefully on
 `SIGINT`/`SIGTERM` (10s grace period).
 
 ```bash
-PORT=9000 go run .
+PORT=9000 go run ./cmd/indicator-service
 ```
 
 ## Running with Docker Compose
@@ -196,8 +196,8 @@ docker compose up indicator-service
   (timeout 5s, 3 retries, 5s start period).
 
 The image is built from `services/indicator-service/Dockerfile`: a
-`golang:1.24-alpine` builder produces a statically linked binary, which runs on
-`alpine:3.21` as the non-root `appuser`.
+`golang:1.27-alpine` builder produces a statically linked binary from
+`./cmd/indicator-service`, which runs on `alpine:3.21` as the non-root `appuser`.
 
 ## Tests
 
@@ -206,7 +206,11 @@ cd services/indicator-service
 go test ./...
 ```
 
-Test files: `calculator_test.go`, `handlers_test.go`, `timeframe_test.go`.
+Test packages and files:
+- `internal/config/config_test.go`
+- `internal/logging/logger_test.go`
+- `internal/indicators/calculator_test.go`, `internal/indicators/timeframe_test.go`
+- `internal/httpapi/handlers_test.go`, `internal/httpapi/middleware_test.go`
 
 ## Backend integration
 

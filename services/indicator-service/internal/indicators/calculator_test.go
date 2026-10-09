@@ -226,9 +226,9 @@ func TestComputeIndicatorTimeframeMA(t *testing.T) {
 		Type:   "ma50",
 		Period: 2,
 	}
-	result, err := ComputeIndicator(candles, spec, "1h")
+	result, err := Compute(candles, spec, "1h")
 	if err != nil {
-		t.Fatalf("ComputeIndicator failed: %v", err)
+		t.Fatalf("Compute failed: %v", err)
 	}
 
 	maPoints, ok := result.([]MAPoint)
@@ -258,9 +258,9 @@ func TestComputeIndicatorSettingsFallback(t *testing.T) {
 			"period": 2,
 		},
 	}
-	result, err := ComputeIndicator(candles, spec, "1d")
+	result, err := Compute(candles, spec, "1d")
 	if err != nil {
-		t.Fatalf("ComputeIndicator failed: %v", err)
+		t.Fatalf("Compute failed: %v", err)
 	}
 	maPoints := result.([]MAPoint)
 	if len(maPoints) != 4 {
@@ -274,7 +274,7 @@ func TestComputeIndicatorSettingsFallback(t *testing.T) {
 func TestComputeIndicatorUnsupportedType(t *testing.T) {
 	candles := makeTestCandles([]float64{10, 20}, nil)
 	spec := IndicatorSpec{Type: "invalid_indicator"}
-	_, err := ComputeIndicator(candles, spec, "1d")
+	_, err := Compute(candles, spec, "1d")
 	if err == nil {
 		t.Fatalf("expected error for unsupported indicator type")
 	}
