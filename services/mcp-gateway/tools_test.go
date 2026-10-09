@@ -1018,6 +1018,54 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			want: "symbol must be at most 32 characters",
 		},
 		{
+			name: "symbol with slash",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "AAPL/EXPIRATIONS"}).prepare()
+				return err
+			},
+			want: `invalid symbol "AAPL/EXPIRATIONS"`,
+		},
+		{
+			name: "symbol with url encoding",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "A%2FB"}).prepare()
+				return err
+			},
+			want: `invalid symbol "A%2FB"`,
+		},
+		{
+			name: "symbol dots only",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: ".."}).prepare()
+				return err
+			},
+			want: `invalid symbol ".."`,
+		},
+		{
+			name: "symbol with space",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "BRK B"}).prepare()
+				return err
+			},
+			want: `invalid symbol "BRK B"`,
+		},
+		{
+			name: "symbol with newline",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "AAPL\n"}).prepare()
+				return err
+			},
+			want: "invalid symbol \"AAPL\\n\"",
+		},
+		{
+			name: "symbol with caret only",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "^"}).prepare()
+				return err
+			},
+			want: `invalid symbol "^"`,
+		},
+		{
 			name: "bad from date",
 			prepare: func() error {
 				_, err := (priceHistoryInput{Symbol: "AAPL", From: "01/01/2026", To: "2026-01-31"}).prepare()
@@ -1430,6 +1478,79 @@ func TestToolsRejectBeforeBackendCall(t *testing.T) {
 			t.Errorf("backend called unexpectedly: %s", captured.path)
 		}
 	})
+
+	t.Run("invalid symbols rejected before backend call", func(t *testing.T) {
+		invalidSymbols := []string{
+			"AAPL/EXPIRATIONS",
+			"A%2FB",
+			"..",
+			"BRK B",
+			"AAPL\n",
+			"^",
+			strings.Repeat("A", 33),
+		}
+		for _, sym := range invalidSymbols {
+			captured.path = ""
+			res := callTool(t, session, "get_quote", map[string]any{
+				"symbol": sym,
+			})
+			if !res.IsError {
+				t.Fatalf("expected error result for symbol %q, got success", sym)
+			}
+			if captured.path != "" {
+				t.Errorf("backend called unexpectedly for symbol %q: %s", sym, captured.path)
+			}
+		}
+	})
+}
+
+func TestRequireSymbol(t *testing.T) {
+	accepted := []string{
+		"AAPL",
+		"aapl",
+		"BRK.B",
+		"RY.TO",
+		"VOD.L",
+		"SHOP-A",
+		"^GSPC",
+		"EURUSD=X",
+	}
+	for _, sym := range accepted {
+		t.Run("accept_"+sym, func(t *testing.T) {
+			got, err := requireSymbol(sym)
+			if err != nil {
+				t.Fatalf("requireSymbol(%q) unexpected error: %v", sym, err)
+			}
+			if got != sym {
+				t.Errorf("requireSymbol(%q) = %q, want %q", sym, got, sym)
+			}
+		})
+	}
+
+	rejected := []struct {
+		sym  string
+		want string
+	}{
+		{"AAPL/EXPIRATIONS", `invalid symbol "AAPL/EXPIRATIONS"`},
+		{"A%2FB", `invalid symbol "A%2FB"`},
+		{"..", `invalid symbol ".."`},
+		{"BRK B", `invalid symbol "BRK B"`},
+		{"AAPL\n", "invalid symbol \"AAPL\\n\""},
+		{"^", `invalid symbol "^"`},
+		{strings.Repeat("A", 33), "symbol must be at most 32 characters"},
+	}
+	for _, tc := range rejected {
+		t.Run("reject_"+tc.sym, func(t *testing.T) {
+			got, err := requireSymbol(tc.sym)
+			if err == nil {
+				t.Fatalf("requireSymbol(%q) = %q, expected error", tc.sym, got)
+			}
+			if err.Error() != tc.want {
+				t.Errorf("requireSymbol(%q) error = %q, want %q", tc.sym, err.Error(), tc.want)
+			}
+			assertNoProviderName(t, "symbol rejection error", err.Error())
+		})
+	}
 }
 
 // Full statement fixtures: every key equals exactly the corresponding Go

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -967,17 +968,24 @@ func rankSymbolMatches(items []json.RawMessage, query, exchange string) (json.Ra
 // Validation helpers
 // --------------------------------------------------------------------------- //
 
-// requireSymbol trims and bounds a symbol. It is not uppercased here: the
-// client normalizes it on the wire.
+// symbolPattern enforces the allowed ticker charset and bounds: optional leading
+// '^', leading alphanumeric character, followed by up to 30 alphanumeric, '.',
+// '-', or '=' characters (max 32 chars).
+var symbolPattern = regexp.MustCompile(`^\^?[A-Za-z0-9][A-Za-z0-9.\-=]{0,30}$`)
+
+// requireSymbol bounds and validates a symbol against symbolPattern. It is not
+// uppercased here: the client normalizes it on the wire.
 func requireSymbol(v string) (string, error) {
-	symbol := strings.TrimSpace(v)
-	if symbol == "" {
+	if strings.TrimSpace(v) == "" {
 		return "", errors.New("symbol is required")
 	}
-	if len(symbol) > maxSymbolLength {
+	if len(v) > maxSymbolLength {
 		return "", fmt.Errorf("symbol must be at most %d characters", maxSymbolLength)
 	}
-	return symbol, nil
+	if !symbolPattern.MatchString(v) {
+		return "", fmt.Errorf("invalid symbol %q", v)
+	}
+	return v, nil
 }
 
 // parseToolDate parses a YYYY-MM-DD date, naming the offending field.
