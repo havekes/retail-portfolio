@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Config holds the runtime configuration for the MCP gateway.
@@ -23,19 +24,23 @@ import (
 //   - LOG_LEVEL: log level override ("DEBUG", "INFO", "WARN"/"WARNING", "ERROR"). Optional.
 //   - MAX_CONCURRENCY: maximum concurrent outbound requests to the backend data
 //     plane. Optional, defaults to 10. Must be a positive integer.
+//   - SESSION_IDLE_TIMEOUT: duration after which idle MCP sessions are closed.
+//     Optional, defaults to 30m. Must be a positive Go duration.
 type Config struct {
-	BackendBaseURL string
-	ServiceToken   string
-	Port           string
-	Environment    string
-	LogLevel       string
-	MaxConcurrency int
+	BackendBaseURL     string
+	ServiceToken       string
+	Port               string
+	Environment        string
+	LogLevel           string
+	MaxConcurrency     int
+	SessionIdleTimeout time.Duration
 }
 
 const (
-	defaultPort           = "8080"
-	defaultEnvironment    = "dev"
-	defaultMaxConcurrency = 10
+	defaultPort               = "8080"
+	defaultEnvironment        = "dev"
+	defaultMaxConcurrency     = 10
+	defaultSessionIdleTimeout = 30 * time.Minute
 )
 
 // loadConfig reads the gateway configuration from getenv.
@@ -70,13 +75,24 @@ func loadConfig(getenv func(string) string) (Config, error) {
 		maxConcurrency = val
 	}
 
+	sessionIdleTimeoutStr := strings.TrimSpace(getenv("SESSION_IDLE_TIMEOUT"))
+	sessionIdleTimeout := defaultSessionIdleTimeout
+	if sessionIdleTimeoutStr != "" {
+		val, err := time.ParseDuration(sessionIdleTimeoutStr)
+		if err != nil || val <= 0 {
+			return Config{}, fmt.Errorf("invalid SESSION_IDLE_TIMEOUT %q: must be a positive duration", sessionIdleTimeoutStr)
+		}
+		sessionIdleTimeout = val
+	}
+
 	cfg := Config{
-		BackendBaseURL: strings.TrimSpace(getenv("BACKEND_BASE_URL")),
-		ServiceToken:   strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
-		Port:           strings.TrimSpace(getenv("PORT")),
-		Environment:    env,
-		LogLevel:       logLevel,
-		MaxConcurrency: maxConcurrency,
+		BackendBaseURL:     strings.TrimSpace(getenv("BACKEND_BASE_URL")),
+		ServiceToken:       strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
+		Port:               strings.TrimSpace(getenv("PORT")),
+		Environment:        env,
+		LogLevel:           logLevel,
+		MaxConcurrency:     maxConcurrency,
+		SessionIdleTimeout: sessionIdleTimeout,
 	}
 
 	if cfg.BackendBaseURL == "" {

@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 // envMap turns a map into the injected getenv function.
@@ -37,6 +38,9 @@ func TestLoadConfig(t *testing.T) {
 		}
 		if cfg.MaxConcurrency != defaultMaxConcurrency {
 			t.Errorf("MaxConcurrency = %d, want %d", cfg.MaxConcurrency, defaultMaxConcurrency)
+		}
+		if cfg.SessionIdleTimeout != defaultSessionIdleTimeout {
+			t.Errorf("SessionIdleTimeout = %v, want %v", cfg.SessionIdleTimeout, defaultSessionIdleTimeout)
 		}
 	})
 
@@ -188,6 +192,69 @@ func TestLoadConfig(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), "MAX_CONCURRENCY") {
 				t.Errorf("error %q does not mention MAX_CONCURRENCY", err)
+			}
+			if strings.Contains(err.Error(), token) {
+				t.Errorf("error leaked the token: %q", err)
+			}
+		}
+	})
+
+	t.Run("SESSION_IDLE_TIMEOUT default when unset or whitespace", func(t *testing.T) {
+		for _, val := range []string{"", "   "} {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"SESSION_IDLE_TIMEOUT":      val,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for SESSION_IDLE_TIMEOUT=%q: %v", val, err)
+			}
+			if cfg.SessionIdleTimeout != defaultSessionIdleTimeout {
+				t.Errorf("SessionIdleTimeout for %q = %v, want %v", val, cfg.SessionIdleTimeout, defaultSessionIdleTimeout)
+			}
+		}
+	})
+
+	t.Run("valid SESSION_IDLE_TIMEOUT values", func(t *testing.T) {
+		cases := []struct {
+			input string
+			want  time.Duration
+		}{
+			{"5m", 5 * time.Minute},
+			{" 5m ", 5 * time.Minute},
+			{"30s", 30 * time.Second},
+			{"1h", 1 * time.Hour},
+			{"30m", 30 * time.Minute},
+		}
+		for _, tc := range cases {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"SESSION_IDLE_TIMEOUT":      tc.input,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for SESSION_IDLE_TIMEOUT=%q: %v", tc.input, err)
+			}
+			if cfg.SessionIdleTimeout != tc.want {
+				t.Errorf("SESSION_IDLE_TIMEOUT %q: got %v, want %v", tc.input, cfg.SessionIdleTimeout, tc.want)
+			}
+		}
+	})
+
+	t.Run("invalid SESSION_IDLE_TIMEOUT returns error", func(t *testing.T) {
+		const token = "secret-token-123"
+		invalidVals := []string{"0", "-1s", "abc", "-5m", "1.5"}
+		for _, val := range invalidVals {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": token,
+				"SESSION_IDLE_TIMEOUT":      val,
+			}))
+			if err == nil {
+				t.Fatalf("expected error for SESSION_IDLE_TIMEOUT=%q, got cfg: %+v", val, cfg)
+			}
+			if !strings.Contains(err.Error(), "SESSION_IDLE_TIMEOUT") {
+				t.Errorf("error %q does not mention SESSION_IDLE_TIMEOUT", err)
 			}
 			if strings.Contains(err.Error(), token) {
 				t.Errorf("error leaked the token: %q", err)
