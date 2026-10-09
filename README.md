@@ -18,6 +18,8 @@ Using Docker compose is the only supported way to run the application: `docker c
 - Test the ping endpoint at `http://localhost:8001/api/ping`
 - Interactive API documentation at `http://localhost:8001/redoc`
 - Frontend will be running at `http://localhost:8002/` (override with `FRONTEND_PORT` in root `.env`)
+- Indicator service at `http://127.0.0.1:8004` (override with `INDICATOR_SERVICE_PORT` in root `.env`)
+- MCP gateway at `http://127.0.0.1:8005` (override with `MCP_GATEWAY_PORT` in root `.env`)
 
 ### During development
 

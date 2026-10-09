@@ -176,10 +176,10 @@ docker compose up indicator-service
 ```
 
 - Dev compose (`docker-compose.yml`): published on
-  `${INDICATOR_SERVICE_PORT:-8085}` on the host, mapped to container port
+  `127.0.0.1:${INDICATOR_SERVICE_PORT:-8004}` on the host, mapped to container port
   `8080`. Override with `INDICATOR_SERVICE_PORT=9090 docker compose up indicator-service`.
-- Prod compose (`docker-compose.prod.yml`): fixed `8085:8080`, container name
-  `retail-portfolio-indicator-service`, `restart: always`.
+- Prod compose (`docker-compose.prod.yml`): internal network only, no host port
+  published, container name `retail-portfolio-indicator-service`, `restart: always`.
 - Both compose files healthcheck `GET /health` via `wget` every 30s
   (timeout 5s, 3 retries, 5s start period).
 

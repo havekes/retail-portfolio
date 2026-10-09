@@ -259,6 +259,22 @@ Adding a second data plane or domain (for example, portfolios, watchlists, or or
    })
    ```
 
+## Running with Docker Compose
+
+From the repository root:
+
+```bash
+docker compose up mcp-gateway
+```
+
+- Dev compose (`docker-compose.yml`): published on
+  `127.0.0.1:${MCP_GATEWAY_PORT:-8005}` on the host, mapped to container port
+  `8080`. Override with `MCP_GATEWAY_PORT=9090 docker compose up mcp-gateway`.
+- Prod compose (`docker-compose.prod.yml`): internal network only, no host port
+  published, container name `retail-portfolio-mcp-gateway`, `restart: always`.
+- Both compose files healthcheck `GET /health` via `wget` every 30s
+  (timeout 5s, 3 retries, 5s start period).
+
 ## Development
 
 ```sh
