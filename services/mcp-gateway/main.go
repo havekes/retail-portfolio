@@ -43,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := newRouter(newMCPServer(client, cfg))
+	router := newRouter(newMCPServer(client, cfg), cfg)
 	handler := loggingMiddleware(router, cfg.Environment)
 
 	server := &http.Server{
@@ -139,17 +139,23 @@ func main() {
 	)
 }
 
+var newStreamableHTTPHandler = mcp.NewStreamableHTTPHandler
+
 // newRouter wires the liveness probe and the MCP streamable HTTP endpoint.
 //
 // The MCP listener is unauthenticated: the shared-secret trust boundary is the
-// backend data plane (T08/T09), not the MCP transport.
-func newRouter(server *mcp.Server) http.Handler {
+// backend data plane (T08/T09), not the MCP transport. Cross-origin browser
+// requests are rejected via http.NewCrossOriginProtection.
+func newRouter(server *mcp.Server, cfg Config) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
-	mux.Handle("/mcp", mcp.NewStreamableHTTPHandler(
+	mcpHandler := newStreamableHTTPHandler(
 		func(*http.Request) *mcp.Server { return server },
-		nil,
-	))
+		&mcp.StreamableHTTPOptions{
+			SessionTimeout: cfg.SessionIdleTimeout,
+		},
+	)
+	mux.Handle("/mcp", http.NewCrossOriginProtection().Handler(mcpHandler))
 	return mux
 }
 

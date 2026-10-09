@@ -203,6 +203,7 @@ type Transport struct {
 	cfg            Config
 	maxConcurrency int
 	sem            chan struct{}
+	requestTimeout time.Duration
 }
 
 // NewTransport validates cfg and builds a Transport. cfg.BackendBaseURL must be
@@ -234,6 +235,7 @@ func NewTransport(cfg Config) (*Transport, error) {
 		cfg:            cfg,
 		maxConcurrency: cfg.MaxConcurrency,
 		sem:            make(chan struct{}, cfg.MaxConcurrency),
+		requestTimeout: defaultHTTPTimeout,
 	}, nil
 }
 
@@ -299,6 +301,11 @@ func (g *RouteGroup) Transport() *Transport {
 // ErrProvider classes.
 func (g *RouteGroup) Do(ctx context.Context, method, path string, query url.Values, body any, out any) error {
 	start := time.Now()
+	if g.transport.requestTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, g.transport.requestTimeout)
+		defer cancel()
+	}
 	p := path
 	if p != "" && !strings.HasPrefix(p, "/") {
 		p = "/" + p

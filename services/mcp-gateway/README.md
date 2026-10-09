@@ -24,6 +24,12 @@ The MCP streamable HTTP endpoint. It is **unauthenticated**: the shared-secret
 trust boundary is the backend data plane, not the MCP listener. Run it on the
 internal network only.
 
+Browser cross-origin requests are rejected via Go standard library
+`http.NewCrossOriginProtection`: requests carrying `Sec-Fetch-Site: cross-site`
+or a mismatched `Origin` header receive `403 Forbidden`. Non-browser MCP
+agents without those headers connect normally. Idle sessions are closed after
+`SESSION_IDLE_TIMEOUT`.
+
 ## Configuration
 
 | Variable                    | Required | Default | Description                                                       |
@@ -34,6 +40,7 @@ internal network only.
 | `ENVIRONMENT`               | no       | `dev`   | Deployment environment (`prod` or `dev`). Configures logging handler and default level. |
 | `LOG_LEVEL`                 | no       | —       | Log level override (`DEBUG`, `INFO`, `WARN`/`WARNING`, `ERROR`).  |
 | `MAX_CONCURRENCY`           | no       | `10`    | Maximum concurrent outbound requests to the backend data plane. Must be a positive integer. |
+| `SESSION_IDLE_TIMEOUT`      | no       | `30m`   | Idle timeout after which inactive MCP sessions are closed. Must be a positive Go duration string (e.g. `5m`, `1h`). |
 
 A missing or unusable required value is a startup error. The token value is
 never logged and never appears in an error message.
@@ -152,7 +159,7 @@ bad arguments never reach the backend. A backend `422` that still occurs is
 classified as `ErrValidation` — not `ErrNoData` — so it is reported as an
 actionable error rather than "no data":
 
-- `symbol` is trimmed, required, and at most 32 characters.
+- `symbol` is required, at most 32 characters, and must match `^\^?[A-Za-z0-9][A-Za-z0-9.\-=]{0,30}$` (alphanumeric ticker with optional leading `^` and internal `.`, `-`, `=`).
 - `resolve_symbol` requires a trimmed query of 1–100 characters and optional supported exchange (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE). Use this first before calling price or fundamentals tools.
 - `get_quote` requires a symbol and optional supported exchange; returns timestamp and price in listing currency.
 - `get_price_history` requires `from <= to`; accepts optional `interval` (`day`, `week`, `month`) and caps results at 2,000 bars.

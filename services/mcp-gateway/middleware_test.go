@@ -81,7 +81,7 @@ func TestLoggingMiddleware_InboundRequests(t *testing.T) {
 
 			client := mustClient(t, "http://backend.invalid", "test-token", "prod")
 			server := newMCPServer(client, Config{Environment: "prod"})
-			router := newRouter(server)
+			router := newRouter(server, Config{Environment: "prod"})
 			handler := loggingMiddleware(router, "prod")
 
 			req := httptest.NewRequest(http.MethodGet, path, nil)
