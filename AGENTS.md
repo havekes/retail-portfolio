@@ -27,7 +27,7 @@ Branching: each feature, idea or arch batch gets a `feat/<slug>` integration bra
 
 - **Backend work** (Python/FastAPI: `src/`, `tests/`, `migrations/`): follow `src/AGENTS.md`.
 - **Frontend work** (SvelteKit: `frontend/`): follow `frontend/AGENTS.md`.
-- **Go microservices work** (`services/indicator-service/`, `services/mcp-gateway/`): follow `services/<service>/README.md`.
+- **Go microservices work** (`services/indicator-service/`, `services/mcp-gateway/`): follow `services/README.md` for shared conventions and `services/<service>/README.md` for service guides.
 
 Each guide holds the full command list (tests, migrations, linting, type checks) and architecture rules for its area.
 
