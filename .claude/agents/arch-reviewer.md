@@ -3,7 +3,7 @@ name: arch-reviewer
 description: Performs an on-demand architecture health check and writes a findings report to .ai/reviews/. Does not create tickets — the orchestrator hands the report to spec-writer. Spawned by the orchestration skill when the user asks for an architecture review.
 model: opus
 effort: high
-disallowedTools: Agent, NotebookEdit
+tools: Read, Grep, Glob, Write, Bash
 skills:
   - architecture-review
 ---

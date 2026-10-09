@@ -1,23 +1,21 @@
 ---
-name: pr-reviewer
-description: Reviews a pull request against its ticket's (GitHub issue's) acceptance criteria and returns an APPROVE or REQUEST_CHANGES verdict with findings. Read-only. Spawned by the orchestrator via the task tool.
+description: Reviews a pull request against its ticket's (GitHub issue's) acceptance criteria and returns an APPROVE or REQUEST_CHANGES verdict with findings. Read-only. Spawned by the orchestrator via the subagent tool.
 mode: subagent
-permission:
-  edit: deny
-  bash:
-    "*": deny
-    "git diff*": allow
-    "git log*": allow
-    "git show*": allow
-    "git fetch*": allow
-    "gh pr view*": allow
-    "gh pr diff*": allow
-    "gh pr checks*": allow
-    "gh issue view*": allow
-    "rg *": allow
-    "find *": allow
-    "sed -n *": allow
-    "cat *": allow
+permissions:
+  - { action: edit, resource: "*", effect: deny }
+  - { action: shell, resource: "*", effect: deny }
+  - { action: shell, resource: "git diff*", effect: allow }
+  - { action: shell, resource: "git log*", effect: allow }
+  - { action: shell, resource: "git show*", effect: allow }
+  - { action: shell, resource: "git fetch*", effect: allow }
+  - { action: shell, resource: "gh pr view*", effect: allow }
+  - { action: shell, resource: "gh pr diff*", effect: allow }
+  - { action: shell, resource: "gh pr checks*", effect: allow }
+  - { action: shell, resource: "gh issue view*", effect: allow }
+  - { action: shell, resource: "rg *", effect: allow }
+  - { action: shell, resource: "find *", effect: allow }
+  - { action: shell, resource: "sed -n *", effect: allow }
+  - { action: shell, resource: "cat *", effect: allow }
 ---
 
 You are the PR REVIEWER. Load the `pr-review` skill first and follow it exactly.

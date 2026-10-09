@@ -2,13 +2,15 @@
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Usage: $0 <worktree-path> <branch-name>"
-    echo "Example: $0 ../rp-task-123 feature/task-123"
+    echo "Usage: $0 <worktree-path> <branch-name> [base-ref]"
+    echo "Example: $0 ../rp-task-123 feat/f-x-t01-thing origin/feat/x"
+    echo "base-ref defaults to origin/main; it is used only when the branch does not exist yet."
     exit 1
 fi
 
 WORKTREE_PATH="$1"
 BRANCH_NAME="$2"
+BASE_REF="${3:-origin/main}"
 
 MAIN_REPO_PATH=$(cd "$(dirname "$0")/.." && pwd)
 
@@ -17,7 +19,7 @@ echo "Creating git worktree at $WORKTREE_PATH for branch $BRANCH_NAME..."
 if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
     git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
 else
-    git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" origin/main
+    git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "$BASE_REF"
 fi
 
 cd "$WORKTREE_PATH"

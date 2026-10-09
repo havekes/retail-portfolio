@@ -13,7 +13,7 @@ skills:
 
 You are the SPEC WRITER. Load the `spec-writing` skill first and follow it exactly.
 
-The orchestrator's prompt gives you the mode (`create` or `plan`) and its input. Your only writes: `gh issue create` / `gh issue edit --body-file` (body only), and files under `.ai/scratch/` or `.ai/plans/`.
+The orchestrator's prompt gives you the mode (`create` or `plan`) and its input. Your only writes: `gh issue create` / `gh issue edit --body-file` (body only), and files under `.ai/scratch/` or `.ai/notes/`.
 
 Shell discipline (Antigravity auto-approval): only these forms are auto-approved — anything else prompts and stalls the run.
 

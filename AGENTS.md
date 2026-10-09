@@ -5,7 +5,23 @@
 
 ## Branch and Merge Protection
 
-- **NEVER merge to `main` without explicit user permission.** Even if a prior user prompt says "merge when done" or all checks/reviews pass, always stop, present the PR, and wait for explicit user confirmation before executing any merge into `main`.
+- **Agents NEVER merge into `main`.** Even if a prior user prompt says "merge when done" or all checks/reviews pass. Ticket PRs merge into their `feat/<slug>` integration branch; only the user merges that branch into `main`.
+- Outside the ticket pipeline, stop, present the PR, and wait for explicit user confirmation before any merge into `main`.
+
+## Agent workflow
+
+Core skills live in `.ai/skills/`; `.claude/skills`, `.agent/skills` and `.opencode/skills` symlink each one (the `openspec-*` skills stay per-tool copies). Agents are in `.claude/agents/`, `.agent/agents/` and `.opencode/agents/`, kept thin and identical in intent. Start the pipeline with the `orchestration` skill (`[resume | <feature-slug> | arch [focus] | <idea>]`), or with the default `orchestrator` agent in opencode.
+
+Branching: each feature, idea or arch batch gets a `feat/<slug>` integration branch cut from `main`. Ticket PRs target it and the orchestrator merges them once approved and green. At the end it opens one `feat/<slug>` → `main` PR for the user to review and merge.
+
+| Artifact | Path | Status values | Template |
+| --- | --- | --- | --- |
+| Feature spec | `.ai/features/<slug>.md` | draft → ready → done | `feature-definition` skill |
+| Arch review | `.ai/reviews/<YYYY-MM-DD>-architecture[-<focus>].md` | open → resolved | `architecture-review` skill |
+| Ticket | GitHub issue, label `ticket` + `status:*` | label-driven | `spec-writing` skill |
+| PR review | verdict appended to the ticket's `## Review feedback` | — | `pr-review` skill |
+| Working notes | `.ai/notes/<id>-plan.md` (optional) | — | — |
+| Scratch | `.ai/scratch/` (gitignored) | — | — |
 
 ## Project Guides
 
@@ -38,7 +54,7 @@ Gates: **Gate 0** runs linter + type checker; if it fails the harness halts and 
 
 If working on multiple tasks simultaneously, agents **must** use the Git worktree isolation workflow to avoid file and Docker conflicts.
 
-1. **Setup Worktree**: `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>`
+1. **Setup Worktree**: `scripts/setup-agent-worktree.sh <worktree-path> <branch-name> [base-ref]` (`base-ref` defaults to `origin/main`)
    This script creates the worktree and generates a `.env` file with unique ports.
 2. **Start Services**: `cd <worktree-path> && docker compose up -d`
 3. **Run Commands**: Execute tests and operations normally within the worktree directory.

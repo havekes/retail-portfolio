@@ -3,7 +3,7 @@ name: pr-reviewer
 description: Reviews a pull request against its ticket's (GitHub issue's) acceptance criteria and returns an APPROVE or REQUEST_CHANGES verdict with findings. Read-only. Spawned by the orchestration skill.
 model: opus
 effort: high
-disallowedTools: Agent, Edit, Write, NotebookEdit
+tools: Read, Grep, Glob, Bash
 skills:
   - pr-review
 ---
