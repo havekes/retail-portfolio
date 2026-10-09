@@ -50,8 +50,8 @@ type toolSpec struct {
 	Description string
 }
 
-// registerTools attaches every market-data tool to server, closing over client.
-func registerTools(server *mcp.Server, client *backend.MarketClient) {
+// Register attaches every market-data tool to server, closing over client.
+func Register(server *mcp.Server, client *backend.MarketClient) {
 	registerPriceTools(server, client)
 	registerFundamentalsTools(server, client)
 	registerOptionsTools(server, client)

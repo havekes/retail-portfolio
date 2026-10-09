@@ -11,8 +11,47 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 	"retail-portfolio/services/mcp-gateway/internal/config"
 )
+
+var providerNames = []string{
+	"FM" + "P",
+	"Poly" + "gon",
+	"EOD" + "HD",
+}
+
+var expectedToolNames = []string{
+	"get_price_history",
+	"get_quote",
+	"get_fundamentals",
+	"get_financial_statements",
+	"get_options_chain",
+	"get_option_expirations",
+	"resolve_symbol",
+	"get_technical_indicator",
+}
+
+func mustClient(t *testing.T, baseURL, token string) *backend.MarketClient {
+	t.Helper()
+	client, err := backend.NewMarketClient(backend.Options{
+		BaseURL:        baseURL,
+		MaxConcurrency: 10,
+	}, token)
+	if err != nil {
+		t.Fatalf("NewMarketClient(%q): %v", baseURL, err)
+	}
+	return client
+}
+
+func assertNoProviderName(t *testing.T, label, text string) {
+	t.Helper()
+	for _, name := range providerNames {
+		if strings.Contains(strings.ToLower(text), strings.ToLower(name)) {
+			t.Errorf("%s %q mentions provider %q", label, text, name)
+		}
+	}
+}
 
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
@@ -21,7 +60,7 @@ func newTestRouter(t *testing.T) http.Handler {
 		SessionIdleTimeout: 30 * time.Minute,
 	}
 	client := mustClient(t, "http://backend.invalid", "test-token")
-	return newRouter(newMCPServer(client), cfg)
+	return NewRouter(New(client), cfg)
 }
 
 func TestHealthEndpoint(t *testing.T) {
@@ -85,8 +124,8 @@ func TestMCPInitializeAndToolList(t *testing.T) {
 	if init == nil || init.ServerInfo == nil {
 		t.Fatalf("initialize result missing server info: %+v", init)
 	}
-	if init.ServerInfo.Name != serverName {
-		t.Errorf("server name = %q, want %q", init.ServerInfo.Name, serverName)
+	if init.ServerInfo.Name != ServerName {
+		t.Errorf("server name = %q, want %q", init.ServerInfo.Name, ServerName)
 	}
 
 	tools, err := session.ListTools(ctx, nil)
@@ -129,7 +168,7 @@ func TestRouter_SessionTimeoutConfigured(t *testing.T) {
 		SessionIdleTimeout: 5 * time.Minute,
 	}
 	client := mustClient(t, "http://backend.invalid", "test-token")
-	_ = newRouter(newMCPServer(client), cfg)
+	_ = NewRouter(New(client), cfg)
 
 	if capturedOpts == nil {
 		t.Fatal("expected newStreamableHTTPHandler to be called with options")

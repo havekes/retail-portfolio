@@ -9,7 +9,7 @@ RUN go mod download
 
 # Copy source code and build statically linked binary
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o mcp-gateway .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o mcp-gateway ./cmd/mcp-gateway
 
 # Run stage
 FROM alpine:3.21
