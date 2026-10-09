@@ -1,4 +1,4 @@
-package main
+package logging
 
 import (
 	"bytes"
@@ -14,27 +14,37 @@ func TestParseLogLevel(t *testing.T) {
 		levelStr     string
 		defaultLevel slog.Level
 		expected     slog.Level
+		expectErr    bool
 	}{
-		{"DEBUG uppercase", "DEBUG", slog.LevelInfo, slog.LevelDebug},
-		{"DEBUG lowercase", "debug", slog.LevelInfo, slog.LevelDebug},
-		{"DEBUG mixedcase with whitespace", "  Debug ", slog.LevelInfo, slog.LevelDebug},
-		{"INFO uppercase", "INFO", slog.LevelDebug, slog.LevelInfo},
-		{"INFO lowercase", "info", slog.LevelDebug, slog.LevelInfo},
-		{"WARN uppercase", "WARN", slog.LevelDebug, slog.LevelWarn},
-		{"WARN lowercase", "warn", slog.LevelDebug, slog.LevelWarn},
-		{"WARNING uppercase", "WARNING", slog.LevelDebug, slog.LevelWarn},
-		{"WARNING lowercase", "warning", slog.LevelDebug, slog.LevelWarn},
-		{"ERROR uppercase", "ERROR", slog.LevelDebug, slog.LevelError},
-		{"ERROR lowercase", "error", slog.LevelDebug, slog.LevelError},
-		{"empty string fallback to default", "", slog.LevelWarn, slog.LevelWarn},
-		{"whitespace fallback to default", "   ", slog.LevelError, slog.LevelError},
-		{"invalid string fallback to default", "UNKNOWN", slog.LevelInfo, slog.LevelInfo},
-		{"invalid string fallback to debug", "invalid_level", slog.LevelDebug, slog.LevelDebug},
+		{"DEBUG uppercase", "DEBUG", slog.LevelInfo, slog.LevelDebug, false},
+		{"DEBUG lowercase", "debug", slog.LevelInfo, slog.LevelDebug, false},
+		{"DEBUG mixedcase with whitespace", "  Debug ", slog.LevelInfo, slog.LevelDebug, false},
+		{"INFO uppercase", "INFO", slog.LevelDebug, slog.LevelInfo, false},
+		{"INFO lowercase", "info", slog.LevelDebug, slog.LevelInfo, false},
+		{"WARN uppercase", "WARN", slog.LevelDebug, slog.LevelWarn, false},
+		{"WARN lowercase", "warn", slog.LevelDebug, slog.LevelWarn, false},
+		{"WARNING uppercase", "WARNING", slog.LevelDebug, slog.LevelWarn, false},
+		{"WARNING lowercase", "warning", slog.LevelDebug, slog.LevelWarn, false},
+		{"ERROR uppercase", "ERROR", slog.LevelDebug, slog.LevelError, false},
+		{"ERROR lowercase", "error", slog.LevelDebug, slog.LevelError, false},
+		{"empty string fallback to default", "", slog.LevelWarn, slog.LevelWarn, false},
+		{"whitespace fallback to default", "   ", slog.LevelError, slog.LevelError, false},
+		{"invalid string returns error", "UNKNOWN", slog.LevelInfo, slog.LevelInfo, true},
+		{"invalid string returns error for invalid_level", "invalid_level", slog.LevelDebug, slog.LevelDebug, true},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := ParseLogLevel(tc.levelStr, tc.defaultLevel)
+			actual, err := ParseLogLevel(tc.levelStr, tc.defaultLevel)
+			if tc.expectErr {
+				if err == nil {
+					t.Fatalf("ParseLogLevel(%q, %v) expected error, got nil", tc.levelStr, tc.defaultLevel)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("ParseLogLevel(%q, %v) unexpected error: %v", tc.levelStr, tc.defaultLevel, err)
+			}
 			if actual != tc.expected {
 				t.Errorf("ParseLogLevel(%q, %v) = %v; want %v", tc.levelStr, tc.defaultLevel, actual, tc.expected)
 			}
@@ -52,6 +62,7 @@ func TestSetupLogger_HandlerAndLevel(t *testing.T) {
 		emitInfo   bool
 		emitWarn   bool
 		emitError  bool
+		expectErr  bool
 	}{
 		{
 			name:       "prod default INFO (JSON)",
@@ -124,14 +135,10 @@ func TestSetupLogger_HandlerAndLevel(t *testing.T) {
 			emitError:  true,
 		},
 		{
-			name:       "prod with invalid log level falls back to INFO",
-			env:        "prod",
-			logLevel:   "invalid",
-			expectJSON: true,
-			emitDebug:  false,
-			emitInfo:   true,
-			emitWarn:   true,
-			emitError:  true,
+			name:      "prod with invalid log level returns error",
+			env:       "prod",
+			logLevel:  "invalid",
+			expectErr: true,
 		},
 		{
 			name:       "dev default DEBUG (Text)",
@@ -204,21 +211,26 @@ func TestSetupLogger_HandlerAndLevel(t *testing.T) {
 			emitError:  true,
 		},
 		{
-			name:       "dev with invalid log level falls back to DEBUG",
-			env:        "dev",
-			logLevel:   "invalid",
-			expectJSON: false,
-			emitDebug:  true,
-			emitInfo:   true,
-			emitWarn:   true,
-			emitError:  true,
+			name:      "dev with invalid log level returns error",
+			env:       "dev",
+			logLevel:  "invalid",
+			expectErr: true,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			logger := SetupLogger(tc.env, tc.logLevel, buf)
+			logger, err := SetupLogger(tc.env, tc.logLevel, buf)
+			if tc.expectErr {
+				if err == nil {
+					t.Fatalf("SetupLogger(%q, %q) expected error, got nil", tc.env, tc.logLevel)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("SetupLogger(%q, %q) unexpected error: %v", tc.env, tc.logLevel, err)
+			}
 
 			// Emit each level
 			buf.Reset()
@@ -290,7 +302,10 @@ func verifyFormatting(t *testing.T, output string, expectJSON bool, expectedMsg,
 }
 
 func TestSetupLogger_NilWriter(t *testing.T) {
-	logger := SetupLogger("dev", "", nil)
+	logger, err := SetupLogger("dev", "", nil)
+	if err != nil {
+		t.Fatalf("unexpected error for nil writer: %v", err)
+	}
 	if logger == nil {
 		t.Fatal("expected non-nil logger when out is nil")
 	}

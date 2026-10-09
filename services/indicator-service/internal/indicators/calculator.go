@@ -1,4 +1,4 @@
-package main
+package indicators
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"github.com/cinar/indicator/v2/volume"
 )
 
-// ComputeIndicator computes an indicator series according to the spec and chart interval.
-func ComputeIndicator(candles []Candle, spec IndicatorSpec, interval string) (any, error) {
+// Compute computes an indicator series according to the spec and chart interval.
+func Compute(candles []Candle, spec IndicatorSpec, interval string) (any, error) {
 	normType := strings.ToLower(strings.TrimSpace(spec.Type))
 
 	switch normType {

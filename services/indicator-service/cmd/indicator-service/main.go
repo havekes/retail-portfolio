@@ -3,29 +3,37 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"retail-portfolio/services/indicator-service/internal/config"
+	"retail-portfolio/services/indicator-service/internal/httpapi"
+	"retail-portfolio/services/indicator-service/internal/logging"
 )
 
 func main() {
-	env := os.Getenv("ENVIRONMENT")
-	logLevel := os.Getenv("LOG_LEVEL")
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	cfg, err := config.Load(os.Getenv)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to load configuration: %v\n", err)
+		os.Exit(1)
 	}
 
-	logger := SetupLogger(env, logLevel, os.Stdout)
+	logger, err := logging.SetupLogger(cfg.Environment, cfg.LogLevel, os.Stdout)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to setup logger: %v\n", err)
+		os.Exit(1)
+	}
 	slog.SetDefault(logger)
 
-	router := NewRouter(logger)
+	router := httpapi.NewRouter(logger)
 
 	server := &http.Server{
-		Addr:         ":" + port,
+		Addr:         ":" + cfg.Port,
 		Handler:      router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -51,8 +59,8 @@ func main() {
 			if errors.Is(shutdownCtx.Err(), context.DeadlineExceeded) {
 				logger.Warn("graceful shutdown timed out.. forcing exit",
 					slog.String("service", "indicator-service"),
-					slog.String("port", port),
-					slog.String("environment", env),
+					slog.String("port", cfg.Port),
+					slog.String("environment", cfg.Environment),
 				)
 			}
 		}()
@@ -62,8 +70,8 @@ func main() {
 		if err != nil {
 			logger.Error("server shutdown error",
 				slog.String("service", "indicator-service"),
-				slog.String("port", port),
-				slog.String("environment", env),
+				slog.String("port", cfg.Port),
+				slog.String("environment", cfg.Environment),
 				slog.String("error", err.Error()),
 			)
 		}
@@ -72,15 +80,15 @@ func main() {
 
 	logger.Info("indicator-service listening",
 		slog.String("service", "indicator-service"),
-		slog.String("port", port),
-		slog.String("environment", env),
+		slog.String("port", cfg.Port),
+		slog.String("environment", cfg.Environment),
 	)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error("server failed to start",
 			slog.String("service", "indicator-service"),
-			slog.String("port", port),
-			slog.String("environment", env),
+			slog.String("port", cfg.Port),
+			slog.String("environment", cfg.Environment),
 			slog.String("error", err.Error()),
 		)
 		os.Exit(1)
@@ -90,7 +98,7 @@ func main() {
 	<-serverCtx.Done()
 	logger.Info("indicator-service stopped",
 		slog.String("service", "indicator-service"),
-		slog.String("port", port),
-		slog.String("environment", env),
+		slog.String("port", cfg.Port),
+		slog.String("environment", cfg.Environment),
 	)
 }

@@ -1,27 +1,33 @@
-package main
+package logging
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 )
 
-// ParseLogLevel parses a log level string case-insensitively.
+// ParseLogLevel parses a log level string case-insensitively into slog.Level.
 // Supported levels: DEBUG, INFO, WARN / WARNING, ERROR.
-// Falls back to defaultLevel if empty or invalid.
-func ParseLogLevel(levelStr string, defaultLevel slog.Level) slog.Level {
-	switch strings.ToUpper(strings.TrimSpace(levelStr)) {
+// If levelStr is empty, defaultLevel is returned without error.
+// If levelStr is invalid, an error is returned.
+func ParseLogLevel(levelStr string, defaultLevel slog.Level) (slog.Level, error) {
+	trimmed := strings.ToUpper(strings.TrimSpace(levelStr))
+	if trimmed == "" {
+		return defaultLevel, nil
+	}
+	switch trimmed {
 	case "DEBUG":
-		return slog.LevelDebug
+		return slog.LevelDebug, nil
 	case "INFO":
-		return slog.LevelInfo
+		return slog.LevelInfo, nil
 	case "WARN", "WARNING":
-		return slog.LevelWarn
+		return slog.LevelWarn, nil
 	case "ERROR":
-		return slog.LevelError
+		return slog.LevelError, nil
 	default:
-		return defaultLevel
+		return defaultLevel, fmt.Errorf("invalid log level: %q (must be DEBUG, INFO, WARN, WARNING, or ERROR)", levelStr)
 	}
 }
 
@@ -30,7 +36,7 @@ func ParseLogLevel(levelStr string, defaultLevel slog.Level) slog.Level {
 // Otherwise (dev or unset), a human-readable text handler is used with default level slog.LevelDebug.
 // If logLevel is provided, it overrides the default level.
 // If out is nil, os.Stdout is used as the destination writer.
-func SetupLogger(env, logLevel string, out io.Writer) *slog.Logger {
+func SetupLogger(env, logLevel string, out io.Writer) (*slog.Logger, error) {
 	if out == nil {
 		out = os.Stdout
 	}
@@ -46,7 +52,10 @@ func SetupLogger(env, logLevel string, out io.Writer) *slog.Logger {
 		defaultLevel = slog.LevelDebug
 	}
 
-	level := ParseLogLevel(logLevel, defaultLevel)
+	level, err := ParseLogLevel(logLevel, defaultLevel)
+	if err != nil {
+		return nil, err
+	}
 	opts := &slog.HandlerOptions{
 		Level: level,
 	}
@@ -58,5 +67,5 @@ func SetupLogger(env, logLevel string, out io.Writer) *slog.Logger {
 		handler = slog.NewTextHandler(out, opts)
 	}
 
-	return slog.New(handler)
+	return slog.New(handler), nil
 }

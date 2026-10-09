@@ -1,14 +1,31 @@
-package main
+package httpapi
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"retail-portfolio/services/indicator-service/internal/indicators"
+	"retail-portfolio/services/indicator-service/internal/logging"
 )
+
+type Candle = indicators.Candle
+type IndicatorSpec = indicators.IndicatorSpec
+
+func mustSetupLogger(t *testing.T, env, logLevel string, out io.Writer) *slog.Logger {
+	t.Helper()
+	l, err := logging.SetupLogger(env, logLevel, out)
+	if err != nil {
+		t.Fatalf("failed to setup logger: %v", err)
+	}
+	return l
+}
 
 func parseLogRecords(output string) []map[string]any {
 	lines := strings.Split(strings.TrimSpace(output), "\n")
@@ -32,7 +49,7 @@ func findLogRecord(records []map[string]any, msg string) map[string]any {
 }
 
 func TestHealthHandler(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 
 	// GET /health -> 200
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -62,7 +79,7 @@ func TestHealthHandler(t *testing.T) {
 
 func TestHealthHandler_MethodNotAllowed_Logging(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/health", nil)
@@ -93,7 +110,7 @@ func TestHealthHandler_MethodNotAllowed_Logging(t *testing.T) {
 }
 
 func TestComputeHandler_MethodNotAllowed(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 	req := httptest.NewRequest(http.MethodGet, "/compute", nil)
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -105,7 +122,7 @@ func TestComputeHandler_MethodNotAllowed(t *testing.T) {
 
 func TestComputeHandler_MethodNotAllowed_Logging(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/compute", nil)
@@ -137,7 +154,7 @@ func TestComputeHandler_MethodNotAllowed_Logging(t *testing.T) {
 
 func TestComputeHandler_InvalidJSON(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	req := httptest.NewRequest(http.MethodPost, "/compute", bytes.NewBufferString("{invalid-json}"))
@@ -169,7 +186,7 @@ func TestComputeHandler_InvalidJSON(t *testing.T) {
 
 func TestComputeHandler_UnknownIndicator(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	payload := ComputeRequest{
@@ -210,7 +227,7 @@ func TestComputeHandler_UnknownIndicator(t *testing.T) {
 }
 
 func TestComputeHandler_PreserveTimestamps_DailyString(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 	payload := map[string]any{
 		"interval": "1d",
 		"candles": []map[string]any{
@@ -254,7 +271,7 @@ func TestComputeHandler_PreserveTimestamps_DailyString(t *testing.T) {
 }
 
 func TestComputeHandler_PreserveTimestamps_IntradayNumber(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 	payload := map[string]any{
 		"interval": "1h",
 		"candles": []map[string]any{
@@ -298,7 +315,7 @@ func TestComputeHandler_PreserveTimestamps_IntradayNumber(t *testing.T) {
 }
 
 func TestComputeHandler_FullSuiteAndCustomID(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 
 	// Generate 60 candles
 	candles := make([]Candle, 60)
@@ -363,7 +380,7 @@ func TestComputeHandler_FullSuiteAndCustomID(t *testing.T) {
 }
 
 func TestComputeHandler_EmptyCandles(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 	payload := ComputeRequest{
 		Interval: "1d",
 		Candles:  []Candle{},
@@ -757,7 +774,7 @@ func TestComputeHandler_Validation(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			logger := SetupLogger("prod", "", buf)
+			logger := mustSetupLogger(t, "prod", "", buf)
 			router := NewRouter(logger)
 
 			body, _ := json.Marshal(tc.payload)
@@ -796,7 +813,7 @@ func TestComputeHandler_Validation(t *testing.T) {
 }
 
 func TestComputeHandler_AtLimit_Success(t *testing.T) {
-	router := NewRouter()
+	router := NewRouter(nil)
 
 	// 50,000 candles
 	candles := make([]Candle, 50000)

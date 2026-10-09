@@ -1,4 +1,4 @@
-package main
+package httpapi
 
 import (
 	"bytes"
@@ -50,7 +50,7 @@ func TestContextHelpers(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	customLogger := SetupLogger("prod", "", buf)
+	customLogger := mustSetupLogger(t, "prod", "", buf)
 	ctx = WithLogger(ctx, customLogger)
 	if got := LoggerFromContext(ctx); got != customLogger {
 		t.Errorf("expected customLogger from context, got %v", got)
@@ -86,7 +86,7 @@ func TestStatusResponseWriter(t *testing.T) {
 
 func TestLoggingMiddleware_RequestIDPropagation(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -108,7 +108,7 @@ func TestLoggingMiddleware_RequestIDPropagation(t *testing.T) {
 
 func TestLoggingMiddleware_RequestIDGeneration(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -145,7 +145,7 @@ func TestLoggingMiddleware_StatusCodeAndDuration(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			logger := SetupLogger("prod", "", buf)
+			logger := mustSetupLogger(t, "prod", "", buf)
 			router := NewRouter(logger)
 
 			req := httptest.NewRequest(tc.method, tc.path, nil)
@@ -188,7 +188,7 @@ func TestLoggingMiddleware_StatusCodeAndDuration(t *testing.T) {
 
 func TestLoggingMiddleware_DevPayloadLogging(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("dev", "", buf)
+	logger := mustSetupLogger(t, "dev", "", buf)
 	router := NewRouter(logger)
 
 	payload := map[string]any{
@@ -234,7 +234,7 @@ func TestLoggingMiddleware_DevPayloadLogging(t *testing.T) {
 
 func TestLoggingMiddleware_ProdNormalRequest_NoBodyDump(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	payload := map[string]any{
@@ -283,7 +283,7 @@ func TestLoggingMiddleware_ProdNormalRequest_NoBodyDump(t *testing.T) {
 
 func TestLoggingMiddleware_ErrorStatusCodes(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 	router := NewRouter(logger)
 
 	// Send malformed JSON to trigger 400
@@ -328,7 +328,7 @@ func TestLoggingMiddleware_ErrorStatusCodes(t *testing.T) {
 
 func TestLoggingMiddleware_ServerErrorStatus(t *testing.T) {
 	buf := &bytes.Buffer{}
-	logger := SetupLogger("prod", "", buf)
+	logger := mustSetupLogger(t, "prod", "", buf)
 
 	// Middleware wrapping a handler that returns 500
 	handler := LoggingMiddleware(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
