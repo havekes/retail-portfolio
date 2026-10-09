@@ -185,11 +185,11 @@ class MarketService:
             # Gateway returns a list of HistoricalPrice
             prices = await asyncio.to_thread(
                 self._gateway.get_prices,
-                security.id,
                 security.symbol,
                 security.exchange,
                 from_date=from_date,
                 to_date=to_date,
+                security_id=security.id,
             )
         except Exception:
             # Catching general Exception to prevent one failure from stopping jobs
@@ -230,12 +230,12 @@ class MarketService:
         try:
             prices = await asyncio.to_thread(
                 self._gateway.get_intraday_prices,
-                security.id,
                 security.symbol,
                 security.exchange,
                 from_datetime=from_datetime,
                 to_datetime=to_datetime,
                 interval="1h",
+                security_id=security.id,
             )
         except Exception:
             logger.exception(
@@ -298,11 +298,11 @@ class MarketService:
             to_date = datetime.now(UTC).date()
 
             prices = self._gateway.get_prices(
-                security.id,
                 security.symbol,
                 security.exchange,
                 from_date=from_date,
                 to_date=to_date,
+                security_id=security.id,
             )
 
             if prices:

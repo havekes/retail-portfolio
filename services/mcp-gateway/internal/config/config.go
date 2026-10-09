@@ -1,0 +1,123 @@
+package config
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
+)
+
+// Config holds the runtime configuration for the MCP gateway.
+//
+// Every value comes from the environment so the same binary runs unchanged in
+// local Compose and in CI:
+//
+//   - BACKEND_BASE_URL: origin of the backend data plane (for example
+//     http://backend:8000). Required.
+//   - MARKET_DATA_SERVICE_TOKEN: shared secret sent as X-Service-Token to the
+//     backend data-plane endpoints. Required. The value is never logged or
+//     embedded in an error message.
+//   - PORT: HTTP listen port. Optional, defaults to "8080".
+//   - ENVIRONMENT: deployment environment ("prod" or "dev"). Optional, defaults to "dev".
+//   - LOG_LEVEL: log level override ("DEBUG", "INFO", "WARN"/"WARNING", "ERROR"). Optional.
+//   - MAX_CONCURRENCY: maximum concurrent outbound requests to the backend data
+//     plane. Optional, defaults to 10. Must be a positive integer.
+//   - SESSION_IDLE_TIMEOUT: duration after which idle MCP sessions are closed.
+//     Optional, defaults to 30m. Must be a positive Go duration.
+type Config struct {
+	BackendBaseURL     string
+	ServiceToken       string
+	Port               string
+	Environment        string
+	LogLevel           string
+	MaxConcurrency     int
+	SessionIdleTimeout time.Duration
+}
+
+const (
+	defaultPort               = "8080"
+	defaultEnvironment        = "dev"
+	defaultMaxConcurrency     = 10
+	defaultSessionIdleTimeout = 30 * time.Minute
+)
+
+// Load reads the gateway configuration from getenv.
+//
+// getenv is injected (rather than calling os.Getenv directly) so the parsing
+// rules are unit-testable without mutating the process environment.
+//
+// A missing or unusable required value is a startup error: the returned error
+// names the offending variable but never echoes the token value.
+func Load(getenv func(string) string) (Config, error) {
+	env := strings.ToLower(strings.TrimSpace(getenv("ENVIRONMENT")))
+	if env == "" {
+		env = defaultEnvironment
+	}
+
+	logLevel := strings.ToUpper(strings.TrimSpace(getenv("LOG_LEVEL")))
+	if logLevel != "" {
+		switch logLevel {
+		case "DEBUG", "INFO", "WARN", "WARNING", "ERROR":
+		default:
+			return Config{}, fmt.Errorf("invalid LOG_LEVEL %q: must be DEBUG, INFO, WARN, WARNING, or ERROR", logLevel)
+		}
+	}
+
+	maxConcurrencyStr := strings.TrimSpace(getenv("MAX_CONCURRENCY"))
+	maxConcurrency := defaultMaxConcurrency
+	if maxConcurrencyStr != "" {
+		val, err := strconv.Atoi(maxConcurrencyStr)
+		if err != nil || val <= 0 {
+			return Config{}, fmt.Errorf("invalid MAX_CONCURRENCY %q: must be a positive integer", maxConcurrencyStr)
+		}
+		maxConcurrency = val
+	}
+
+	sessionIdleTimeoutStr := strings.TrimSpace(getenv("SESSION_IDLE_TIMEOUT"))
+	sessionIdleTimeout := defaultSessionIdleTimeout
+	if sessionIdleTimeoutStr != "" {
+		val, err := time.ParseDuration(sessionIdleTimeoutStr)
+		if err != nil || val <= 0 {
+			return Config{}, fmt.Errorf("invalid SESSION_IDLE_TIMEOUT %q: must be a positive duration", sessionIdleTimeoutStr)
+		}
+		sessionIdleTimeout = val
+	}
+
+	cfg := Config{
+		BackendBaseURL:     strings.TrimSpace(getenv("BACKEND_BASE_URL")),
+		ServiceToken:       strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
+		Port:               strings.TrimSpace(getenv("PORT")),
+		Environment:        env,
+		LogLevel:           logLevel,
+		MaxConcurrency:     maxConcurrency,
+		SessionIdleTimeout: sessionIdleTimeout,
+	}
+
+	if cfg.BackendBaseURL == "" {
+		return Config{}, errors.New("BACKEND_BASE_URL is required")
+	}
+	if err := backend.ValidateBaseURL(cfg.BackendBaseURL); err != nil {
+		return Config{}, fmt.Errorf("BACKEND_BASE_URL is invalid: %w", err)
+	}
+	if cfg.ServiceToken == "" {
+		return Config{}, errors.New("MARKET_DATA_SERVICE_TOKEN is required")
+	}
+	if cfg.Port == "" {
+		cfg.Port = defaultPort
+	}
+
+	return cfg, nil
+}
+
+// IsDev reports whether env corresponds to a development environment.
+// An empty environment string defaults to "dev" per defaultEnvironment.
+func IsDev(env string) bool {
+	norm := strings.ToLower(strings.TrimSpace(env))
+	if norm == "" {
+		norm = defaultEnvironment
+	}
+	return norm == "dev"
+}

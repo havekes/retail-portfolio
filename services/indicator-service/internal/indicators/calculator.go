@@ -1,6 +1,7 @@
-package main
+package indicators
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strings"
@@ -13,8 +14,8 @@ import (
 	"github.com/cinar/indicator/v2/volume"
 )
 
-// ComputeIndicator computes an indicator series according to the spec and chart interval.
-func ComputeIndicator(candles []Candle, spec IndicatorSpec, interval string) (any, error) {
+// Compute computes an indicator series according to the spec and chart interval.
+func Compute(candles []Candle, spec IndicatorSpec, interval string) (any, error) {
 	normType := strings.ToLower(strings.TrimSpace(spec.Type))
 
 	switch normType {
@@ -80,8 +81,9 @@ func ComputeSMA(candles []Candle, period int) []MAPoint {
 		closes[i] = c.Close
 	}
 
+	ctx := context.Background()
 	sma := trend.NewSmaWithPeriod[float64](period)
-	res := helper.ChanToSlice(sma.Compute(helper.SliceToChan(closes)))
+	res := helper.ChanToSlice(sma.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes)))
 
 	startIdx := len(candles) - len(res)
 	points := make([]MAPoint, 0, len(res))
@@ -108,8 +110,9 @@ func ComputeEMA(candles []Candle, period int) []MAPoint {
 		closes[i] = c.Close
 	}
 
+	ctx := context.Background()
 	ema := trend.NewEmaWithPeriod[float64](period)
-	res := helper.ChanToSlice(ema.Compute(helper.SliceToChan(closes)))
+	res := helper.ChanToSlice(ema.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes)))
 
 	startIdx := len(candles) - len(res)
 	points := make([]MAPoint, 0, len(res))
@@ -139,7 +142,8 @@ func ComputeBB(candles []Candle, period int, stdDev float64) []BBPoint {
 	bb := volatility.NewBollingerBandsWithPeriod[float64](period)
 	bb.Multiplier = stdDev
 
-	upperChan, midChan, lowerChan := bb.Compute(helper.SliceToChan(closes))
+	ctx := context.Background()
+	upperChan, midChan, lowerChan := bb.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes))
 
 	var upper, mid, lower []float64
 	var wg sync.WaitGroup
@@ -197,7 +201,8 @@ func ComputeMACD(candles []Candle, fast, slow, signal int) []MACDPoint {
 		return []MACDPoint{}
 	}
 
-	macdChan, sigChan := macd.Compute(helper.SliceToChan(closes))
+	ctx := context.Background()
+	macdChan, sigChan := macd.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes))
 
 	var macdLine, sigLine []float64
 	var wg sync.WaitGroup
@@ -247,7 +252,8 @@ func ComputeRSI(candles []Candle, period int) []RSIPoint {
 	}
 
 	rsi := momentum.NewRsiWithPeriod[float64](period)
-	res := helper.ChanToSlice(rsi.Compute(helper.SliceToChan(closes)))
+	ctx := context.Background()
+	res := helper.ChanToSlice(rsi.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes)))
 
 	startIdx := len(candles) - len(res)
 	points := make([]RSIPoint, 0, len(res))
@@ -277,8 +283,9 @@ func ComputeOBV(candles []Candle) []OBVPoint {
 		vols[i] = c.Volume
 	}
 
+	ctx := context.Background()
 	obv := volume.NewObv[float64]()
-	res := helper.ChanToSlice(obv.Compute(helper.SliceToChan(closes), helper.SliceToChan(vols)))
+	res := helper.ChanToSlice(obv.ComputeWithContext(ctx, helper.SliceToChanWithContext(ctx, closes), helper.SliceToChanWithContext(ctx, vols)))
 
 	startIdx := len(candles) - len(res)
 	points := make([]OBVPoint, 0, len(res))

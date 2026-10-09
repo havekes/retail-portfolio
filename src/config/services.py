@@ -81,12 +81,22 @@ def register_market_stub_services(registry: Registry) -> None:
         indicator_cache_factory,
         security_search_cache_factory,
     )
+    from src.market.composite import (  # noqa: PLC0415
+        composite_market_gateway_factory,
+    )
+    from src.market.endpoint_cache import (  # noqa: PLC0415
+        EndpointResponseCache,
+        endpoint_response_cache_factory,
+    )
     from src.market.eodhd import eodhd_gateway_factory  # noqa: PLC0415
     from src.market.fx import (  # noqa: PLC0415
         FxRateProvider,
         fx_rate_provider_factory,
     )
-    from src.market.gateway import MarketGateway  # noqa: PLC0415
+    from src.market.gateway import (  # noqa: PLC0415
+        DataPlaneMarketGateway,
+        MarketGateway,
+    )
     from src.market.repository import (  # noqa: PLC0415
         ChartSnapshotRepository,
         IntradayPriceRepository,
@@ -122,6 +132,7 @@ def register_market_stub_services(registry: Registry) -> None:
     from src.stubs.ai import StubAIService  # noqa: PLC0415
 
     registry.register_factory(MarketGateway, eodhd_gateway_factory)
+    registry.register_factory(DataPlaneMarketGateway, composite_market_gateway_factory)
     registry.register_factory(PriceRepository, eodhd_price_repository_factory)
     registry.register_factory(
         IntradayPriceRepository, sqlalchemy_intraday_price_repository_factory
@@ -153,6 +164,7 @@ def register_market_stub_services(registry: Registry) -> None:
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(SecuritySearchCache, security_search_cache_factory)
     registry.register_factory(FxRateProvider, fx_rate_provider_factory)
+    registry.register_factory(EndpointResponseCache, endpoint_response_cache_factory)
     registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
