@@ -43,7 +43,8 @@ func assertNoProviderName(t *testing.T, label, text string) {
 func newTestSession(t *testing.T, backendURL string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token")
-	srv := httptest.NewServer(newRouter(newMCPServer(client, Config{Environment: "dev"})))
+	cfg := Config{Environment: "dev"}
+	srv := httptest.NewServer(newRouter(newMCPServer(client, cfg), cfg))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
@@ -1543,7 +1544,8 @@ func TestDecodeStatementListPreservesFields(t *testing.T) {
 func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token", env)
-	srv := httptest.NewServer(newRouter(newMCPServer(client, Config{Environment: env})))
+	cfg := Config{Environment: env}
+	srv := httptest.NewServer(newRouter(newMCPServer(client, cfg), cfg))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
