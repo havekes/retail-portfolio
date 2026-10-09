@@ -10,6 +10,10 @@ import (
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
+	"retail-portfolio/services/mcp-gateway/internal/config"
+	"retail-portfolio/services/mcp-gateway/internal/logging"
 )
 
 // expectedToolNames is the exact, provider-agnostic tool set this ticket
@@ -37,11 +41,12 @@ func assertNoProviderName(t *testing.T, label, text string) {
 
 // newTestSession wires a stub backend through the real client and MCP router
 // and returns a connected SDK client session.
+
 func newTestSession(t *testing.T, backendURL string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token")
-	cfg := Config{Environment: "dev"}
-	srv := httptest.NewServer(newRouter(newMCPServer(client, cfg), cfg))
+	cfg := config.Config{Environment: "dev"}
+	srv := httptest.NewServer(newRouter(newMCPServer(client), cfg))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
@@ -575,11 +580,11 @@ func TestToolsMapBackendErrors(t *testing.T) {
 			true,
 			"expiry invalid date",
 		},
-		{"401 is configuration", http.StatusUnauthorized, `{"detail":"Service token invalid"}`, true, ErrConfiguration.Error()},
-		{"403 is configuration", http.StatusForbidden, `{"detail":"forbidden"}`, true, ErrConfiguration.Error()},
-		{"500 is provider", http.StatusInternalServerError, `{"detail":"upstream exploded"}`, true, ErrProvider.Error()},
-		{"503 is provider", http.StatusServiceUnavailable, `{"detail":"unavailable"}`, true, ErrProvider.Error()},
-		{"non-json 200 is provider", http.StatusOK, `not json`, true, ErrProvider.Error()},
+		{"401 is configuration", http.StatusUnauthorized, `{"detail":"Service token invalid"}`, true, backend.ErrConfiguration.Error()},
+		{"403 is configuration", http.StatusForbidden, `{"detail":"forbidden"}`, true, backend.ErrConfiguration.Error()},
+		{"500 is provider", http.StatusInternalServerError, `{"detail":"upstream exploded"}`, true, backend.ErrProvider.Error()},
+		{"503 is provider", http.StatusServiceUnavailable, `{"detail":"unavailable"}`, true, backend.ErrProvider.Error()},
+		{"non-json 200 is provider", http.StatusOK, `not json`, true, backend.ErrProvider.Error()},
 	}
 
 	for _, tc := range validToolCalls {
@@ -1146,8 +1151,8 @@ func TestRequireSymbol(t *testing.T) {
 func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token", env)
-	cfg := Config{Environment: env}
-	srv := httptest.NewServer(newRouter(newMCPServer(client, cfg), cfg))
+	cfg := config.Config{Environment: env}
+	srv := httptest.NewServer(newRouter(newMCPServer(client), cfg))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
@@ -1163,48 +1168,104 @@ func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSess
 }
 
 func TestTools_DevExecutionLogging(t *testing.T) {
-	var buf bytes.Buffer
-	logger, err := newLogger(&buf, "dev", "DEBUG")
-	if err != nil {
-		t.Fatalf("newLogger error: %v", err)
-	}
-	prev := setSlogDefault(logger)
-	defer setSlogDefault(prev)
+	t.Run("prod with INFO suppresses tool invocation debug logs", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := logging.New(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("logging.New error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
 
-	backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[{"date":"2024-01-01","open":"10","high":"12","low":"9","close":"11","volume":100}]}`)
-	session := newTestSessionWithEnv(t, backend.URL, "dev")
+		backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[{"date":"2024-01-01","open":"10","high":"12","low":"9","close":"11","volume":100}]}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
 
-	res := callTool(t, session, "get_price_history", map[string]any{
-		"symbol": "AAPL",
-		"from":   "2024-01-01",
-		"to":     "2024-01-02",
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+			"from":   "2024-01-01",
+			"to":     "2024-01-02",
+		})
+		if res.IsError {
+			t.Fatalf("callTool returned error: %+v", res)
+		}
+
+		out := buf.String()
+		if strings.Contains(out, "tool invocation") {
+			t.Errorf("prod mode with INFO level should not emit 'tool invocation' debug logs, got:\n%s", out)
+		}
 	})
-	if res.IsError {
-		t.Fatalf("callTool returned error: %+v", res)
-	}
 
-	out := buf.String()
-	if !strings.Contains(out, "DEBUG") {
-		t.Errorf("expected DEBUG logs in dev mode, got:\n%s", out)
-	}
-	if !strings.Contains(out, "tool=get_price_history") {
-		t.Errorf("expected tool name in logs, got:\n%s", out)
-	}
-	if !strings.Contains(out, "arguments=") || !strings.Contains(out, "AAPL") {
-		t.Errorf("expected arguments in logs, got:\n%s", out)
-	}
-	if !strings.Contains(out, "duration=") {
-		t.Errorf("expected duration in logs, got:\n%s", out)
-	}
-	if !strings.Contains(out, "response=") || !strings.Contains(out, "2024-01-01") {
-		t.Errorf("expected response payload content in logs, got:\n%s", out)
-	}
+	t.Run("prod with DEBUG emits tool invocation debug logs", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := logging.New(&buf, "prod", "DEBUG")
+		if err != nil {
+			t.Fatalf("logging.New error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[{"date":"2024-01-01","open":"10","high":"12","low":"9","close":"11","volume":100}]}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
+
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+			"from":   "2024-01-01",
+			"to":     "2024-01-02",
+		})
+		if res.IsError {
+			t.Fatalf("callTool returned error: %+v", res)
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, "tool invocation") {
+			t.Errorf("prod mode with DEBUG level should emit 'tool invocation' debug logs, got:\n%s", out)
+		}
+	})
+
+	t.Run("dev with DEBUG emits tool invocation and completion logs", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := logging.New(&buf, "dev", "DEBUG")
+		if err != nil {
+			t.Fatalf("logging.New error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[{"date":"2024-01-01","open":"10","high":"12","low":"9","close":"11","volume":100}]}`)
+		session := newTestSessionWithEnv(t, backend.URL, "dev")
+
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+			"from":   "2024-01-01",
+			"to":     "2024-01-02",
+		})
+		if res.IsError {
+			t.Fatalf("callTool returned error: %+v", res)
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, "DEBUG") {
+			t.Errorf("expected DEBUG logs in dev mode, got:\n%s", out)
+		}
+		if !strings.Contains(out, "tool=get_price_history") {
+			t.Errorf("expected tool name in logs, got:\n%s", out)
+		}
+		if !strings.Contains(out, "arguments=") || !strings.Contains(out, "AAPL") {
+			t.Errorf("expected arguments in logs, got:\n%s", out)
+		}
+		if !strings.Contains(out, "duration=") {
+			t.Errorf("expected duration in logs, got:\n%s", out)
+		}
+		if !strings.Contains(out, "response=") || !strings.Contains(out, "2024-01-01") {
+			t.Errorf("expected response payload content in logs, got:\n%s", out)
+		}
+	})
 }
 
 func TestTools_ErrorLogging(t *testing.T) {
 	t.Run("input validation error", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := logging.New(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -1246,7 +1307,7 @@ func TestTools_ErrorLogging(t *testing.T) {
 
 	t.Run("422 backend validation error", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := logging.New(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -1285,7 +1346,7 @@ func TestTools_ErrorLogging(t *testing.T) {
 
 	t.Run("401 configuration error", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := logging.New(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -1319,7 +1380,7 @@ func TestTools_ErrorLogging(t *testing.T) {
 
 	t.Run("500 provider error", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := logging.New(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -1353,7 +1414,7 @@ func TestTools_ErrorLogging(t *testing.T) {
 
 	t.Run("ErrNoData 404 does not emit ERROR log and logs completion in dev", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "dev", "DEBUG")
+		logger, err := logging.New(&buf, "dev", "DEBUG")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -1390,7 +1451,7 @@ func TestTools_ErrorLogging(t *testing.T) {
 
 func TestTools_ProviderNameCompliance(t *testing.T) {
 	var buf bytes.Buffer
-	logger, err := newLogger(&buf, "dev", "DEBUG")
+	logger, err := logging.New(&buf, "dev", "DEBUG")
 	if err != nil {
 		t.Fatalf("newLogger error: %v", err)
 	}
@@ -1621,8 +1682,8 @@ func TestExchangeNormalizationInPrepare(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if req.query.exchange != "TSX" {
-			t.Errorf("req.query.exchange = %q, want %q", req.query.exchange, "TSX")
+		if req.query.Exchange != "TSX" {
+			t.Errorf("req.query.Exchange = %q, want %q", req.query.Exchange, "TSX")
 		}
 	})
 }

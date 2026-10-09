@@ -10,16 +10,18 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"retail-portfolio/services/mcp-gateway/internal/config"
 )
 
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
-	cfg := Config{
+	cfg := config.Config{
 		Environment:        "dev",
 		SessionIdleTimeout: 30 * time.Minute,
 	}
 	client := mustClient(t, "http://backend.invalid", "test-token")
-	return newRouter(newMCPServer(client, cfg), cfg)
+	return newRouter(newMCPServer(client), cfg)
 }
 
 func TestHealthEndpoint(t *testing.T) {
@@ -122,12 +124,12 @@ func TestRouter_SessionTimeoutConfigured(t *testing.T) {
 		return origHandler(getServer, opts)
 	}
 
-	cfg := Config{
+	cfg := config.Config{
 		Environment:        "dev",
 		SessionIdleTimeout: 5 * time.Minute,
 	}
 	client := mustClient(t, "http://backend.invalid", "test-token")
-	_ = newRouter(newMCPServer(client, cfg), cfg)
+	_ = newRouter(newMCPServer(client), cfg)
 
 	if capturedOpts == nil {
 		t.Fatal("expected newStreamableHTTPHandler to be called with options")

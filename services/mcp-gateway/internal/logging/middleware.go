@@ -1,4 +1,4 @@
-package main
+package logging
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"retail-portfolio/services/mcp-gateway/internal/config"
 )
 
 // sensitiveHeaders lists HTTP header names that must be redacted in logs.
@@ -77,13 +79,13 @@ func (rw *loggingResponseWriter) Unwrap() http.ResponseWriter {
 	return rw.ResponseWriter
 }
 
-// loggingMiddleware returns an http.Handler that logs incoming requests and durations.
-func loggingMiddleware(next http.Handler, env string) http.Handler {
+// Middleware returns an http.Handler that logs incoming requests and durations.
+func Middleware(next http.Handler, env string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		var bodyBytes []byte
-		if isDev(env) && r.Body != nil && r.Body != http.NoBody {
+		if config.IsDev(env) && r.Body != nil && r.Body != http.NoBody {
 			var err error
 			bodyBytes, err = io.ReadAll(io.LimitReader(r.Body, 64<<10))
 			_ = r.Body.Close()
@@ -93,7 +95,7 @@ func loggingMiddleware(next http.Handler, env string) http.Handler {
 			}
 		}
 
-		if isDev(env) {
+		if config.IsDev(env) {
 			slog.DebugContext(r.Context(), "incoming http request",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),

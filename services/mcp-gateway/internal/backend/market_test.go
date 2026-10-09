@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -21,6 +22,34 @@ import (
 // module's user-facing strings. They are assembled from fragments so this test
 // file itself stays free of the brands it asserts against (the acceptance
 // criterion covers the whole module, not just runtime strings).
+
+const defaultMaxConcurrency = 10
+
+func testLogger(w io.Writer, env, levelStr string) (*slog.Logger, error) {
+	var lvl slog.Level
+	if strings.ToUpper(levelStr) == "DEBUG" {
+		lvl = slog.LevelDebug
+	} else {
+		lvl = slog.LevelInfo
+	}
+	var handler slog.Handler
+	if strings.ToLower(env) == "prod" {
+		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{Level: lvl})
+	} else {
+		handler = slog.NewTextHandler(w, &slog.HandlerOptions{Level: lvl})
+	}
+	return slog.New(handler), nil
+}
+
+func assertNoProviderName(t *testing.T, label, text string) {
+	t.Helper()
+	for _, provider := range providerNames {
+		if strings.Contains(strings.ToLower(text), strings.ToLower(provider)) {
+			t.Errorf("%s leaked provider %q: %q", label, provider, text)
+		}
+	}
+}
+
 var providerNames = []string{
 	"FM" + "P",
 	"Poly" + "gon",
@@ -48,37 +77,30 @@ func newStubBackend(t *testing.T, status int, body string) (*httptest.Server, *c
 	return srv, cap
 }
 
-func mustClient(t *testing.T, baseURL, token string, envOpts ...string) *BackendClient {
+func mustClient(t *testing.T, baseURL, token string, envOpts ...string) *MarketClient {
 	t.Helper()
-	environment := defaultEnvironment
-	if len(envOpts) > 0 && strings.TrimSpace(envOpts[0]) != "" {
-		environment = strings.TrimSpace(envOpts[0])
-	}
-	cfg := Config{
-		BackendBaseURL: baseURL,
-		ServiceToken:   token,
-		Environment:    environment,
+	client, err := NewMarketClient(Options{
+		BaseURL:        baseURL,
 		MaxConcurrency: defaultMaxConcurrency,
-	}
-	client, err := NewBackendClient(cfg)
+	}, token)
 	if err != nil {
-		t.Fatalf("NewBackendClient(%q): %v", baseURL, err)
+		t.Fatalf("NewMarketClient(%q): %v", baseURL, err)
 	}
 	return client
 }
 
-func TestNewBackendClientRejectsBadBaseURL(t *testing.T) {
+func TestNewMarketClientRejectsBadBaseURL(t *testing.T) {
 	for _, raw := range []string{"", "   ", "not-a-url", "ftp://backend:8000", "http://"} {
-		if _, err := NewBackendClient(Config{BackendBaseURL: raw, ServiceToken: "token", MaxConcurrency: defaultMaxConcurrency}); err == nil {
-			t.Errorf("NewBackendClient(%q) = nil error, want error", raw)
+		if _, err := NewMarketClient(Options{BaseURL: raw, MaxConcurrency: defaultMaxConcurrency}, "token"); err == nil {
+			t.Errorf("NewMarketClient(%q) = nil error, want error", raw)
 		}
 	}
 }
 
-func TestNewBackendClientRejectsInvalidMaxConcurrency(t *testing.T) {
+func TestNewMarketClientRejectsInvalidMaxConcurrency(t *testing.T) {
 	for _, val := range []int{0, -1, -10} {
-		if _, err := NewBackendClient(Config{BackendBaseURL: "http://backend:8000", ServiceToken: "token", MaxConcurrency: val}); err == nil {
-			t.Errorf("NewBackendClient with maxConcurrency=%d expected error, got nil", val)
+		if _, err := NewMarketClient(Options{BaseURL: "http://backend:8000", MaxConcurrency: val}, "token"); err == nil {
+			t.Errorf("NewMarketClient with maxConcurrency=%d expected error, got nil", val)
 		}
 	}
 }
@@ -93,14 +115,14 @@ func TestBackendClientEndpoints(t *testing.T) {
 	tests := []struct {
 		name      string
 		body      string
-		call      func(context.Context, *BackendClient) error
+		call      func(context.Context, *MarketClient) error
 		wantPath  string
 		wantQuery map[string]string
 	}{
 		{
 			name: "prices",
 			body: `{"symbol":"AAPL","from_date":"2026-01-01","to_date":"2026-01-31","items":[]}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.Prices(ctx, "aapl", &from, &to, "day", "nasdaq")
 				return err
 			},
@@ -115,7 +137,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "quote",
 			body: `{"symbol":"AAPL","price":"229.87","currency":"USD"}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.Quote(ctx, "aapl", "nasdaq")
 				return err
 			},
@@ -127,7 +149,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "prices without dates and interval",
 			body: `{"symbol":"AAPL","from_date":"2025-01-01","to_date":"2026-01-01","items":[]}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.Prices(ctx, "aapl", nil, nil, "", "")
 				return err
 			},
@@ -137,7 +159,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "symbol search",
 			body: `[{"symbol":"AAPL","name":"Apple"}]`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.SymbolSearch(ctx, "apple")
 				return err
 			},
@@ -147,7 +169,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "options chain",
 			body: `{"underlying_symbol":"AAPL","contracts":[]}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.OptionsChain(ctx, "aapl", expiry, "call", &strikeMin, &strikeMax)
 				return err
 			},
@@ -162,7 +184,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "option expirations",
 			body: `{"underlying_symbol":"AAPL","expirations":["2026-01-16"],"truncated":false}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.OptionExpirations(ctx, "aapl")
 				return err
 			},
@@ -172,7 +194,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "fundamentals",
 			body: `{"profile":{},"key_metrics":{},"ratios":{}}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.Fundamentals(ctx, "aapl", "nasdaq")
 				return err
 			},
@@ -182,7 +204,7 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "statements",
 			body: `[{"symbol":"AAPL","revenue":"391035000000"}]`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				_, err := c.Statements(ctx, "aapl", "income", "annual", 5, "nasdaq")
 				return err
 			},
@@ -197,22 +219,22 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "technical indicator with all params",
 			body: `{"symbol":"AAPL","indicator":"bollinger","currency":"USD","from_date":"2026-01-01","to_date":"2026-01-31","params":{"period":20,"std_dev":2},"points":[]}`,
-			call: func(ctx context.Context, c *BackendClient) error {
+			call: func(ctx context.Context, c *MarketClient) error {
 				periodVal := 20
 				fastVal := 12
 				slowVal := 26
 				signalVal := 9
 				stdDevVal := 2.0
-				_, err := c.TechnicalIndicator(ctx, "aapl", indicatorQuery{
-					indicator: "bollinger",
-					period:    &periodVal,
-					fast:      &fastVal,
-					slow:      &slowVal,
-					signal:    &signalVal,
-					stdDev:    &stdDevVal,
-					from:      &from,
-					to:        &to,
-					exchange:  "nasdaq",
+				_, err := c.TechnicalIndicator(ctx, "aapl", IndicatorQuery{
+					Indicator: "bollinger",
+					Period:    &periodVal,
+					Fast:      &fastVal,
+					Slow:      &slowVal,
+					Signal:    &signalVal,
+					StdDev:    &stdDevVal,
+					From:      &from,
+					To:        &to,
+					Exchange:  "nasdaq",
 				})
 				return err
 			},
@@ -232,9 +254,9 @@ func TestBackendClientEndpoints(t *testing.T) {
 		{
 			name: "technical indicator minimal (rsi default)",
 			body: `{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2025-10-01","to_date":"2026-01-01","params":{"period":14},"points":[]}`,
-			call: func(ctx context.Context, c *BackendClient) error {
-				_, err := c.TechnicalIndicator(ctx, "aapl", indicatorQuery{
-					indicator: "rsi",
+			call: func(ctx context.Context, c *MarketClient) error {
+				_, err := c.TechnicalIndicator(ctx, "aapl", IndicatorQuery{
+					Indicator: "rsi",
 				})
 				return err
 			},
@@ -350,9 +372,9 @@ func TestBackendClientValidationMessage(t *testing.T) {
 			if errors.Is(err, ErrNoData) {
 				t.Fatalf("errors.Is(err, ErrNoData) = true for a 422; err = %v", err)
 			}
-			var backendErr *backendError
+			var backendErr *Error
 			if !errors.As(err, &backendErr) {
-				t.Fatalf("err is %T, want *backendError", err)
+				t.Fatalf("err is %T, want *Error", err)
 			}
 			if got := backendErr.ValidationMessage(); got != tc.want {
 				t.Errorf("ValidationMessage() = %q, want %q", got, tc.want)
@@ -552,9 +574,9 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Statements: %v", err)
 		}
-		items, err := decodeStatementList(raw, "income")
+		items, err := DecodeStatementList(raw, "income")
 		if err != nil {
-			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
+			t.Fatalf("DecodeStatementList failed on unknown field: %v", err)
 		}
 		if len(items) != 1 {
 			t.Fatalf("unexpected items count: %d", len(items))
@@ -574,7 +596,7 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 	t.Run("technical indicators stay raw", func(t *testing.T) {
 		srv, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","indicator":"rsi","currency":"USD","from_date":"2026-01-01","to_date":"2026-01-31","params":{"period":14},"points":[{"time":"2026-01-02","value":55.0,"rsi":55.0}]}`)
 		raw, err := mustClient(t, srv.URL, "test-token").TechnicalIndicator(
-			context.Background(), "AAPL", indicatorQuery{indicator: "rsi"},
+			context.Background(), "AAPL", IndicatorQuery{Indicator: "rsi"},
 		)
 		if err != nil {
 			t.Fatalf("TechnicalIndicator: %v", err)
@@ -651,7 +673,7 @@ func TestBackendClient_Logging(t *testing.T) {
 
 	t.Run("dev outbound request and response logging", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "dev", "DEBUG")
+		logger, err := testLogger(&buf, "dev", "DEBUG")
 		if err != nil {
 			t.Fatalf("newLogger: %v", err)
 		}
@@ -707,7 +729,7 @@ func TestBackendClient_Logging(t *testing.T) {
 
 		for _, tc := range statuses {
 			var buf bytes.Buffer
-			logger, err := newLogger(&buf, "prod", "INFO")
+			logger, err := testLogger(&buf, "prod", "INFO")
 			if err != nil {
 				t.Fatalf("newLogger: %v", err)
 			}
@@ -740,7 +762,7 @@ func TestBackendClient_Logging(t *testing.T) {
 
 	t.Run("outbound error logging on network errors", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := testLogger(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger: %v", err)
 		}
@@ -773,7 +795,7 @@ func TestBackendClient_Logging(t *testing.T) {
 
 func TestBackendClient_ProviderNameCompliance(t *testing.T) {
 	var buf bytes.Buffer
-	logger, err := newLogger(&buf, "dev", "DEBUG")
+	logger, err := testLogger(&buf, "dev", "DEBUG")
 	if err != nil {
 		t.Fatalf("newLogger: %v", err)
 	}
@@ -828,16 +850,15 @@ func TestBackendClient_ConcurrencyCap(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client, err := NewBackendClient(Config{
-		BackendBaseURL: srv.URL,
-		ServiceToken:   "token",
+	client, err := NewMarketClient(Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 2,
-	})
+	}, "token")
 	if err != nil {
-		t.Fatalf("NewBackendClient: %v", err)
+		t.Fatalf("NewMarketClient: %v", err)
 	}
-	if client.MaxConcurrency() != 2 {
-		t.Errorf("MaxConcurrency() = %d, want 2", client.MaxConcurrency())
+	if client.group.transport.maxConcurrency != 2 {
+		t.Errorf("maxConcurrency = %d, want 2", client.group.transport.maxConcurrency)
 	}
 
 	from, _ := time.Parse("2006-01-02", "2024-01-01")
@@ -876,7 +897,7 @@ func TestBackendClient_ConcurrencyCap(t *testing.T) {
 
 func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
 	var buf syncBuffer
-	logger, err := newLogger(&buf, "prod", "INFO")
+	logger, err := testLogger(&buf, "prod", "INFO")
 	if err != nil {
 		t.Fatalf("newLogger: %v", err)
 	}
@@ -912,14 +933,12 @@ func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
 		}
 	})
 
-	client, err := NewBackendClient(Config{
-		BackendBaseURL: srv.URL,
-		ServiceToken:   secretToken,
+	client, err := NewMarketClient(Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 1,
-		Environment:    "prod",
-	})
+	}, secretToken)
 	if err != nil {
-		t.Fatalf("NewBackendClient: %v", err)
+		t.Fatalf("NewMarketClient: %v", err)
 	}
 
 	from, _ := time.Parse("2006-01-02", "2024-01-01")
@@ -1008,13 +1027,12 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 		}
 	})
 
-	client, err := NewBackendClient(Config{
-		BackendBaseURL: srv.URL,
-		ServiceToken:   "token",
+	client, err := NewMarketClient(Options{
+		BaseURL:        srv.URL,
 		MaxConcurrency: 1,
-	})
+	}, "token")
 	if err != nil {
-		t.Fatalf("NewBackendClient: %v", err)
+		t.Fatalf("NewMarketClient: %v", err)
 	}
 
 	from, _ := time.Parse("2006-01-02", "2024-01-01")
@@ -1049,7 +1067,7 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 		if !errors.Is(err, ErrProvider) {
 			t.Errorf("expected ErrProvider, got: %v", err)
 		}
-		var bErr *backendError
+		var bErr *Error
 		if errors.As(err, &bErr) {
 			if !strings.Contains(bErr.Detail(), context.Canceled.Error()) {
 				t.Errorf("expected detail to mention context canceled, got: %q", bErr.Detail())

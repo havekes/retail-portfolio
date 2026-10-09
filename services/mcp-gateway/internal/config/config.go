@@ -1,12 +1,13 @@
-package main
+package config
 
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"retail-portfolio/services/mcp-gateway/internal/backend"
 )
 
 // Config holds the runtime configuration for the MCP gateway.
@@ -43,14 +44,14 @@ const (
 	defaultSessionIdleTimeout = 30 * time.Minute
 )
 
-// loadConfig reads the gateway configuration from getenv.
+// Load reads the gateway configuration from getenv.
 //
 // getenv is injected (rather than calling os.Getenv directly) so the parsing
 // rules are unit-testable without mutating the process environment.
 //
 // A missing or unusable required value is a startup error: the returned error
 // names the offending variable but never echoes the token value.
-func loadConfig(getenv func(string) string) (Config, error) {
+func Load(getenv func(string) string) (Config, error) {
 	env := strings.ToLower(strings.TrimSpace(getenv("ENVIRONMENT")))
 	if env == "" {
 		env = defaultEnvironment
@@ -98,7 +99,7 @@ func loadConfig(getenv func(string) string) (Config, error) {
 	if cfg.BackendBaseURL == "" {
 		return Config{}, errors.New("BACKEND_BASE_URL is required")
 	}
-	if err := validateBaseURL(cfg.BackendBaseURL); err != nil {
+	if err := backend.ValidateBaseURL(cfg.BackendBaseURL); err != nil {
 		return Config{}, fmt.Errorf("BACKEND_BASE_URL is invalid: %w", err)
 	}
 	if cfg.ServiceToken == "" {
@@ -111,26 +112,9 @@ func loadConfig(getenv func(string) string) (Config, error) {
 	return cfg, nil
 }
 
-// validateBaseURL rejects values that parse but cannot address an HTTP origin
-// (for example "not-a-url" or "ftp://host"), so a misconfigured environment
-// fails at startup instead of on the first backend call.
-func validateBaseURL(raw string) error {
-	parsed, err := url.Parse(raw)
-	if err != nil {
-		return err
-	}
-	if parsed.Scheme != "http" && parsed.Scheme != "https" {
-		return errors.New("scheme must be http or https")
-	}
-	if parsed.Host == "" {
-		return errors.New("host is required")
-	}
-	return nil
-}
-
-// isDev reports whether env corresponds to a development environment.
+// IsDev reports whether env corresponds to a development environment.
 // An empty environment string defaults to "dev" per defaultEnvironment.
-func isDev(env string) bool {
+func IsDev(env string) bool {
 	norm := strings.ToLower(strings.TrimSpace(env))
 	if norm == "" {
 		norm = defaultEnvironment

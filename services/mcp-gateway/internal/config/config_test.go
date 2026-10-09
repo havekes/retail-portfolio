@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"strings"
@@ -13,7 +13,7 @@ func envMap(values map[string]string) func(string) string {
 
 func TestLoadConfig(t *testing.T) {
 	t.Run("valid configuration", func(t *testing.T) {
-		cfg, err := loadConfig(envMap(map[string]string{
+		cfg, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL":          "http://backend:8000",
 			"MARKET_DATA_SERVICE_TOKEN": "test-token",
 			"PORT":                      "9090",
@@ -46,7 +46,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("environment default dev when unset or whitespace", func(t *testing.T) {
 		for _, envVal := range []string{"", "   "} {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"ENVIRONMENT":               envVal,
@@ -73,7 +73,7 @@ func TestLoadConfig(t *testing.T) {
 			{"  dev  ", "dev"},
 		}
 		for _, tc := range cases {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"ENVIRONMENT":               tc.input,
@@ -105,7 +105,7 @@ func TestLoadConfig(t *testing.T) {
 			{"error", "ERROR"},
 		}
 		for _, tc := range cases {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"LOG_LEVEL":                 tc.input,
@@ -121,7 +121,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("invalid LOG_LEVEL returns error", func(t *testing.T) {
 		const token = "secret-token-123"
-		cfg, err := loadConfig(envMap(map[string]string{
+		cfg, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL":          "http://backend:8000",
 			"MARKET_DATA_SERVICE_TOKEN": token,
 			"LOG_LEVEL":                 "INVALID",
@@ -139,7 +139,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("MAX_CONCURRENCY default when unset or whitespace", func(t *testing.T) {
 		for _, val := range []string{"", "   "} {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"MAX_CONCURRENCY":           val,
@@ -164,7 +164,7 @@ func TestLoadConfig(t *testing.T) {
 			{" 25 ", 25},
 		}
 		for _, tc := range cases {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"MAX_CONCURRENCY":           tc.input,
@@ -182,7 +182,7 @@ func TestLoadConfig(t *testing.T) {
 		const token = "secret-token-123"
 		invalidVals := []string{"0", "-1", "-10", "abc", "1.5"}
 		for _, val := range invalidVals {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": token,
 				"MAX_CONCURRENCY":           val,
@@ -201,7 +201,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("SESSION_IDLE_TIMEOUT default when unset or whitespace", func(t *testing.T) {
 		for _, val := range []string{"", "   "} {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"SESSION_IDLE_TIMEOUT":      val,
@@ -227,7 +227,7 @@ func TestLoadConfig(t *testing.T) {
 			{"30m", 30 * time.Minute},
 		}
 		for _, tc := range cases {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 				"SESSION_IDLE_TIMEOUT":      tc.input,
@@ -245,7 +245,7 @@ func TestLoadConfig(t *testing.T) {
 		const token = "secret-token-123"
 		invalidVals := []string{"0", "-1s", "abc", "-5m", "1.5"}
 		for _, val := range invalidVals {
-			cfg, err := loadConfig(envMap(map[string]string{
+			cfg, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          "http://backend:8000",
 				"MARKET_DATA_SERVICE_TOKEN": token,
 				"SESSION_IDLE_TIMEOUT":      val,
@@ -263,7 +263,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("port defaults to 8080", func(t *testing.T) {
-		cfg, err := loadConfig(envMap(map[string]string{
+		cfg, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL":          "https://backend.example",
 			"MARKET_DATA_SERVICE_TOKEN": "test-token",
 		}))
@@ -276,7 +276,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("missing backend base url", func(t *testing.T) {
-		_, err := loadConfig(envMap(map[string]string{
+		_, err := Load(envMap(map[string]string{
 			"MARKET_DATA_SERVICE_TOKEN": "test-token",
 		}))
 		if err == nil {
@@ -288,7 +288,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("missing service token", func(t *testing.T) {
-		_, err := loadConfig(envMap(map[string]string{
+		_, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL": "http://backend:8000",
 		}))
 		if err == nil {
@@ -300,7 +300,7 @@ func TestLoadConfig(t *testing.T) {
 	})
 
 	t.Run("blank values are missing", func(t *testing.T) {
-		_, err := loadConfig(envMap(map[string]string{
+		_, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL":          "   ",
 			"MARKET_DATA_SERVICE_TOKEN": "   ",
 		}))
@@ -314,7 +314,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("malformed backend base url", func(t *testing.T) {
 		for _, raw := range []string{"not-a-url", "ftp://backend:8000", "http://"} {
-			_, err := loadConfig(envMap(map[string]string{
+			_, err := Load(envMap(map[string]string{
 				"BACKEND_BASE_URL":          raw,
 				"MARKET_DATA_SERVICE_TOKEN": "test-token",
 			}))
@@ -329,7 +329,7 @@ func TestLoadConfig(t *testing.T) {
 
 	t.Run("error never contains the token", func(t *testing.T) {
 		const token = "super-secret-token"
-		_, err := loadConfig(envMap(map[string]string{
+		_, err := Load(envMap(map[string]string{
 			"BACKEND_BASE_URL":          "not-a-url",
 			"MARKET_DATA_SERVICE_TOKEN": token,
 		}))
@@ -361,9 +361,9 @@ func TestIsDev(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run("env_"+tc.env, func(t *testing.T) {
-			got := isDev(tc.env)
+			got := IsDev(tc.env)
 			if got != tc.expected {
-				t.Errorf("isDev(%q) = %v, want %v", tc.env, got, tc.expected)
+				t.Errorf("IsDev(%q) = %v, want %v", tc.env, got, tc.expected)
 			}
 		})
 	}

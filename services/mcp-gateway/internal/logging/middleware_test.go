@@ -1,4 +1,4 @@
-package main
+package logging
 
 import (
 	"bytes"
@@ -72,17 +72,17 @@ func TestLoggingMiddleware_InboundRequests(t *testing.T) {
 	for _, path := range paths {
 		t.Run("path_"+path, func(t *testing.T) {
 			var buf bytes.Buffer
-			logger, err := newLogger(&buf, "prod", "INFO")
+			logger, err := New(&buf, "prod", "INFO")
 			if err != nil {
 				t.Fatalf("newLogger error: %v", err)
 			}
 			prev := setSlogDefault(logger)
 			defer setSlogDefault(prev)
 
-			client := mustClient(t, "http://backend.invalid", "test-token", "prod")
-			server := newMCPServer(client, Config{Environment: "prod"})
-			router := newRouter(server, Config{Environment: "prod"})
-			handler := loggingMiddleware(router, "prod")
+			router := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})
+			handler := Middleware(router, "prod")
 
 			req := httptest.NewRequest(http.MethodGet, path, nil)
 			req.RemoteAddr = "192.168.1.100:12345"
@@ -132,7 +132,7 @@ func TestLoggingMiddleware_InboundRequests(t *testing.T) {
 func TestLoggingMiddleware_DevAndRedaction(t *testing.T) {
 	t.Run("dev logs details with redacted sensitive headers", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "dev", "DEBUG")
+		logger, err := New(&buf, "dev", "DEBUG")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -146,7 +146,7 @@ func TestLoggingMiddleware_DevAndRedaction(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		handler := loggingMiddleware(targetHandler, "dev")
+		handler := Middleware(targetHandler, "dev")
 
 		reqBody := `{"symbol":"AAPL"}`
 		req := httptest.NewRequest(http.MethodPost, "/test?debug=1", strings.NewReader(reqBody))
@@ -194,7 +194,7 @@ func TestLoggingMiddleware_DevAndRedaction(t *testing.T) {
 
 	t.Run("prod suppresses debug request details", func(t *testing.T) {
 		var buf bytes.Buffer
-		logger, err := newLogger(&buf, "prod", "INFO")
+		logger, err := New(&buf, "prod", "INFO")
 		if err != nil {
 			t.Fatalf("newLogger error: %v", err)
 		}
@@ -205,7 +205,7 @@ func TestLoggingMiddleware_DevAndRedaction(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		handler := loggingMiddleware(targetHandler, "prod")
+		handler := Middleware(targetHandler, "prod")
 
 		req := httptest.NewRequest(http.MethodPost, "/test?debug=1", strings.NewReader(`{"symbol":"AAPL"}`))
 		req.Header.Set("Authorization", "Bearer secret")
@@ -228,7 +228,7 @@ func TestLoggingMiddleware_DevAndRedaction(t *testing.T) {
 
 func TestLoggingMiddleware_ProviderNameCompliance(t *testing.T) {
 	var buf bytes.Buffer
-	logger, err := newLogger(&buf, "dev", "DEBUG")
+	logger, err := New(&buf, "dev", "DEBUG")
 	if err != nil {
 		t.Fatalf("newLogger error: %v", err)
 	}
@@ -239,7 +239,7 @@ func TestLoggingMiddleware_ProviderNameCompliance(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := loggingMiddleware(targetHandler, "dev")
+	handler := Middleware(targetHandler, "dev")
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
 
@@ -253,4 +253,19 @@ func setSlogDefault(logger *slog.Logger) *slog.Logger {
 	prev := slog.Default()
 	slog.SetDefault(logger)
 	return prev
+}
+
+var providerNames = []string{
+	"FM" + "P",
+	"Poly" + "gon",
+	"EOD" + "HD",
+}
+
+func assertNoProviderName(t *testing.T, label, text string) {
+	t.Helper()
+	for _, provider := range providerNames {
+		if strings.Contains(strings.ToLower(text), strings.ToLower(provider)) {
+			t.Errorf("%s leaked provider %q: %q", label, provider, text)
+		}
+	}
 }
