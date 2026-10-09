@@ -528,3 +528,79 @@ func TestTransport_ConcurrencyCap(t *testing.T) {
 		t.Errorf("expected concurrency to reach 2, got %d", observed)
 	}
 }
+
+func TestTransport_SaturatedSemaphoreTimeout(t *testing.T) {
+	call1Started := make(chan struct{})
+	blockCall1 := make(chan struct{})
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-call1Started:
+		default:
+			close(call1Started)
+		}
+		<-blockCall1
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"status":"ok"}`)
+	}))
+	defer srv.Close()
+	defer func() {
+		select {
+		case <-blockCall1:
+		default:
+			close(blockCall1)
+		}
+	}()
+
+	cfg := Config{
+		BackendBaseURL: srv.URL,
+		MaxConcurrency: 1,
+		Environment:    "prod",
+	}
+	tr, err := NewTransport(cfg)
+	if err != nil {
+		t.Fatalf("NewTransport: %v", err)
+	}
+
+	// Call 1 has a longer timeout so it stays blocked in the backend handler holding the single semaphore slot.
+	tr.requestTimeout = 2 * time.Second
+	group := tr.NewRouteGroup("/test", "token")
+
+	call1Done := make(chan error, 1)
+	go func() {
+		var out json.RawMessage
+		call1Done <- group.Get(context.Background(), "/blocking", nil, &out)
+	}()
+
+	// Wait until call 1 has reached the backend handler.
+	select {
+	case <-call1Started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for call 1 to start")
+	}
+
+	// Now set a short 50ms timeout for call 2.
+	tr.requestTimeout = 50 * time.Millisecond
+
+	start := time.Now()
+	var out json.RawMessage
+	err2 := group.Get(context.Background(), "/queued", nil, &out)
+	elapsed := time.Since(start)
+
+	if err2 == nil {
+		t.Fatal("expected call 2 to fail due to timeout, got nil error")
+	}
+	if !errors.Is(err2, ErrProvider) {
+		t.Errorf("call 2 err = %v, want ErrProvider", err2)
+	}
+	if elapsed > 500*time.Millisecond {
+		t.Errorf("call 2 took %v, want ~50ms", elapsed)
+	}
+
+	// Unblock call 1 and verify it completed.
+	close(blockCall1)
+	if err1 := <-call1Done; err1 != nil {
+		t.Errorf("call 1 failed: %v", err1)
+	}
+}
