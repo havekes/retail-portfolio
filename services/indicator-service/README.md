@@ -82,11 +82,23 @@ Each series is an array of points aligned with the input candle times (see the
 table below for the point shape per indicator). When there are too few candles
 to compute an indicator, its series is an **empty array** — not an error.
 
+**Limits**
+
+Incoming compute requests are validated against fixed bounds before computation:
+
+| Constraint | Limit | Violation response |
+| ---------- | ----- | ------------------ |
+| Indicators per request | ≤ 32 | `400` naming `indicators` and limit `32` |
+| Candles per request | ≤ 50,000 | `400` naming `candles` and limit `50000` |
+| Resolved `period`, `fast`, `slow`, `signal` | [1, 1000] | `400` naming the parameter and indicator result key (`id`, fallback to `type`) |
+| Resolved `stdDev` | (0, 10] | `400` naming `stdDev` and indicator result key (`id`, fallback to `type`) |
+| Request payload size | 10MB | `400` invalid JSON body (`http.MaxBytesReader`) |
+
 **Errors**
 
 | Status | Cause                                                                 |
 | ------ | --------------------------------------------------------------------- |
-| `400`  | Invalid JSON body (`{"error": "invalid json body: ..."}`) or unsupported indicator type (`{"error": "unsupported indicator type: <type>"}`). |
+| `400`  | Invalid JSON body (`{"error": "invalid json body: ..."}`), out-of-bounds request limits (`{"error": "..."}`), or unsupported indicator type (`{"error": "unsupported indicator type: <type>"}`). |
 | `405`  | Any method other than `POST` — returns `Allow: POST` and `{"error": "method not allowed"}`. |
 
 The request body is capped at **10MB** (`http.MaxBytesReader`); larger bodies
