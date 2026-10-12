@@ -2,6 +2,7 @@ package logging
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -9,6 +10,13 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type flusherRecorder struct {
@@ -267,5 +275,128 @@ func assertNoProviderName(t *testing.T, label, text string) {
 		if strings.Contains(strings.ToLower(text), strings.ToLower(provider)) {
 			t.Errorf("%s leaked provider %q: %q", label, provider, text)
 		}
+	}
+}
+
+func TestLoggingMiddleware_OTelTraceparentPropagation(t *testing.T) {
+	recorder := tracetest.NewSpanRecorder()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+	prevTP := otel.GetTracerProvider()
+	prevProp := otel.GetTextMapPropagator()
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+	t.Cleanup(func() {
+		otel.SetTracerProvider(prevTP)
+		otel.SetTextMapPropagator(prevProp)
+		_ = tp.Shutdown(context.Background())
+	})
+
+	const (
+		inboundTraceID = "4bf92f3577b34da6a3ce929d0e0e4736"
+		inboundSpanID  = "00f067aa0ba902b7"
+	)
+	inboundTraceparent := "00-" + inboundTraceID + "-" + inboundSpanID + "-01"
+
+	var observedTraceID string
+	var innerFlusherCalled bool
+
+	innerHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		span := trace.SpanFromContext(r.Context())
+		if span.SpanContext().IsValid() {
+			observedTraceID = span.SpanContext().TraceID().String()
+		}
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+			innerFlusherCalled = true
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
+
+	// Wrap router with otelhttp.NewHandler inside logging.Middleware
+	handler := Middleware(otelhttp.NewHandler(innerHandler, "mcp-gateway.http"), "prod")
+
+	req := httptest.NewRequest(http.MethodGet, "/mcp", nil)
+	req.Header.Set("Traceparent", inboundTraceparent)
+	req.Header.Set("X-Service-Token", "super-secret-token-not-to-leak")
+	req.Header.Set("Authorization", "Bearer sensitive-auth-token")
+	rec := &flusherRecorder{ResponseRecorder: httptest.NewRecorder()}
+
+	handler.ServeHTTP(rec, req)
+
+	// 1. Verify inbound traceparent is continued
+	if observedTraceID != inboundTraceID {
+		t.Errorf("observed trace ID = %q, want %q", observedTraceID, inboundTraceID)
+	}
+
+	// 2. Verify http.Flusher is preserved through loggingResponseWriter and otelhttp
+	if !innerFlusherCalled {
+		t.Error("expected inner handler to successfully call Flush via http.Flusher")
+	}
+	if !rec.flushed {
+		t.Error("expected underlying flusherRecorder to have received Flush call")
+	}
+
+	// 3. Verify span attributes and trace continuation
+	spans := recorder.Ended()
+	if len(spans) != 1 {
+		t.Fatalf("expected 1 recorded span, got %d", len(spans))
+	}
+	s := spans[0]
+	if s.SpanKind() != trace.SpanKindServer {
+		t.Errorf("span kind = %v, want %v", s.SpanKind(), trace.SpanKindServer)
+	}
+	if s.SpanContext().TraceID().String() != inboundTraceID {
+		t.Errorf("recorded span trace ID = %q, want %q", s.SpanContext().TraceID().String(), inboundTraceID)
+	}
+	if s.Parent().SpanID().String() != inboundSpanID {
+		t.Errorf("recorded span parent ID = %q, want %q", s.Parent().SpanID().String(), inboundSpanID)
+	}
+
+	// 4. Verify sensitive headers are not leaked into span attributes
+	for _, attr := range s.Attributes() {
+		key := strings.ToLower(string(attr.Key))
+		val := strings.ToLower(attr.Value.AsString())
+		if strings.Contains(key, "service-token") || strings.Contains(val, "super-secret-token") {
+			t.Errorf("span leaked service-token in attribute %s: %s", attr.Key, attr.Value.AsString())
+		}
+		if strings.Contains(val, "sensitive-auth-token") {
+			t.Errorf("span leaked authorization in attribute %s: %s", attr.Key, attr.Value.AsString())
+		}
+	}
+}
+
+func TestSanitizeHeaders(t *testing.T) {
+	headers := http.Header{
+		"Authorization":   []string{"Bearer secret-jwt"},
+		"X-Service-Token": []string{"secret-token-123"},
+		"Cookie":          []string{"session=xyz"},
+		"Set-Cookie":      []string{"id=abc; Secure"},
+		"X-Request-Id":    []string{"req-1"},
+		"Content-Type":    []string{"application/json"},
+	}
+
+	sanitized := SanitizeHeaders(headers)
+
+	if val := sanitized["Authorization"]; len(val) != 1 || val[0] != "[REDACTED]" {
+		t.Errorf("Authorization = %v, want [[REDACTED]]", val)
+	}
+	if val := sanitized["X-Service-Token"]; len(val) != 1 || val[0] != "[REDACTED]" {
+		t.Errorf("X-Service-Token = %v, want [[REDACTED]]", val)
+	}
+	if val := sanitized["Cookie"]; len(val) != 1 || val[0] != "[REDACTED]" {
+		t.Errorf("Cookie = %v, want [[REDACTED]]", val)
+	}
+	if val := sanitized["Set-Cookie"]; len(val) != 1 || val[0] != "[REDACTED]" {
+		t.Errorf("Set-Cookie = %v, want [[REDACTED]]", val)
+	}
+	if val := sanitized["X-Request-Id"]; len(val) != 1 || val[0] != "req-1" {
+		t.Errorf("X-Request-Id = %v, want [req-1]", val)
+	}
+	if val := sanitized["Content-Type"]; len(val) != 1 || val[0] != "application/json" {
+		t.Errorf("Content-Type = %v, want [application/json]", val)
 	}
 }

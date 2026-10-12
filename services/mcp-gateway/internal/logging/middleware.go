@@ -35,6 +35,11 @@ func sanitizeHeaders(headers http.Header) map[string][]string {
 	return sanitized
 }
 
+// SanitizeHeaders returns a copy of headers with sensitive values replaced by "[REDACTED]".
+func SanitizeHeaders(headers http.Header) map[string][]string {
+	return sanitizeHeaders(headers)
+}
+
 // loggingResponseWriter captures the HTTP status code and bytes written.
 type loggingResponseWriter struct {
 	http.ResponseWriter
