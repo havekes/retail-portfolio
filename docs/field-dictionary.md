@@ -280,14 +280,15 @@ No password, email address, OTP code or token value may be part of this event.
 - **Purpose:** provider and data-plane fetches, for freshness-lag and per-provider cohort analysis.
 - **Producing ticket:** F-OBS-T14.
 - **Boundary:** `src/market/gateway.py` (`record_fetch`), applied at the fetch call sites in
-  `src/market/repository_eodhd.py`, `src/market/service.py` and `src/market/api.py`, so both the
-  real EODHD gateway (`eodhd.py`) and the stubs emit through one path.
+  `src/market/repository_eodhd.py`, `src/market/service.py`, `src/market/api.py`,
+  `src/market/fmp.py` and `src/market/polygon.py`, so EODHD, FMP and Polygon gateways emit
+  through one path.
 
 | Field                  | Type   | Notes                                              |
 | ---------------------- | ------ | --------------------------------------------------- |
 | `symbol` _(required)_  | string | Instrument symbol.                                  |
-| `dataset` _(required)_ | string | Dataset or endpoint class (`eod`, `intraday`, `search`). |
-| `provider` _(required)_| string | Internal provider dimension (kept by redaction).     |
+| `dataset` _(required)_ | string | Dataset or endpoint class (`eod`, `intraday`, `search`, `options`, `fundamentals`, `statements`, `quote`). |
+| `provider` _(required)_| string | Internal provider dimension (`eodhd`, `fmp`, `polygon`; kept by redaction). |
 | `exchange`             | string | Exchange code.                                      |
 | `cache_state`          | string | `fresh`, `stale`, `miss`, ...                       |
 | `freshness_lag_ms`     | int    | Age of the returned data.                            |
@@ -317,12 +318,13 @@ API keys, service tokens and raw user-scoped cache keys never appear here.
 
 - **Purpose:** cache boundary reads, to explain stale-price cohorts by cache state.
 - **Producing ticket:** F-OBS-T14.
-- **Boundary:** `src/market/cache.py` (`IndicatorCache`, `SecuritySearchCache`).
+- **Boundary:** `src/market/cache.py` (`IndicatorCache`, `SecuritySearchCache`) and
+  `src/market/endpoint_cache.py` (`EndpointResponseCache`).
 
 | Field                     | Type   | Notes                                             |
 | ------------------------- | ------ | -------------------------------------------------- |
-| `cache_kind` _(required)_ | string | Which cache implementation (`indicator`, `security_search`). |
-| `key_class` _(required)_  | string | Static cache-namespace label — never the raw user-scoped key. |
+| `cache_kind` _(required)_ | string | Which cache implementation (`indicator`, `security_search`, `endpoint`). |
+| `key_class` _(required)_  | string | Static cache-namespace label (`indicator`, `security_search`, or endpoint data class `prices`, `statements`, `metrics`, `options`, `search`, `quotes`) — never the raw user-scoped key. |
 | `outcome` _(required)_    | string | `hit`, `miss`, `negative` or `write`.               |
 | `ttl_seconds`             | int    | Configured TTL for the read/write.                  |
 | `error_slug`              | string | Stable failure class (e.g. `cache_error`) on a failed read. |

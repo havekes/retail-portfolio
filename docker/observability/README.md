@@ -143,7 +143,7 @@ Both `prometheus` (self) and `otel-collector` (`clickstack:8888`) targets will r
 | `default.otel_logs` | 30 days |
 | `default.otel_metrics_*` | 14 days |
 
-The trace tier is a **row-level TTL expression** — a `multiIf` on `SpanAttributes['event.name']` — so one table carries several tiers and each event class expires on its own schedule.
+The trace tier is a **row-level TTL expression** — a `multiIf` on `SpanAttributes['event.name']` — so one table carries several tiers and each event class expires on its own schedule. The 7-day `market.cache.accessed` tier covers cache probes across `IndicatorCache`, `SecuritySearchCache`, and data-plane `EndpointResponseCache`. The 14-day `market.data.fetched` tier covers upstream provider reads across EODHD (`eodhd.py`), FMP (`fmp.py`), and Polygon (`polygon.py`) gateways.
 
 Apply (or re-apply) the policy:
 ```bash
@@ -240,7 +240,7 @@ Measured directly against the gateway (collector `0.161.0`, same pipeline and po
 | `auth.event` `outcome=failure` | 20 | 20 | 100% |
 | `market.cache.accessed` (`error_slug` only) | 10 | 10 | 100% |
 
-Every retained span carried `event.sampled=true`, with `event.sample_rate` `7` for the bulk and `1` for the failure cohorts.
+Every retained span carried `event.sampled=true`, with `event.sample_rate` `7` for the bulk and `1` for the failure cohorts (including data-plane cache errors and provider failures).
 
 ---
 

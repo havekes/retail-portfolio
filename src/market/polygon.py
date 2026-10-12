@@ -48,7 +48,7 @@ from src.market.exception import (
     MarketDataNotFoundError,
     MarketDataProviderError,
 )
-from src.market.gateway import MarketGateway
+from src.market.gateway import MarketGateway, record_fetch
 
 logger = logging.getLogger(__name__)
 
@@ -195,49 +195,56 @@ class PolygonGateway(MarketGateway):
         """
         underlying = symbol.strip().upper()
 
-        params = {"limit": str(_PAGE_LIMIT), "apiKey": self._api_key}
-        if expiration is not None:
-            params["expiration_date"] = expiration.isoformat()
-        if contract_type is not None:
-            params["contract_type"] = contract_type
+        with record_fetch(
+            symbol=underlying,
+            dataset="options",
+            provider="polygon",
+        ) as fetch:
+            params = {"limit": str(_PAGE_LIMIT), "apiKey": self._api_key}
+            if expiration is not None:
+                params["expiration_date"] = expiration.isoformat()
+            if contract_type is not None:
+                params["contract_type"] = contract_type
 
-        path = f"{_OPTIONS_SNAPSHOT_PATH}/{quote(underlying)}"
-        url = f"{self._base_url}{path}?{urlencode(params)}"
+            path = f"{_OPTIONS_SNAPSHOT_PATH}/{quote(underlying)}"
+            url = f"{self._base_url}{path}?{urlencode(params)}"
 
-        entries: list[OptionsChainEntry] = []
-        payload = self._request_json(url, underlying)
-        entries.extend(self._parse_entries(payload, underlying))
+            entries: list[OptionsChainEntry] = []
+            payload = self._request_json(url, underlying)
+            entries.extend(self._parse_entries(payload, underlying))
 
-        truncated = False
-        pages_fetched = 1
-        next_url = payload.get("next_url") if isinstance(payload, dict) else None
-        while isinstance(next_url, str) and next_url:
-            if pages_fetched >= _MAX_PAGES:
-                # A sticky/looping cursor must not discard the pages already
-                # fetched (or hang): stop paging and serve the truncated chain.
-                logger.warning(
-                    "Options chain pagination truncated at the %d page cap",
-                    _MAX_PAGES,
-                )
-                truncated = True
-                break
-            page = self._request_json(self._with_api_key(next_url), underlying)
-            entries.extend(self._parse_entries(page, underlying))
-            pages_fetched += 1
-            next_url = page.get("next_url") if isinstance(page, dict) else None
+            truncated = False
+            pages_fetched = 1
+            next_url = payload.get("next_url") if isinstance(payload, dict) else None
+            while isinstance(next_url, str) and next_url:
+                if pages_fetched >= _MAX_PAGES:
+                    # A sticky/looping cursor must not discard the pages already
+                    # fetched (or hang): stop paging and serve the truncated chain.
+                    logger.warning(
+                        "Options chain pagination truncated at the %d page cap",
+                        _MAX_PAGES,
+                    )
+                    truncated = True
+                    break
+                page = self._request_json(self._with_api_key(next_url), underlying)
+                entries.extend(self._parse_entries(page, underlying))
+                pages_fetched += 1
+                next_url = page.get("next_url") if isinstance(page, dict) else None
 
-        entries = self._apply_strike_range(entries, strike_min, strike_max)
+            entries = self._apply_strike_range(entries, strike_min, strike_max)
 
-        if not entries:
-            raise MarketDataNotFoundError(underlying)
+            if not entries:
+                raise MarketDataNotFoundError(underlying)
 
-        return OptionsChain(
-            underlying_symbol=underlying,
-            currency="",
-            as_of=None,
-            contracts=entries,
-            truncated=truncated,
-        )
+            fetch.row_count = len(entries)
+
+            return OptionsChain(
+                underlying_symbol=underlying,
+                currency="",
+                as_of=None,
+                contracts=entries,
+                truncated=truncated,
+            )
 
     def get_option_expirations(self, symbol: str) -> OptionExpirations:
         """Get available option expiration dates for an underlying symbol.
@@ -250,48 +257,54 @@ class PolygonGateway(MarketGateway):
         """
         underlying = symbol.strip().upper()
 
-        params = {
-            "underlying_ticker": underlying,
-            "expired": "false",
-            "sort": "expiration_date",
-            "order": "asc",
-            "limit": str(_CONTRACTS_PAGE_LIMIT),
-            "apiKey": self._api_key,
-        }
-        url = f"{self._base_url}{_OPTIONS_CONTRACTS_PATH}?{urlencode(params)}"
+        with record_fetch(
+            symbol=underlying,
+            dataset="options",
+            provider="polygon",
+        ) as fetch:
+            params = {
+                "underlying_ticker": underlying,
+                "expired": "false",
+                "sort": "expiration_date",
+                "order": "asc",
+                "limit": str(_CONTRACTS_PAGE_LIMIT),
+                "apiKey": self._api_key,
+            }
+            url = f"{self._base_url}{_OPTIONS_CONTRACTS_PATH}?{urlencode(params)}"
 
-        expirations: list[date] = []
-        seen_dates: set[date] = set()
+            expirations: list[date] = []
+            seen_dates: set[date] = set()
 
-        payload = self._request_json(url, underlying)
-        self._collect_expirations(payload, expirations, seen_dates)
+            payload = self._request_json(url, underlying)
+            self._collect_expirations(payload, expirations, seen_dates)
 
-        truncated = False
-        pages_fetched = 1
-        next_url = payload.get("next_url") if isinstance(payload, dict) else None
-        while isinstance(next_url, str) and next_url:
-            if pages_fetched >= _MAX_PAGES:
-                logger.warning(
-                    "Options expirations pagination truncated at the %d page cap",
-                    _MAX_PAGES,
-                )
-                truncated = True
-                break
-            page = self._request_json(self._with_api_key(next_url), underlying)
-            self._collect_expirations(page, expirations, seen_dates)
-            pages_fetched += 1
-            next_url = page.get("next_url") if isinstance(page, dict) else None
+            truncated = False
+            pages_fetched = 1
+            next_url = payload.get("next_url") if isinstance(payload, dict) else None
+            while isinstance(next_url, str) and next_url:
+                if pages_fetched >= _MAX_PAGES:
+                    logger.warning(
+                        "Options expirations pagination truncated at the %d page cap",
+                        _MAX_PAGES,
+                    )
+                    truncated = True
+                    break
+                page = self._request_json(self._with_api_key(next_url), underlying)
+                self._collect_expirations(page, expirations, seen_dates)
+                pages_fetched += 1
+                next_url = page.get("next_url") if isinstance(page, dict) else None
 
-        if not expirations:
-            raise MarketDataNotFoundError(underlying)
+            if not expirations:
+                raise MarketDataNotFoundError(underlying)
 
-        expirations.sort()
+            expirations.sort()
+            fetch.row_count = len(expirations)
 
-        return OptionExpirations(
-            underlying_symbol=underlying,
-            expirations=expirations,
-            truncated=truncated,
-        )
+            return OptionExpirations(
+                underlying_symbol=underlying,
+                expirations=expirations,
+                truncated=truncated,
+            )
 
     def _collect_expirations(
         self,

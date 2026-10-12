@@ -30,8 +30,15 @@ from src.market.cache import (
     _normalize_query,
 )
 from src.market.exception import MarketDataNotFoundError
+from src.observability import emit_event
 
 logger = logging.getLogger(__name__)
+
+#: Static cache-kind label for the unified endpoint cache.
+CACHE_KIND_ENDPOINT = "endpoint"
+
+#: Failure class attached to a ``market.cache.accessed`` miss caused by Redis.
+CACHE_ERROR_SLUG = "cache_error"
 
 T = TypeVar("T")
 
@@ -182,6 +189,33 @@ def _decode_payload(payload: str, model: type[BaseModel] | None) -> Any:
     return model.model_validate(decoded)
 
 
+def _emit_cache_accessed(
+    *,
+    cache_kind: str = CACHE_KIND_ENDPOINT,
+    key_class: str,
+    outcome: str,
+    ttl_seconds: int | None = None,
+    error_slug: str | None = None,
+) -> None:
+    """Emit one ``market.cache.accessed`` wide event, best-effort only.
+
+    Telemetry must never change cache behaviour, so any emission failure is
+    swallowed. ``key_class`` is a static cache-namespace label, never the raw
+    user-scoped cache key.
+    """
+    try:
+        emit_event(
+            "market.cache.accessed",
+            cache_kind=cache_kind,
+            key_class=key_class,
+            outcome=outcome,
+            ttl_seconds=ttl_seconds,
+            error_slug=error_slug,
+        )
+    except Exception as error:  # noqa: BLE001
+        logger.debug("Cache telemetry emission failed: %s", error)
+
+
 class EndpointResponseCache:
     """Async Redis cache for unified data-endpoint responses.
 
@@ -210,7 +244,9 @@ class EndpointResponseCache:
         cached negative entry reads back as a miss too — the raw marker is never
         returned to a caller.
         """
-        hit, value = await self._lookup(_cache_key(data_class, endpoint, params), model)
+        hit, value = await self._lookup(
+            _cache_key(data_class, endpoint, params), data_class, model
+        )
         if not hit or isinstance(value, _NegativeHit):
             return None
         return value
@@ -252,7 +288,7 @@ class EndpointResponseCache:
         propagates uncached.
         """
         key = _cache_key(data_class, endpoint, params)
-        hit, value = await self._lookup(key, model)
+        hit, value = await self._lookup(key, data_class, model)
         if hit:
             if isinstance(value, _NegativeHit):
                 raise MarketDataNotFoundError(value.label)
@@ -274,7 +310,10 @@ class EndpointResponseCache:
     # -- internals -------------------------------------------------------- #
 
     async def _lookup(
-        self, key: str, model: type[BaseModel] | None
+        self,
+        key: str,
+        data_class: str,
+        model: type[BaseModel] | None,
     ) -> tuple[bool, Any]:
         """Return ``(hit, value)``; ``(False, None)`` on a miss or any error."""
         try:
@@ -282,17 +321,53 @@ class EndpointResponseCache:
                 payload = await client.get(key)
         except Exception as e:  # noqa: BLE001
             logger.warning("Endpoint cache read failed for %s: %s", key, e)
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_ENDPOINT,
+                key_class=data_class,
+                outcome="miss",
+                ttl_seconds=_ttl_for(data_class),
+                error_slug=CACHE_ERROR_SLUG,
+            )
             return False, None
 
         if payload is None:
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_ENDPOINT,
+                key_class=data_class,
+                outcome="miss",
+                ttl_seconds=_ttl_for(data_class),
+            )
             return False, None
         if isinstance(payload, bytes):
             payload = payload.decode()
         try:
-            return True, _decode_payload(payload, model)
+            decoded = _decode_payload(payload, model)
         except Exception as e:  # noqa: BLE001
             logger.warning("Endpoint cache payload invalid for %s: %s", key, e)
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_ENDPOINT,
+                key_class=data_class,
+                outcome="miss",
+                ttl_seconds=_ttl_for(data_class),
+            )
             return False, None
+
+        if isinstance(decoded, _NegativeHit):
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_ENDPOINT,
+                key_class=data_class,
+                outcome="negative",
+                ttl_seconds=_negative_ttl(),
+            )
+            return True, decoded
+
+        _emit_cache_accessed(
+            cache_kind=CACHE_KIND_ENDPOINT,
+            key_class=data_class,
+            outcome="hit",
+            ttl_seconds=_ttl_for(data_class),
+        )
+        return True, decoded
 
     async def _store(
         self,
@@ -301,13 +376,20 @@ class EndpointResponseCache:
         payload: Any,
         ttl: int | None,
     ) -> None:
+        effective_ttl = ttl if ttl is not None else _ttl_for(data_class)
         try:
-            effective_ttl = ttl if ttl is not None else _ttl_for(data_class)
             encoded = _encode_payload(payload)
             async with redis_manager.client() as client:
                 await client.setex(key, effective_ttl, encoded)
         except Exception as e:  # noqa: BLE001
             logger.warning("Endpoint cache write failed for %s: %s", key, e)
+        else:
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_ENDPOINT,
+                key_class=data_class,
+                outcome="write",
+                ttl_seconds=effective_ttl,
+            )
 
 
 def endpoint_response_cache_factory() -> EndpointResponseCache:
