@@ -430,6 +430,81 @@ func TestLoadConfig(t *testing.T) {
 			t.Errorf("error leaked the token: %q", err)
 		}
 	})
+
+	t.Run("otel environment variables parsed correctly", func(t *testing.T) {
+		cfg, err := Load(envMap(map[string]string{
+			"BACKEND_BASE_URL":            "http://backend:8000",
+			"MARKET_DATA_SERVICE_TOKEN":   "test-token",
+			"OTEL_EXPORTER_OTLP_ENDPOINT": "http://clickstack:4318",
+			"OTEL_EXPORTER_OTLP_HEADERS":  "authorization=secret-otlp-token,x-tenant=test",
+			"OTEL_RESOURCE_ATTRIBUTES":    "service.version=1.0.0,region=us-east-1",
+			"DEPLOY_ID":                   "deploy-1234",
+		}))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cfg.OTLPEndpoint != "http://clickstack:4318" {
+			t.Errorf("OTLPEndpoint = %q, want %q", cfg.OTLPEndpoint, "http://clickstack:4318")
+		}
+		if cfg.OTLPHeaders != "authorization=secret-otlp-token,x-tenant=test" {
+			t.Errorf("OTLPHeaders = %q, want %q", cfg.OTLPHeaders, "authorization=secret-otlp-token,x-tenant=test")
+		}
+		if cfg.ResourceAttributes != "service.version=1.0.0,region=us-east-1" {
+			t.Errorf("ResourceAttributes = %q, want %q", cfg.ResourceAttributes, "service.version=1.0.0,region=us-east-1")
+		}
+		if cfg.DeployID != "deploy-1234" {
+			t.Errorf("DeployID = %q, want %q", cfg.DeployID, "deploy-1234")
+		}
+	})
+
+	t.Run("otel sdk disabled toggle", func(t *testing.T) {
+		cases := []struct {
+			val  string
+			want bool
+		}{
+			{"true", true},
+			{"1", true},
+			{"yes", true},
+			{"on", true},
+			{"TRUE", true},
+			{" YES ", true},
+			{"false", false},
+			{"0", false},
+			{"no", false},
+			{"off", false},
+			{"", false},
+			{"   ", false},
+			{"other", false},
+		}
+		for _, tc := range cases {
+			cfg, err := Load(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"OTEL_SDK_DISABLED":         tc.val,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for OTEL_SDK_DISABLED=%q: %v", tc.val, err)
+			}
+			if cfg.SDKDisabled != tc.want {
+				t.Errorf("OTEL_SDK_DISABLED=%q: got %v, want %v", tc.val, cfg.SDKDisabled, tc.want)
+			}
+		}
+	})
+
+	t.Run("error never contains otlp headers", func(t *testing.T) {
+		const otlpSecret = "super-secret-otlp-api-key"
+		_, err := Load(envMap(map[string]string{
+			"BACKEND_BASE_URL":           "not-a-url",
+			"MARKET_DATA_SERVICE_TOKEN":  "test-token",
+			"OTEL_EXPORTER_OTLP_HEADERS": "authorization=" + otlpSecret,
+		}))
+		if err == nil {
+			t.Fatal("expected an error")
+		}
+		if strings.Contains(err.Error(), otlpSecret) {
+			t.Errorf("error leaked the otlp header value: %q", err)
+		}
+	})
 }
 
 func TestIsDev(t *testing.T) {

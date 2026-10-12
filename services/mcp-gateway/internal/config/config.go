@@ -30,6 +30,15 @@ import (
 //     plane. Optional, defaults to 10. Must be a positive integer.
 //   - SESSION_IDLE_TIMEOUT: duration after which idle MCP sessions are closed.
 //     Optional, defaults to 30m. Must be a positive Go duration.
+//   - OTEL_EXPORTER_OTLP_ENDPOINT: target URL for OTLP traces export over HTTP.
+//     Optional.
+//   - OTEL_EXPORTER_OTLP_HEADERS: key=value pairs for OTLP exporter headers.
+//     Optional. Header values are never logged or exposed in errors.
+//   - OTEL_RESOURCE_ATTRIBUTES: comma-separated key=value attributes for the
+//     telemetry resource. Optional.
+//   - OTEL_SDK_DISABLED: when truthy ("1", "true", "yes", "on"), disables
+//     OpenTelemetry tracing even if an endpoint is configured. Optional.
+//   - DEPLOY_ID: identifier of the deployment/release (e.g. dev, git sha). Optional.
 type Config struct {
 	BackendBaseURL     string
 	ServiceToken       string
@@ -40,6 +49,11 @@ type Config struct {
 	LogLevel           string
 	MaxConcurrency     int
 	SessionIdleTimeout time.Duration
+	OTLPEndpoint       string
+	OTLPHeaders        string
+	ResourceAttributes string
+	SDKDisabled        bool
+	DeployID           string
 }
 
 const (
@@ -105,6 +119,13 @@ func Load(getenv func(string) string) (Config, error) {
 		dataPlanePath = p
 	}
 
+	sdkDisabledRaw := strings.ToLower(strings.TrimSpace(getenv("OTEL_SDK_DISABLED")))
+	sdkDisabled := false
+	switch sdkDisabledRaw {
+	case "1", "true", "yes", "on":
+		sdkDisabled = true
+	}
+
 	cfg := Config{
 		BackendBaseURL:     strings.TrimSpace(getenv("BACKEND_BASE_URL")),
 		ServiceToken:       strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
@@ -115,6 +136,11 @@ func Load(getenv func(string) string) (Config, error) {
 		LogLevel:           logLevel,
 		MaxConcurrency:     maxConcurrency,
 		SessionIdleTimeout: sessionIdleTimeout,
+		OTLPEndpoint:       strings.TrimSpace(getenv("OTEL_EXPORTER_OTLP_ENDPOINT")),
+		OTLPHeaders:        strings.TrimSpace(getenv("OTEL_EXPORTER_OTLP_HEADERS")),
+		ResourceAttributes: strings.TrimSpace(getenv("OTEL_RESOURCE_ATTRIBUTES")),
+		SDKDisabled:        sdkDisabled,
+		DeployID:           strings.TrimSpace(getenv("DEPLOY_ID")),
 	}
 
 	if cfg.BackendBaseURL == "" {
