@@ -58,6 +58,9 @@ _INTRADAY_NOT_SUPPORTED = "capability not supported by this provider"
 # pass-through precedent set by ``SecurityApi``.
 FMP_EXCHANGE_SUFFIXES: dict[str, str] = {
     "TSX": ".TO",
+    "TSXV": ".V",
+    "TSX-V": ".V",
+    "V": ".V",
     "LSE": ".L",
 }
 
@@ -98,6 +101,71 @@ def map_to_fmp_ticker(symbol: str, exchange: str) -> str:
     if suffix is None:
         return clean_symbol
     return f"{clean_symbol}{suffix}"
+
+
+async def fetch_logo_image(
+    symbol: str,
+    exchange: str = "",
+    *,
+    client: httpx.AsyncClient | None = None,
+    base_url: str = DEFAULT_BASE_URL,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+) -> bytes | None:
+    """Fetch raw logo PNG bytes from FMP for a given symbol and exchange.
+
+    Returns the image bytes on HTTP 200, or ``None`` on HTTP 404, error
+    payloads, or transport errors.
+    """
+    ticker = map_to_fmp_ticker(symbol, exchange)
+    if not ticker:
+        return None
+
+    if client is not None:
+        return await _fetch_logo_from_client(client, base_url, ticker, timeout)
+
+    if settings.stub_external_api:
+        clean_sym = symbol.strip().upper()
+        if clean_sym in {"NOTFOUND", "MISSING", "ZZZZ", "UNKNOWN"}:
+            return None
+        return (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+            b"\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00"
+            b"\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+
+    async with httpx.AsyncClient(timeout=timeout) as internal_client:
+        return await _fetch_logo_from_client(internal_client, base_url, ticker, timeout)
+
+
+async def _fetch_logo_from_client(
+    client: httpx.AsyncClient,
+    base_url: str,
+    ticker: str,
+    timeout: float,
+) -> bytes | None:
+    url = f"{base_url.rstrip('/')}/image-stock/{ticker}.png"
+    try:
+        response = await client.get(url, timeout=timeout)
+    except (httpx.TimeoutException, httpx.TransportError) as exc:
+        logger.warning("FMP logo fetch failed for ticker %s: %s", ticker, exc)
+        return None
+
+    if response.status_code == httpx.codes.OK:
+        content = response.content
+        if content.startswith(b"{") and b"Error Message" in content:
+            logger.warning("FMP logo returned error payload for ticker %s", ticker)
+            return None
+        if len(content) > 0:
+            return content
+        return None
+    if response.status_code == httpx.codes.NOT_FOUND:
+        return None
+    logger.warning(
+        "FMP logo fetch returned status %s for ticker %s",
+        response.status_code,
+        ticker,
+    )
+    return None
 
 
 # --------------------------------------------------------------------------- #

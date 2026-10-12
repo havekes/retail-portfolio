@@ -13,8 +13,10 @@ from src.market.api import (
 )
 from src.market.cache import (
     IndicatorCache,
+    LogoCache,
     SecuritySearchCache,
     indicator_cache_factory,
+    logo_cache_factory,
     security_search_cache_factory,
 )
 from src.market.composite import composite_market_gateway_factory
@@ -96,6 +98,7 @@ def register_market_services(registry: Registry) -> None:
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(SecuritySearchCache, security_search_cache_factory)
+    registry.register_factory(LogoCache, logo_cache_factory)
     registry.register_factory(FxRateProvider, fx_rate_provider_factory)
     registry.register_factory(EndpointResponseCache, endpoint_response_cache_factory)
     registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)

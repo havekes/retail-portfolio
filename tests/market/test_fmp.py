@@ -36,6 +36,7 @@ from src.market.fmp import (
     FMP_US_EXCHANGES,
     FmpGateway,
     FmpHttpClient,
+    fetch_logo_image,
     map_to_fmp_ticker,
 )
 from src.stubs.fmp import StubFmpGateway
@@ -114,6 +115,95 @@ def test_map_to_fmp_ticker_non_us_exchanges():
     assert map_to_fmp_ticker("RY", "TSX") == "RY.TO"
     assert map_to_fmp_ticker("VOD", "LSE") == "VOD.L"
     assert map_to_fmp_ticker("ry", "tsx") == "RY.TO"
+
+
+def test_map_to_fmp_ticker_tsxv_exchanges():
+    assert map_to_fmp_ticker("XYZ", "TSXV") == "XYZ.V"
+    assert map_to_fmp_ticker("XYZ", "TSX-V") == "XYZ.V"
+    assert map_to_fmp_ticker("XYZ", "V") == "XYZ.V"
+    assert map_to_fmp_ticker("xyz", "tsxv") == "XYZ.V"
+
+
+@pytest.mark.anyio
+async def test_fetch_logo_image_success():
+    fake_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRfake_logo"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/image-stock/AAPL.png"
+        return httpx.Response(
+            200, content=fake_png, headers={"Content-Type": "image/png"}
+        )
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        result = await fetch_logo_image(
+            "AAPL", "NASDAQ", client=client, base_url="https://fmp.test"
+        )
+        assert result == fake_png
+
+
+@pytest.mark.anyio
+async def test_fetch_logo_image_tsx_and_tsxv_suffix():
+    fake_png = b"\x89PNG\r\n\x1a\nfake_tsx"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/image-stock/TD.TO.png":
+            return httpx.Response(200, content=fake_png)
+        if request.url.path == "/image-stock/ABC.V.png":
+            return httpx.Response(200, content=fake_png)
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        tsx_result = await fetch_logo_image(
+            "TD", "TSX", client=client, base_url="https://fmp.test"
+        )
+        assert tsx_result == fake_png
+
+        tsxv_result = await fetch_logo_image(
+            "ABC", "TSXV", client=client, base_url="https://fmp.test"
+        )
+        assert tsxv_result == fake_png
+
+
+@pytest.mark.anyio
+async def test_fetch_logo_image_404_returns_none():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/image-stock/UNKNOWN.png"
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        result = await fetch_logo_image(
+            "UNKNOWN", "NASDAQ", client=client, base_url="https://fmp.test"
+        )
+        assert result is None
+
+
+@pytest.mark.anyio
+async def test_fetch_logo_image_error_payload_returns_none():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"Error Message": "Invalid symbol"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        result = await fetch_logo_image(
+            "ERR", "NASDAQ", client=client, base_url="https://fmp.test"
+        )
+        assert result is None
+
+
+@pytest.mark.anyio
+async def test_fetch_logo_image_transport_error_returns_none():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("Connection failed")
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        result = await fetch_logo_image(
+            "TIMEOUT", "NASDAQ", client=client, base_url="https://fmp.test"
+        )
+        assert result is None
 
 
 def test_map_to_fmp_ticker_unknown_exchange_passes_through():
