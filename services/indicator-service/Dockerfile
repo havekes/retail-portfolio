@@ -9,7 +9,7 @@ RUN go mod download
 
 # Copy source code and build statically linked binary
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o indicator-service .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o indicator-service ./cmd/indicator-service
 
 # Run stage
 FROM alpine:3.21

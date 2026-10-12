@@ -27,6 +27,7 @@ Branching: each feature, idea or arch batch gets a `feat/<slug>` integration bra
 
 - **Backend work** (Python/FastAPI: `src/`, `tests/`, `migrations/`): follow `src/AGENTS.md`.
 - **Frontend work** (SvelteKit: `frontend/`): follow `frontend/AGENTS.md`.
+- **Go microservices work** (`services/indicator-service/`, `services/mcp-gateway/`): follow `services/README.md` for shared conventions and `services/<service>/README.md` for service guides.
 
 Each guide holds the full command list (tests, migrations, linting, type checks) and architecture rules for its area.
 
@@ -34,7 +35,7 @@ Each guide holds the full command list (tests, migrations, linting, type checks)
 
 ## Development Commands
 
-All development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. CI runs the same checks.
+Backend and frontend development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. Go microservice checks run via the host Go toolchain (`gofmt`, `staticcheck`, `go test ./...`, `go vet ./...`) or via `just` (`just lint-go`). CI runs the same checks.
 
 ## Testing with the agent harness
 
@@ -43,9 +44,11 @@ All development commands **must** be executed inside Docker: `docker compose exe
 - **While developing** — targeted, fail-fast, pre-flight included:
   - Backend: `./scripts/agent-test tests/routers/test_auth.py`
   - Frontend: `./scripts/agent-test frontend/src/lib/api/apiClient.test.ts`
+  - Go services: `just lint-go`, `just test-indicator-service` / `just test-mcp-gateway` (or `cd services/<service> && go test ./...`)
 - **Before finishing a task** — Gate 0 (lint/type) + full regression for the ecosystems auto-detected from the git diff:
-  - `./scripts/agent-test` (add `--all` to force both ecosystems)
-- **Pre-flight only** — `./scripts/agent-test --gate0-only` (or `just check`).
+  - `./scripts/agent-test` (add `--all` to force both backend and frontend)
+  - Full parallel regression across all ecosystems (backend, frontend, Go microservices): `just test-all`
+- **Pre-flight only** — `./scripts/agent-test --gate0-only` (or `just check`, which also runs `just lint-go` via the host Go toolchain).
 - **Flags** — `--backend` / `--frontend`, `--all`, `--no-gate0`, `--local`, `--json`, `--max-chars N`.
 
 Gates: **Gate 0** runs linter + type checker; if it fails the harness halts and prints diagnostics only — no tests run, so fix the reported errors first. **Gate 1** (a path argument) runs only that target with fail-fast. **Gate 2** (no path argument) runs the full suite and prints a two-tier summary: an *Index* (counts + failed test IDs) and *Traces* for only the first 1–2 failures. The raw commands in the area guides remain the fallback if the harness itself is broken.

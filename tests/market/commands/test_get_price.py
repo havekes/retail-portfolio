@@ -18,9 +18,11 @@ def test_get_price_default_date():
         main()
 
     mock_gateway.get_price_on_date.assert_called_once()
-    sec, passed_date = mock_gateway.get_price_on_date.call_args[0]
-    assert sec.symbol == "AAPL"
-    assert isinstance(passed_date, date)
+    args, kwargs = mock_gateway.get_price_on_date.call_args
+    assert args[0] == "AAPL"
+    assert args[1] == "US"
+    assert isinstance(args[2], date)
+    assert kwargs["security_id"] is not None
     mock_rprint.assert_called_once_with(150.0)
 
 
@@ -37,7 +39,8 @@ def test_get_price_with_explicit_date():
         main()
 
     mock_gateway.get_price_on_date.assert_called_once()
-    sec, passed_date = mock_gateway.get_price_on_date.call_args[0]
-    assert sec.symbol == "MSFT"
-    assert passed_date == date(2026, 1, 15)
+    args, kwargs = mock_gateway.get_price_on_date.call_args
+    assert args[0] == "MSFT"
+    assert args[2] == date(2026, 1, 15)
+    assert kwargs["security_id"] is not None
     mock_rprint.assert_called_once_with(250.0)

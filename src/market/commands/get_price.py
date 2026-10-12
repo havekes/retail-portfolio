@@ -39,7 +39,9 @@ def main():
         updated_at=datetime.now(UTC),
     )
 
-    price = eodhd.get_price_on_date(security, date)
+    price = eodhd.get_price_on_date(
+        security.symbol, security.exchange, date, security_id=security.id
+    )
     rprint(price)
 
 

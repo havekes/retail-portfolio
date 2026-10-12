@@ -1,8 +1,17 @@
-package main
+package indicators
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"strconv"
+)
+
+const (
+	minPeriodParam = 1
+	maxPeriodParam = 1000
+	minStdDev      = 0.0
+	maxStdDev      = 10.0
 )
 
 // Candle represents an OHLCV candle.
@@ -153,6 +162,51 @@ func (s *IndicatorSpec) GetStdDev(fallback float64) float64 {
 	return fallback
 }
 
+// Validate checks that the indicator spec parameters are within allowable bounds.
+func (s *IndicatorSpec) Validate() error {
+	period := s.GetPeriod(1)
+	if period < minPeriodParam {
+		return fmt.Errorf("indicator %s: period %d must be at least %d", s.ResultKey(), period, minPeriodParam)
+	}
+	if period > maxPeriodParam {
+		return fmt.Errorf("indicator %s: period %d exceeds limit of %d", s.ResultKey(), period, maxPeriodParam)
+	}
+
+	fast := s.GetFast(1)
+	if fast < minPeriodParam {
+		return fmt.Errorf("indicator %s: fast %d must be at least %d", s.ResultKey(), fast, minPeriodParam)
+	}
+	if fast > maxPeriodParam {
+		return fmt.Errorf("indicator %s: fast %d exceeds limit of %d", s.ResultKey(), fast, maxPeriodParam)
+	}
+
+	slow := s.GetSlow(1)
+	if slow < minPeriodParam {
+		return fmt.Errorf("indicator %s: slow %d must be at least %d", s.ResultKey(), slow, minPeriodParam)
+	}
+	if slow > maxPeriodParam {
+		return fmt.Errorf("indicator %s: slow %d exceeds limit of %d", s.ResultKey(), slow, maxPeriodParam)
+	}
+
+	signal := s.GetSignal(1)
+	if signal < minPeriodParam {
+		return fmt.Errorf("indicator %s: signal %d must be at least %d", s.ResultKey(), signal, minPeriodParam)
+	}
+	if signal > maxPeriodParam {
+		return fmt.Errorf("indicator %s: signal %d exceeds limit of %d", s.ResultKey(), signal, maxPeriodParam)
+	}
+
+	stdDev := s.GetStdDev(2.0)
+	if stdDev <= minStdDev || math.IsNaN(stdDev) {
+		return fmt.Errorf("indicator %s: stdDev %v must be greater than 0", s.ResultKey(), stdDev)
+	}
+	if stdDev > maxStdDev || math.IsInf(stdDev, 0) {
+		return fmt.Errorf("indicator %s: stdDev %v exceeds limit of %v", s.ResultKey(), stdDev, maxStdDev)
+	}
+
+	return nil
+}
+
 // MAPoint represents a single moving average point aligned with candle time.
 type MAPoint struct {
 	Time  any     `json:"time"`
@@ -186,27 +240,4 @@ type RSIPoint struct {
 type OBVPoint struct {
 	Time  any     `json:"time"`
 	Value float64 `json:"value"`
-}
-
-// ComputeRequest is the payload for POST /compute.
-type ComputeRequest struct {
-	Interval   string          `json:"interval"`
-	Candles    []Candle        `json:"candles"`
-	Indicators []IndicatorSpec `json:"indicators"`
-}
-
-// ComputeResponse is the response payload for POST /compute.
-type ComputeResponse struct {
-	Indicators map[string]any `json:"indicators"`
-}
-
-// HealthResponse is the payload for GET /health.
-type HealthResponse struct {
-	Status  string `json:"status"`
-	Service string `json:"service"`
-}
-
-// ErrorResponse represents a JSON error response.
-type ErrorResponse struct {
-	Error string `json:"error"`
 }

@@ -38,7 +38,11 @@ class EodhdPriceRepository(PriceRepository):
         )
 
         new_prices_eodhd = self._gateway.get_prices(
-            security.id, security.symbol, security.exchange, from_date, to_date
+            security.symbol,
+            security.exchange,
+            from_date,
+            to_date,
+            security_id=security.id,
         )
         new_prices = [
             PriceSchema.from_historical_price(price) for price in new_prices_eodhd
@@ -88,7 +92,7 @@ class EodhdPriceRepository(PriceRepository):
             return existing_price
 
         new_price_eodhd = self._gateway.get_price_on_date(
-            security.id, security.symbol, security.exchange, date
+            security.symbol, security.exchange, date, security_id=security.id
         )
         if new_price_eodhd is None:
             return None

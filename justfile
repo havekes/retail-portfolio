@@ -15,13 +15,30 @@ test-backend:
 test-frontend:
     @./scripts/agent-test frontend
 
-# Full regression for both ecosystems.
-test-all:
-    @./scripts/agent-test --all
+# Indicator service regression (Go).
+test-indicator-service:
+    @cd services/indicator-service && go test ./...
+
+# MCP gateway regression (Go).
+test-mcp-gateway:
+    @cd services/mcp-gateway && go test ./...
+
+# Full regression across all ecosystems (parallel).
+[parallel]
+test-all: test-backend test-frontend test-indicator-service test-mcp-gateway
+
+# Go format and static analysis gate for indicator-service and mcp-gateway.
+lint-go:
+    @test -z "$(gofmt -l services/indicator-service services/mcp-gateway)" || (echo "Unformatted Go files:" && gofmt -l services/indicator-service services/mcp-gateway && exit 1)
+    @cd services/indicator-service && go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+    @cd services/mcp-gateway && go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+    @cd services/indicator-service && go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+    @cd services/mcp-gateway && go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
 # Lint + type checks only (Gate 0) for auto-detected ecosystems.
 check:
     @./scripts/agent-test --gate0-only
+    @just lint-go
 
 # Start services with the host's real docker socket gid so in-container tests
 # can reach testcontainers (see docker-compose.yml group_add).
