@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-// dataPlanePath is the prefix of the backend service-to-service data plane
-// (src/market/data_router.py). It is a stable contract: do not rename it.
-const dataPlanePath = "/api/v1/market/data"
+// DefaultDataPlanePath is the default prefix of the backend service-to-service data plane
+// (src/market/data_router.py).
+const DefaultDataPlanePath = "/api/v1/market/data"
 
 // MarketClient is a typed HTTP client for the market data plane. It sends the
 // shared service token on every request and never touches a provider directly.
@@ -21,13 +21,27 @@ type MarketClient struct {
 	group *RouteGroup
 }
 
+// DataPlanePath returns the configured path prefix for this client's route group.
+func (c *MarketClient) DataPlanePath() string {
+	return c.group.prefix
+}
+
 // NewMarketClient builds a client for the market data plane using opts and token.
-func NewMarketClient(opts Options, token string) (*MarketClient, error) {
+// If opts.DataPlanePath or an optional path override is provided, it overrides
+// DefaultDataPlanePath.
+func NewMarketClient(opts Options, token string, path ...string) (*MarketClient, error) {
 	transport, err := NewTransport(opts)
 	if err != nil {
 		return nil, err
 	}
-	group := transport.NewRouteGroup(dataPlanePath, token)
+	prefix := DefaultDataPlanePath
+	if opts.DataPlanePath != "" {
+		prefix = opts.DataPlanePath
+	}
+	if len(path) > 0 && strings.TrimSpace(path[0]) != "" {
+		prefix = strings.TrimSpace(path[0])
+	}
+	group := transport.NewRouteGroup(prefix, token)
 	return &MarketClient{
 		group: group,
 	}, nil

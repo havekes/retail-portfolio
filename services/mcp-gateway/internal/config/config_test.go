@@ -42,6 +42,96 @@ func TestLoadConfig(t *testing.T) {
 		if cfg.SessionIdleTimeout != defaultSessionIdleTimeout {
 			t.Errorf("SessionIdleTimeout = %v, want %v", cfg.SessionIdleTimeout, defaultSessionIdleTimeout)
 		}
+		if cfg.DataPlanePath != defaultDataPlanePath {
+			t.Errorf("DataPlanePath = %q, want %q", cfg.DataPlanePath, defaultDataPlanePath)
+		}
+		if cfg.MarketDataPath != defaultDataPlanePath {
+			t.Errorf("MarketDataPath = %q, want %q", cfg.MarketDataPath, defaultDataPlanePath)
+		}
+	})
+
+	t.Run("data plane path default when unset or whitespace", func(t *testing.T) {
+		for _, pathVal := range []string{"", "   "} {
+			cfg, err := Load(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"DATA_PLANE_PATH":           pathVal,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for DATA_PLANE_PATH=%q: %v", pathVal, err)
+			}
+			if cfg.DataPlanePath != defaultDataPlanePath {
+				t.Errorf("DataPlanePath for %q = %q, want %q", pathVal, cfg.DataPlanePath, defaultDataPlanePath)
+			}
+			if cfg.MarketDataPath != defaultDataPlanePath {
+				t.Errorf("MarketDataPath for %q = %q, want %q", pathVal, cfg.MarketDataPath, defaultDataPlanePath)
+			}
+		}
+	})
+
+	t.Run("data plane path override via DATA_PLANE_PATH", func(t *testing.T) {
+		cases := []struct {
+			input string
+			want  string
+		}{
+			{"/api/v2/market/data", "/api/v2/market/data"},
+			{"api/v2/market/data", "/api/v2/market/data"},
+			{"/api/v2/market/data/", "/api/v2/market/data"},
+			{"api/v2/market/data/", "/api/v2/market/data"},
+			{"  /custom/prefix  ", "/custom/prefix"},
+			{"/", ""},
+		}
+		for _, tc := range cases {
+			cfg, err := Load(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"DATA_PLANE_PATH":           tc.input,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for DATA_PLANE_PATH=%q: %v", tc.input, err)
+			}
+			if cfg.DataPlanePath != tc.want {
+				t.Errorf("DATA_PLANE_PATH %q: got %q, want %q", tc.input, cfg.DataPlanePath, tc.want)
+			}
+			if cfg.MarketDataPath != tc.want {
+				t.Errorf("MarketDataPath %q: got %q, want %q", tc.input, cfg.MarketDataPath, tc.want)
+			}
+		}
+	})
+
+	t.Run("data plane path override via MARKET_DATA_PATH", func(t *testing.T) {
+		cfg, err := Load(envMap(map[string]string{
+			"BACKEND_BASE_URL":          "http://backend:8000",
+			"MARKET_DATA_SERVICE_TOKEN": "test-token",
+			"MARKET_DATA_PATH":          "/alt/data/path",
+		}))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cfg.DataPlanePath != "/alt/data/path" {
+			t.Errorf("DataPlanePath = %q, want %q", cfg.DataPlanePath, "/alt/data/path")
+		}
+		if cfg.MarketDataPath != "/alt/data/path" {
+			t.Errorf("MarketDataPath = %q, want %q", cfg.MarketDataPath, "/alt/data/path")
+		}
+	})
+
+	t.Run("DATA_PLANE_PATH takes precedence over MARKET_DATA_PATH", func(t *testing.T) {
+		cfg, err := Load(envMap(map[string]string{
+			"BACKEND_BASE_URL":          "http://backend:8000",
+			"MARKET_DATA_SERVICE_TOKEN": "test-token",
+			"DATA_PLANE_PATH":           "/primary/path",
+			"MARKET_DATA_PATH":          "/secondary/path",
+		}))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cfg.DataPlanePath != "/primary/path" {
+			t.Errorf("DataPlanePath = %q, want %q", cfg.DataPlanePath, "/primary/path")
+		}
+		if cfg.MarketDataPath != "/primary/path" {
+			t.Errorf("MarketDataPath = %q, want %q", cfg.MarketDataPath, "/primary/path")
+		}
 	})
 
 	t.Run("environment default dev when unset or whitespace", func(t *testing.T) {

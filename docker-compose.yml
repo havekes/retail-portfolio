@@ -131,6 +131,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-dev}"
       BACKEND_BASE_URL: "${BACKEND_BASE_URL:-http://backend:8000}"
       MARKET_DATA_SERVICE_TOKEN: "${MARKET_DATA_SERVICE_TOKEN:-dev-market-data-token}"
+      DATA_PLANE_PATH: "${DATA_PLANE_PATH:-/api/v1/market/data}"
     depends_on:
       backend:
         condition: service_healthy

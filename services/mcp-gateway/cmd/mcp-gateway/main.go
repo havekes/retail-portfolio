@@ -32,6 +32,7 @@ func main() {
 		slog.String("service", "mcp-gateway"),
 		slog.String("port", cfg.Port),
 		slog.String("backend_url", cfg.BackendBaseURL),
+		slog.String("data_plane_path", cfg.DataPlanePath),
 		slog.String("environment", cfg.Environment),
 		slog.Int("max_concurrency", cfg.MaxConcurrency),
 	)
@@ -39,6 +40,7 @@ func main() {
 	client, err := backend.NewMarketClient(backend.Options{
 		BaseURL:        cfg.BackendBaseURL,
 		MaxConcurrency: cfg.MaxConcurrency,
+		DataPlanePath:  cfg.DataPlanePath,
 	}, cfg.ServiceToken)
 	if err != nil {
 		logger.Error("mcp-gateway backend client error", slog.Any("error", err))

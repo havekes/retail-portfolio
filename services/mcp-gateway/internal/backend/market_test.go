@@ -105,6 +105,78 @@ func TestNewMarketClientRejectsInvalidMaxConcurrency(t *testing.T) {
 	}
 }
 
+func TestNewMarketClientDataPlanePath(t *testing.T) {
+	t.Run("default data plane path", func(t *testing.T) {
+		client, err := NewMarketClient(Options{
+			BaseURL:        "http://backend:8000",
+			MaxConcurrency: defaultMaxConcurrency,
+		}, "token")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if client.DataPlanePath() != DefaultDataPlanePath {
+			t.Errorf("got %q, want %q", client.DataPlanePath(), DefaultDataPlanePath)
+		}
+	})
+
+	t.Run("custom data plane path via options", func(t *testing.T) {
+		client, err := NewMarketClient(Options{
+			BaseURL:        "http://backend:8000",
+			MaxConcurrency: defaultMaxConcurrency,
+			DataPlanePath:  "/custom/market/data",
+		}, "token")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if client.DataPlanePath() != "/custom/market/data" {
+			t.Errorf("got %q, want %q", client.DataPlanePath(), "/custom/market/data")
+		}
+	})
+
+	t.Run("custom data plane path via argument", func(t *testing.T) {
+		client, err := NewMarketClient(Options{
+			BaseURL:        "http://backend:8000",
+			MaxConcurrency: defaultMaxConcurrency,
+		}, "token", "/override/market/data")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if client.DataPlanePath() != "/override/market/data" {
+			t.Errorf("got %q, want %q", client.DataPlanePath(), "/override/market/data")
+		}
+	})
+
+	t.Run("request uses custom path", func(t *testing.T) {
+		var receivedPath string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			receivedPath = r.URL.Path
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"symbol":"AAPL","items":[]}`))
+		}))
+		defer srv.Close()
+
+		client, err := NewMarketClient(Options{
+			BaseURL:        srv.URL,
+			MaxConcurrency: defaultMaxConcurrency,
+			DataPlanePath:  "/custom/v2/market",
+		}, "token")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		_, err = client.Prices(ctx, "AAPL", nil, nil, "", "")
+		if err != nil {
+			t.Fatalf("Prices error: %v", err)
+		}
+		if receivedPath != "/custom/v2/market/prices/AAPL" {
+			t.Errorf("receivedPath = %q, want /custom/v2/market/prices/AAPL", receivedPath)
+		}
+	})
+}
+
 func TestBackendClientEndpoints(t *testing.T) {
 	from := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)

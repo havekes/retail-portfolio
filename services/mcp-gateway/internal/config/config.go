@@ -20,6 +20,9 @@ import (
 //   - MARKET_DATA_SERVICE_TOKEN: shared secret sent as X-Service-Token to the
 //     backend data-plane endpoints. Required. The value is never logged or
 //     embedded in an error message.
+//   - DATA_PLANE_PATH: path prefix of the backend service-to-service data plane
+//     (for example /api/v1/market/data). Optional, defaults to "/api/v1/market/data".
+//     Can also be configured via MARKET_DATA_PATH.
 //   - PORT: HTTP listen port. Optional, defaults to "8080".
 //   - ENVIRONMENT: deployment environment ("prod" or "dev"). Optional, defaults to "dev".
 //   - LOG_LEVEL: log level override ("DEBUG", "INFO", "WARN"/"WARNING", "ERROR"). Optional.
@@ -30,6 +33,8 @@ import (
 type Config struct {
 	BackendBaseURL     string
 	ServiceToken       string
+	DataPlanePath      string
+	MarketDataPath     string
 	Port               string
 	Environment        string
 	LogLevel           string
@@ -42,6 +47,7 @@ const (
 	defaultEnvironment        = "dev"
 	defaultMaxConcurrency     = 10
 	defaultSessionIdleTimeout = 30 * time.Minute
+	defaultDataPlanePath      = backend.DefaultDataPlanePath
 )
 
 // Load reads the gateway configuration from getenv.
@@ -86,9 +92,24 @@ func Load(getenv func(string) string) (Config, error) {
 		sessionIdleTimeout = val
 	}
 
+	rawPath := strings.TrimSpace(getenv("DATA_PLANE_PATH"))
+	if rawPath == "" {
+		rawPath = strings.TrimSpace(getenv("MARKET_DATA_PATH"))
+	}
+	dataPlanePath := defaultDataPlanePath
+	if rawPath != "" {
+		p := strings.TrimRight(rawPath, "/")
+		if p != "" && !strings.HasPrefix(p, "/") {
+			p = "/" + p
+		}
+		dataPlanePath = p
+	}
+
 	cfg := Config{
 		BackendBaseURL:     strings.TrimSpace(getenv("BACKEND_BASE_URL")),
 		ServiceToken:       strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
+		DataPlanePath:      dataPlanePath,
+		MarketDataPath:     dataPlanePath,
 		Port:               strings.TrimSpace(getenv("PORT")),
 		Environment:        env,
 		LogLevel:           logLevel,

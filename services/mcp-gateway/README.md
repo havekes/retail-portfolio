@@ -32,15 +32,16 @@ agents without those headers connect normally. Idle sessions are closed after
 
 ## Configuration
 
-| Variable                    | Required | Default | Description                                                       |
-| --------------------------- | -------- | ------- | ----------------------------------------------------------------- |
-| `BACKEND_BASE_URL`          | yes      | —       | Backend origin, e.g. `http://backend:8000`.                       |
-| `MARKET_DATA_SERVICE_TOKEN` | yes      | —       | Shared secret sent as `X-Service-Token` to the data plane.        |
-| `PORT`                      | no       | `8080`  | HTTP listen port.                                                 |
-| `ENVIRONMENT`               | no       | `dev`   | Deployment environment (`prod` or `dev`). Configures logging handler and default level. |
-| `LOG_LEVEL`                 | no       | —       | Log level override (`DEBUG`, `INFO`, `WARN`/`WARNING`, `ERROR`).  |
-| `MAX_CONCURRENCY`           | no       | `10`    | Maximum concurrent outbound requests to the backend data plane. Must be a positive integer. |
-| `SESSION_IDLE_TIMEOUT`      | no       | `30m`   | Idle timeout after which inactive MCP sessions are closed. Must be a positive Go duration string (e.g. `5m`, `1h`). |
+| Variable                    | Required | Default                | Description                                                       |
+| --------------------------- | -------- | ---------------------- | ----------------------------------------------------------------- |
+| `BACKEND_BASE_URL`          | yes      | —                      | Backend origin, e.g. `http://backend:8000`.                       |
+| `MARKET_DATA_SERVICE_TOKEN` | yes      | —                      | Shared secret sent as `X-Service-Token` to the data plane.        |
+| `DATA_PLANE_PATH`           | no       | `/api/v1/market/data`  | Path prefix for backend data plane endpoints (also accepts `MARKET_DATA_PATH`). |
+| `PORT`                      | no       | `8080`                 | HTTP listen port.                                                 |
+| `ENVIRONMENT`               | no       | `dev`                  | Deployment environment (`prod` or `dev`). Configures logging handler and default level. |
+| `LOG_LEVEL`                 | no       | —                      | Log level override (`DEBUG`, `INFO`, `WARN`/`WARNING`, `ERROR`).  |
+| `MAX_CONCURRENCY`           | no       | `10`                   | Maximum concurrent outbound requests to the backend data plane. Must be a positive integer. |
+| `SESSION_IDLE_TIMEOUT`      | no       | `30m`                  | Idle timeout after which inactive MCP sessions are closed. Must be a positive Go duration string (e.g. `5m`, `1h`). |
 
 A missing or unusable required value is a startup error. The token value is
 never logged and never appears in an error message.
@@ -89,10 +90,11 @@ On top of the shared `Transport`, domains isolate their path prefix and service 
 
 ## Backend data plane
 
-Every request is sent to `BACKEND_BASE_URL + /api/v1/market/data/...` with the
-`X-Service-Token` header and `Accept: application/json`. The route paths and
-query parameter names are a stable contract defined in
-`src/market/data_router.py` and published as an OpenAPI contract snapshot artifact at
+Every request is sent to `BACKEND_BASE_URL + DATA_PLANE_PATH + /...`
+(default `/api/v1/market/data/...`) with the `X-Service-Token` header and
+`Accept: application/json`. The route paths and query parameter names are a stable
+contract defined in `src/market/data_router.py` and published as an OpenAPI
+contract snapshot artifact at
 [`tests/market/contracts/data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json).
 The artifact is the committed source of truth; parity is verified by both
 backend contract tests (`tests/market/test_data_plane_contract.py`) and Go

@@ -70,6 +70,7 @@ services:
       ENVIRONMENT: "${ENVIRONMENT:-prod}"
       BACKEND_BASE_URL: "http://backend:8000"
       MARKET_DATA_SERVICE_TOKEN: "${MARKET_DATA_SERVICE_TOKEN:?MARKET_DATA_SERVICE_TOKEN must be set}"
+      DATA_PLANE_PATH: "${DATA_PLANE_PATH:-/api/v1/market/data}"
     depends_on:
       backend:
         condition: service_healthy

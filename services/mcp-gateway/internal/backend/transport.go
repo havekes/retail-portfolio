@@ -46,11 +46,12 @@ func ValidateBaseURL(raw string) error {
 	return nil
 }
 
-// Options configures a Transport.
+// Options configures a Transport and backend client.
 type Options struct {
 	BaseURL        string
 	MaxConcurrency int
 	RequestTimeout time.Duration
+	DataPlanePath  string
 }
 
 // Transport executes outbound HTTP calls to the backend data plane.
