@@ -9,7 +9,7 @@ byte-comparison path end to end.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 import threading
@@ -1975,7 +1975,7 @@ async def test_indicator_unknown_symbol_404_and_empty_points_404(
 
 
 @pytest.fixture
-def span_exporter() -> InMemorySpanExporter:
+def span_exporter() -> Iterator[InMemorySpanExporter]:
     reset_observability()
     exporter = InMemorySpanExporter()
     bootstrap_observability(
@@ -1987,7 +1987,10 @@ def span_exporter() -> InMemorySpanExporter:
         ),
         span_processor=SimpleSpanProcessor(exporter),
     )
-    return exporter
+    try:
+        yield exporter
+    finally:
+        reset_observability()
 
 
 @pytest.mark.anyio

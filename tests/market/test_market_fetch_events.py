@@ -356,7 +356,7 @@ async def test_service_daily_eod_fetch_emits_event_per_security(
     spans = _fetch_spans(span_exporter)
     assert len(spans) == 2
     emitted = [dict(span.attributes or {}) for span in spans]
-    assert [attributes["symbol"] for attributes in emitted] == ["AAPL", "MSFT"]
+    assert sorted(attributes["symbol"] for attributes in emitted) == ["AAPL", "MSFT"]
     for attributes in emitted:
         assert attributes["event.name"] == "market.data.fetched"
         assert attributes["dataset"] == "eod"
