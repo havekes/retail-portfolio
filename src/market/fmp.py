@@ -44,7 +44,7 @@ from src.market.exception import (
     MarketDataNotFoundError,
     MarketDataProviderError,
 )
-from src.market.gateway import MarketGateway
+from src.market.gateway import MarketGateway, freshness_lag_ms, record_fetch
 
 logger = logging.getLogger(__name__)
 
@@ -440,8 +440,20 @@ class FmpGateway(MarketGateway):
         to_date: date,
         security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
-        payload = self._fetch_historical(symbol, exchange, from_date, to_date)
-        return self._parse_historical(payload, security_id, symbol, exchange)
+        with record_fetch(
+            symbol=symbol,
+            dataset="eod",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_historical(symbol, exchange, from_date, to_date)
+            prices = self._parse_historical(payload, security_id, symbol, exchange)
+            fetch.row_count = len(prices)
+            if prices:
+                fetch.freshness_lag_ms = freshness_lag_ms(
+                    max(price.date for price in prices)
+                )
+            return prices
 
     def _fetch_search(self, query: str) -> list[dict[str, Any]]:
         """Fetch search results from FMP stable search-symbol and search-name endpoints.
@@ -466,21 +478,28 @@ class FmpGateway(MarketGateway):
         return results
 
     def search(self, query: str) -> list[SecuritySearchResult]:
-        results = self._fetch_search(query)
-        return [
-            SecuritySearchResult(
-                code=result.get("symbol") or "",
-                exchange=result.get("exchangeShortName")
-                or result.get("exchange")
-                or "",
-                name=result.get("name") or "",
-                currency=result.get("currency") or "",
-                security_type=result.get("type") or "",
-                isin=result.get("isin"),
-                country=result.get("country") or "",
-            )
-            for result in results
-        ]
+        with record_fetch(
+            symbol=query,
+            dataset="search",
+            provider="fmp",
+        ) as fetch:
+            results = self._fetch_search(query)
+            items = [
+                SecuritySearchResult(
+                    code=result.get("symbol") or "",
+                    exchange=result.get("exchangeShortName")
+                    or result.get("exchange")
+                    or "",
+                    name=result.get("name") or "",
+                    currency=result.get("currency") or "",
+                    security_type=result.get("type") or "",
+                    isin=result.get("isin"),
+                    country=result.get("country") or "",
+                )
+                for result in results
+            ]
+            fetch.row_count = len(items)
+            return items
 
     def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
         """Look up symbols/companies matching a free-text query.
@@ -490,26 +509,32 @@ class FmpGateway(MarketGateway):
         not fail the whole lookup (mirrors the tolerating-missing-fields
         convention used by ``search``).
         """
-        results = self._fetch_search(query)
-        lookups: list[SymbolLookupResult] = []
-        for result in results:
-            symbol = _to_str(result.get("symbol"))
-            if symbol is None:
-                continue
-            lookups.append(
-                SymbolLookupResult(
-                    symbol=symbol,
-                    name=result.get("name") or "",
-                    exchange=result.get("exchange"),
-                    exchange_short_name=_to_str(
-                        _pick(result, "exchangeShortName", "exchange")
-                    ),
-                    currency=result.get("currency"),
-                    security_type=result.get("type"),
-                    country=result.get("country"),
+        with record_fetch(
+            symbol=query,
+            dataset="search",
+            provider="fmp",
+        ) as fetch:
+            results = self._fetch_search(query)
+            lookups: list[SymbolLookupResult] = []
+            for result in results:
+                symbol = _to_str(result.get("symbol"))
+                if symbol is None:
+                    continue
+                lookups.append(
+                    SymbolLookupResult(
+                        symbol=symbol,
+                        name=result.get("name") or "",
+                        exchange=result.get("exchange"),
+                        exchange_short_name=_to_str(
+                            _pick(result, "exchangeShortName", "exchange")
+                        ),
+                        currency=result.get("currency"),
+                        security_type=result.get("type"),
+                        country=result.get("country"),
+                    )
                 )
-            )
-        return lookups
+            fetch.row_count = len(lookups)
+            return lookups
 
     # ------------------------------------------------------------------ #
     # Fundamentals capabilities.
@@ -563,8 +588,16 @@ class FmpGateway(MarketGateway):
         *,
         exchange: str | None = None,
     ) -> CompanyProfile:
-        payload = self._fetch_company_profile(symbol, exchange)
-        return self._parse_company_profile(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="fundamentals",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_company_profile(symbol, exchange)
+            profile = self._parse_company_profile(payload, symbol)
+            fetch.row_count = 1
+            return profile
 
     def _fetch_income_statement(
         self,
@@ -654,10 +687,22 @@ class FmpGateway(MarketGateway):
         exchange: str | None = None,
     ) -> list[IncomeStatement]:
         validated_period = _validate_period(period)
-        payload = self._fetch_income_statement(
-            symbol, validated_period, limit, exchange
-        )
-        return self._parse_income_statement(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="statements",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_income_statement(
+                symbol, validated_period, limit, exchange
+            )
+            statements = self._parse_income_statement(payload, symbol)
+            fetch.row_count = len(statements)
+            if statements:
+                fetch.freshness_lag_ms = freshness_lag_ms(
+                    max(statement.date for statement in statements)
+                )
+            return statements
 
     def _fetch_balance_sheet(
         self,
@@ -733,8 +778,22 @@ class FmpGateway(MarketGateway):
         exchange: str | None = None,
     ) -> list[BalanceSheet]:
         validated_period = _validate_period(period)
-        payload = self._fetch_balance_sheet(symbol, validated_period, limit, exchange)
-        return self._parse_balance_sheet(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="statements",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_balance_sheet(
+                symbol, validated_period, limit, exchange
+            )
+            sheets = self._parse_balance_sheet(payload, symbol)
+            fetch.row_count = len(sheets)
+            if sheets:
+                fetch.freshness_lag_ms = freshness_lag_ms(
+                    max(sheet.date for sheet in sheets)
+                )
+            return sheets
 
     def _fetch_cash_flow_statement(
         self,
@@ -829,10 +888,22 @@ class FmpGateway(MarketGateway):
         exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         validated_period = _validate_period(period)
-        payload = self._fetch_cash_flow_statement(
-            symbol, validated_period, limit, exchange
-        )
-        return self._parse_cash_flow_statement(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="statements",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_cash_flow_statement(
+                symbol, validated_period, limit, exchange
+            )
+            statements = self._parse_cash_flow_statement(payload, symbol)
+            fetch.row_count = len(statements)
+            if statements:
+                fetch.freshness_lag_ms = freshness_lag_ms(
+                    max(statement.date for statement in statements)
+                )
+            return statements
 
     def _fetch_key_metrics(self, symbol: str, exchange: str | None) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
@@ -884,8 +955,18 @@ class FmpGateway(MarketGateway):
         *,
         exchange: str | None = None,
     ) -> KeyMetrics:
-        payload = self._fetch_key_metrics(symbol, exchange)
-        return self._parse_key_metrics(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="fundamentals",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_key_metrics(symbol, exchange)
+            metrics = self._parse_key_metrics(payload, symbol)
+            fetch.row_count = 1
+            if metrics.date:
+                fetch.freshness_lag_ms = freshness_lag_ms(metrics.date)
+            return metrics
 
     def _fetch_financial_ratios(
         self,
@@ -948,8 +1029,18 @@ class FmpGateway(MarketGateway):
         exchange: str | None = None,
     ) -> FinancialRatios:
         validated_period = _validate_period(period)
-        payload = self._fetch_financial_ratios(symbol, validated_period, exchange)
-        return self._parse_financial_ratios(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="fundamentals",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_financial_ratios(symbol, validated_period, exchange)
+            ratios = self._parse_financial_ratios(payload, symbol)
+            fetch.row_count = 1
+            if ratios.date:
+                fetch.freshness_lag_ms = freshness_lag_ms(ratios.date)
+            return ratios
 
     def _fetch_quote(self, symbol: str, exchange: str | None) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
@@ -986,8 +1077,18 @@ class FmpGateway(MarketGateway):
         *,
         exchange: str | None = None,
     ) -> Quote:
-        payload = self._fetch_quote(symbol, exchange)
-        return self._parse_quote(payload, symbol)
+        with record_fetch(
+            symbol=symbol,
+            dataset="quote",
+            provider="fmp",
+            exchange=exchange or None,
+        ) as fetch:
+            payload = self._fetch_quote(symbol, exchange)
+            quote = self._parse_quote(payload, symbol)
+            fetch.row_count = 1
+            if quote.timestamp:
+                fetch.freshness_lag_ms = freshness_lag_ms(quote.timestamp)
+            return quote
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,

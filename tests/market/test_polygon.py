@@ -8,11 +8,18 @@ reuses one session across pagination pages, which the reuse test asserts.
 
 from datetime import date
 from decimal import Decimal
-from typing import cast
+from typing import Any, cast
 from unittest.mock import patch
 
 import pytest
 import requests
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
+
+from src.config.settings import Settings
+from src.observability import bootstrap_observability, reset_observability
 
 from src.market.api_types import OptionExpirations, OptionsChain, OptionsContract
 from src.market.exception import (
@@ -690,3 +697,118 @@ def test_stub_polygon_gateway_serves_deterministic_expirations():
 
     with pytest.raises(MarketDataNotFoundError):
         gateway.get_option_expirations("ZZZZ")
+
+
+# --------------------------------------------------------------------------- #
+# Wide events: market.data.fetched
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_observability():
+    yield
+    reset_observability()
+
+
+@pytest.fixture
+def span_exporter() -> InMemorySpanExporter:
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+def _fetch_spans(exporter: InMemorySpanExporter) -> list[Any]:
+    return [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "market.data.fetched"
+    ]
+
+
+def _single_fetch_attributes(exporter: InMemorySpanExporter) -> dict[str, Any]:
+    spans = _fetch_spans(exporter)
+    assert len(spans) == 1, f"expected exactly one fetch event, got {len(spans)}"
+    attributes = spans[0].attributes
+    assert attributes is not None
+    return dict(attributes)
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_options_chain_emits_wide_event(session_cls, span_exporter: InMemorySpanExporter):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload={"results": [_result("O:SPY240119C00400000", "400", "2024-01-19", "call")]}
+    )
+
+    gateway = PolygonGateway(api_key="key")
+    chain = gateway.get_options_chain("SPY")
+
+    assert len(chain.contracts) == 1
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["event.name"] == "market.data.fetched"
+    assert attributes["symbol"] == "SPY"
+    assert attributes["dataset"] == "options"
+    assert attributes["provider"] == "polygon"
+    assert attributes["outcome"] == "success"
+    assert attributes["duration_ms"] > 0
+    assert attributes["row_count"] == 1
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_options_chain_failure_emits_wide_event(session_cls, span_exporter: InMemorySpanExporter):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=404)
+
+    gateway = PolygonGateway(api_key="key")
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_options_chain("UNKNOWN")
+
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "UNKNOWN"
+    assert attributes["dataset"] == "options"
+    assert attributes["provider"] == "polygon"
+    assert attributes["outcome"] == "failure"
+    assert attributes["error_slug"] == "market_data_not_found_error"
+    assert attributes["duration_ms"] > 0
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_emits_wide_event(session_cls, span_exporter: InMemorySpanExporter):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload={"results": [{"expiration_date": "2025-01-17"}]}
+    )
+
+    gateway = PolygonGateway(api_key="key")
+    expirations = gateway.get_option_expirations("AAPL")
+
+    assert len(expirations.expirations) == 1
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "options"
+    assert attributes["provider"] == "polygon"
+    assert attributes["outcome"] == "success"
+    assert attributes["duration_ms"] > 0
+    assert attributes["row_count"] == 1
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_failure_emits_wide_event(session_cls, span_exporter: InMemorySpanExporter):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=404)
+
+    gateway = PolygonGateway(api_key="key")
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_option_expirations("UNKNOWN")
+
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "UNKNOWN"
+    assert attributes["dataset"] == "options"
+    assert attributes["provider"] == "polygon"
+    assert attributes["outcome"] == "failure"
+    assert attributes["error_slug"] == "market_data_not_found_error"
+    assert attributes["duration_ms"] > 0

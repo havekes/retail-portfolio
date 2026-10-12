@@ -14,10 +14,15 @@ from uuid import uuid4
 
 import pytest
 import svcs
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from src.config.services import register_market_stub_services
-from src.config.settings import settings
+from src.config.settings import Settings, settings
+from src.observability import bootstrap_observability, reset_observability
 from src.market import register_market_services
 from src.market.api_types import HistoricalPrice
 from src.market.endpoint_cache import (
@@ -607,3 +612,137 @@ async def test_registered_in_market_registries() -> None:
         async with svcs.Container(registry) as container:
             resolved = await container.aget(EndpointResponseCache)
         assert isinstance(resolved, EndpointResponseCache)
+
+
+# --------------------------------------------------------------------------- #
+# Wide events: market.cache.accessed
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_observability():
+    yield
+    reset_observability()
+
+
+@pytest.fixture
+def span_exporter() -> InMemorySpanExporter:
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+def _cache_spans(exporter: InMemorySpanExporter) -> list[Any]:
+    return [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "market.cache.accessed"
+    ]
+
+
+def _cache_attributes(exporter: InMemorySpanExporter) -> dict[str, Any]:
+    spans = _cache_spans(exporter)
+    assert len(spans) == 1, f"expected exactly one cache event, got {len(spans)}"
+    attributes = spans[0].attributes
+    assert attributes is not None
+    return dict(attributes)
+
+
+@pytest.mark.anyio
+async def test_get_cache_miss_emits_wide_event(
+    cache: EndpointResponseCache,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    assert await cache.get("prices", "daily", PRICE_PARAMS) is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["event.name"] == "market.cache.accessed"
+    assert attributes["cache_kind"] == "endpoint"
+    assert attributes["key_class"] == "prices"
+    assert attributes["outcome"] == "miss"
+    assert attributes["ttl_seconds"] == PRICES_TTL
+    assert "error_slug" not in attributes
+
+
+@pytest.mark.anyio
+async def test_get_cache_hit_emits_wide_event(
+    cache: EndpointResponseCache,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    await cache.set("prices", "daily", PRICE_PARAMS, {"symbol": "AAPL"})
+    span_exporter.clear()
+
+    result = await cache.get("prices", "daily", PRICE_PARAMS)
+    assert result == {"symbol": "AAPL"}
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "endpoint"
+    assert attributes["key_class"] == "prices"
+    assert attributes["outcome"] == "hit"
+    assert attributes["ttl_seconds"] == PRICES_TTL
+
+
+@pytest.mark.anyio
+async def test_cached_negative_entry_emits_negative_outcome(
+    cache: EndpointResponseCache,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    span_exporter.clear()
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "endpoint"
+    assert attributes["key_class"] == "prices"
+    assert attributes["outcome"] == "negative"
+    assert attributes["ttl_seconds"] == NEGATIVE_TTL
+
+
+@pytest.mark.anyio
+async def test_redis_error_on_read_emits_miss_with_error_slug(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+    monkeypatch: pytest.MonkeyPatch,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    async def _raising_get(key: str) -> None:  # noqa: ARG001
+        raise RedisConnectionError("offline")
+
+    monkeypatch.setattr(mock_redis_storage, "get", _raising_get)
+
+    assert await cache.get("prices", "daily", PRICE_PARAMS) is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "endpoint"
+    assert attributes["key_class"] == "prices"
+    assert attributes["outcome"] == "miss"
+    assert attributes["error_slug"] == "cache_error"
+    assert attributes["ttl_seconds"] == PRICES_TTL
+
+
+@pytest.mark.anyio
+async def test_set_emits_write_event(
+    cache: EndpointResponseCache,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    await cache.set("prices", "daily", PRICE_PARAMS, {"symbol": "AAPL"})
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "endpoint"
+    assert attributes["key_class"] == "prices"
+    assert attributes["outcome"] == "write"
+    assert attributes["ttl_seconds"] == PRICES_TTL

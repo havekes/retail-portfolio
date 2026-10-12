@@ -13,6 +13,13 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
+
+from src.config.settings import Settings
+from src.observability import bootstrap_observability, reset_observability
 
 from src.market.api_types import (
     BalanceSheet,
@@ -1381,3 +1388,156 @@ def test_stub_fmp_gateway_quote_is_deterministic():
         gateway.get_quote("ZZZZ")
     with pytest.raises(MarketDataProviderError):
         StubFmpGateway(api_key="stub", fail_on_symbols={"AAPL"}).get_quote("AAPL")
+
+
+# --------------------------------------------------------------------------- #
+# Wide events: market.data.fetched
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_observability():
+    yield
+    reset_observability()
+
+
+@pytest.fixture
+def span_exporter() -> InMemorySpanExporter:
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+def _fetch_spans(exporter: InMemorySpanExporter) -> list[Any]:
+    return [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "market.data.fetched"
+    ]
+
+
+def _single_fetch_attributes(exporter: InMemorySpanExporter) -> dict[str, Any]:
+    spans = _fetch_spans(exporter)
+    assert len(spans) == 1, f"expected exactly one fetch event, got {len(spans)}"
+    attributes = spans[0].attributes
+    assert attributes is not None
+    return dict(attributes)
+
+
+def test_fmp_get_prices_emits_wide_event(span_exporter: InMemorySpanExporter) -> None:
+    gateway = _gateway(lambda _r: httpx.Response(200, json=_FMP_PAYLOAD))
+
+    prices = gateway.get_prices("AAPL", "US", date(2024, 1, 1), date(2024, 1, 10))
+
+    assert len(prices) == 2
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["event.name"] == "market.data.fetched"
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "eod"
+    assert attributes["provider"] == "fmp"
+    assert attributes["exchange"] == "US"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 2
+    assert attributes["duration_ms"] > 0
+    assert isinstance(attributes["freshness_lag_ms"], int)
+
+
+def test_fmp_fetch_failure_emits_wide_event(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    gateway = _gateway(lambda _r: httpx.Response(500))
+
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_prices("AAPL", "US", date(2024, 1, 1), date(2024, 1, 10))
+
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "eod"
+    assert attributes["provider"] == "fmp"
+    assert attributes["outcome"] == "failure"
+    assert attributes["error_slug"] == "market_data_provider_error"
+    assert attributes["duration_ms"] > 0
+
+
+def test_fmp_fundamentals_profile_emits_wide_event(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    gateway = _gateway(lambda _r: httpx.Response(200, json=_PROFILE_PAYLOAD))
+
+    profile = gateway.get_company_profile("AAPL")
+
+    assert profile.symbol == "AAPL"
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "fundamentals"
+    assert attributes["provider"] == "fmp"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 1
+
+
+def test_fmp_quote_emits_wide_event(span_exporter: InMemorySpanExporter) -> None:
+    gateway = _gateway(lambda _r: httpx.Response(200, json=_QUOTE_PAYLOAD))
+
+    quote = gateway.get_quote("AAPL")
+
+    assert quote.symbol == "AAPL"
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "quote"
+    assert attributes["provider"] == "fmp"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 1
+    assert isinstance(attributes["freshness_lag_ms"], int)
+
+
+def test_fmp_statements_emits_wide_event(span_exporter: InMemorySpanExporter) -> None:
+    gateway = _gateway(lambda _r: httpx.Response(200, json=_INCOME_PAYLOAD))
+
+    statements = gateway.get_income_statement("AAPL")
+
+    assert len(statements) == 2
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "statements"
+    assert attributes["provider"] == "fmp"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 2
+    assert isinstance(attributes["freshness_lag_ms"], int)
+
+
+def test_fmp_search_emits_wide_event(span_exporter: InMemorySpanExporter) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:  # noqa: ARG001
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "symbol": "AAPL",
+                    "name": "Apple Inc.",
+                    "currency": "USD",
+                    "exchange": "NASDAQ",
+                    "exchangeShortName": "NASDAQ",
+                    "type": "stock",
+                    "country": "US",
+                }
+            ],
+        )
+
+    gateway = _gateway(handler)
+
+    results = gateway.lookup_symbol("AAPL")
+
+    assert len(results) == 1
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["dataset"] == "search"
+    assert attributes["provider"] == "fmp"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 1
