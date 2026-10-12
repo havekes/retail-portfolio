@@ -33,6 +33,7 @@
 		type HoldingsTableConfig
 	} from './holdings-table-columns';
 	import ValuationModal from '$lib/components/actions-sidebar/fundamentals/valuation-modal.svelte';
+	import StockLogo from '$lib/components/stock-logo.svelte';
 	import { ModalState } from '$lib/utils/modal-state.svelte';
 	import type { SecurityValuationRead } from '$lib/api/valuationClient';
 
@@ -477,15 +478,23 @@
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="flex w-fit flex-col rounded-md px-2 py-1 transition-colors hover:bg-background/60"
+					class="flex w-fit items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-background/60"
 				>
-					<span
-						data-testid="security-symbol"
-						class="inline-block text-sm leading-tight font-semibold text-primary"
-					>
-						{row.security_symbol}
-					</span>
-					<span class="text-[10px] leading-tight text-muted-foreground">{row.security_name}</span>
+					<StockLogo
+						securityId={row.security_id}
+						symbol={row.security_symbol}
+						size="md"
+						class="size-7 shrink-0"
+					/>
+					<div class="flex flex-col">
+						<span
+							data-testid="security-symbol"
+							class="inline-block text-sm leading-tight font-semibold text-primary"
+						>
+							{row.security_symbol}
+						</span>
+						<span class="text-[10px] leading-tight text-muted-foreground">{row.security_name}</span>
+					</div>
 				</a>
 			</Table.Cell>
 		{/if}

@@ -258,7 +258,7 @@ describe('AppSidebar Modular Components', () => {
 			expect(screen.getByText('Alphabet Inc.')).toBeInTheDocument();
 		});
 
-		it('centers and scales 1 to 5 char tickers in collapsed state without truncation', () => {
+		it('renders stock logos in collapsed state for securities', () => {
 			render(AppSidebarTestHarness, {
 				props: {
 					open: false,
@@ -266,35 +266,15 @@ describe('AppSidebar Modular Components', () => {
 				}
 			});
 
-			// 1 char: 'C' -> text-xs
-			const cTicker = screen.getByText('C');
-			expect(cTicker).toBeInTheDocument();
-			expect(cTicker).toHaveClass('text-xs');
-			expect(cTicker).not.toHaveClass('truncate');
+			const logos = document.querySelectorAll('[data-testid="stock-logo"]');
+			expect(logos.length).toBeGreaterThan(0);
 
-			// 2 chars: 'BA' -> text-xs
-			const baTicker = screen.getByText('BA');
-			expect(baTicker).toBeInTheDocument();
-			expect(baTicker).toHaveClass('text-xs');
-			expect(baTicker).not.toHaveClass('truncate');
-
-			// 3 chars: 'SPY' -> text-[10px]
-			const spyTicker = screen.getByText('SPY');
-			expect(spyTicker).toBeInTheDocument();
-			expect(spyTicker).toHaveClass('text-[10px]');
-			expect(spyTicker).not.toHaveClass('truncate');
-
-			// 4 chars: 'AAPL' -> text-[10px]
-			const aaplTicker = screen.getByText('AAPL');
-			expect(aaplTicker).toBeInTheDocument();
-			expect(aaplTicker).toHaveClass('text-[10px]');
-			expect(aaplTicker).not.toHaveClass('truncate');
-
-			// 5 chars: 'GOOGL' -> text-[8.5px]
-			const googlTicker = screen.getByText('GOOGL');
-			expect(googlTicker).toBeInTheDocument();
-			expect(googlTicker).toHaveClass('text-[8.5px]');
-			expect(googlTicker).not.toHaveClass('truncate');
+			// Fallback monogram initials for tickers are rendered
+			expect(screen.getByText('C')).toBeInTheDocument();
+			expect(screen.getByText('BA')).toBeInTheDocument();
+			expect(screen.getByText('SP')).toBeInTheDocument();
+			expect(screen.getByText('AA')).toBeInTheDocument();
+			expect(screen.getByText('GO')).toBeInTheDocument();
 
 			// Company names should not be rendered in collapsed view
 			expect(screen.queryByText('Apple Inc.')).not.toBeInTheDocument();
@@ -335,6 +315,9 @@ describe('AppSidebar Modular Components', () => {
 			const spyLink = screen.getByText('SPY').closest('a');
 			expect(spyLink).toHaveAttribute('href', '/security/sec-3');
 			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+
+			const logos = document.querySelectorAll('[data-testid="stock-logo"]');
+			expect(logos.length).toBeGreaterThan(0);
 		});
 
 		it('shows numeric shortcut hints on default watchlist tickers only', () => {
@@ -358,7 +341,7 @@ describe('AppSidebar Modular Components', () => {
 				['BA', '2']
 			];
 			for (const [ticker, hint] of expected) {
-				const link = screen.getByText(ticker).closest('a') as HTMLElement;
+				const link = screen.getAllByText(ticker)[0].closest('a') as HTMLElement;
 				expect(link.querySelector('[data-slot="kbd"]')?.textContent).toBe(hint);
 			}
 
@@ -538,7 +521,7 @@ describe('AppSidebar Modular Components', () => {
 			expect(screen.getByText('SPY')).toBeInTheDocument();
 		});
 
-		it('shows ticker-only tickers in collapsed mode for watchlist securities', () => {
+		it('shows stock logo in collapsed mode for watchlist securities', () => {
 			render(AppSidebarTestHarness, {
 				props: {
 					open: false,
@@ -547,9 +530,8 @@ describe('AppSidebar Modular Components', () => {
 				}
 			});
 
-			const googlTicker = screen.getByText('GOOGL');
-			expect(googlTicker).toHaveClass('text-[8.5px]');
-			expect(googlTicker).not.toHaveClass('truncate');
+			const logos = document.querySelectorAll('[data-testid="stock-logo"]');
+			expect(logos.length).toBeGreaterThan(0);
 			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
 		});
 

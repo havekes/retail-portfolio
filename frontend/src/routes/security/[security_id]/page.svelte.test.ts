@@ -5421,6 +5421,11 @@ describe('Security Page - Instant Shell with Async Chart Data', () => {
 		// Deliberately no `waitFor`: the shell must already be on screen.
 		expect(screen.getByText('AAPL')).toBeInTheDocument();
 		expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+		expect(screen.getByTestId('stock-logo')).toBeInTheDocument();
+		expect(screen.getByRole('img')).toHaveAttribute(
+			'src',
+			`/api/v1/market/securities/${aaplSecurity.id}/logo`
+		);
 		expect(screen.getByText('Loading chart data...')).toBeInTheDocument();
 		expect(mockChartProps).toBeNull();
 
