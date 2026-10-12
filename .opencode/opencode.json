@@ -20,7 +20,7 @@
       "model": "opencode-go/glm-5.3-flash"
     },
     "spec-writer": {
-      "model": "opencode-go/grok-4.7"
+      "model": "opencode-go/deepseek-v4-pro"
     }
   }
 }
