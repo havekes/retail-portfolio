@@ -82,7 +82,8 @@ describe('StockLogo Component', () => {
 		expect(screen.queryByRole('img')).not.toBeInTheDocument();
 	});
 
-	it('shows monogram fallback immediately when securityId is missing or null', () => {
+	it('renders image pointing to the logo by symbol endpoint when securityId is null', () => {
+		const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 		render(StockLogo, {
 			props: {
 				securityId: null,
@@ -90,10 +91,38 @@ describe('StockLogo Component', () => {
 			}
 		});
 
+		const img = screen.getByRole('img');
+		expect(img).toBeInTheDocument();
+		expect(img).toHaveAttribute('src', `${apiBaseUrl}/api/v1/market/logo?symbol=GOOGL`);
+		expect(img).toHaveAttribute('alt', 'GOOGL logo');
+	});
+
+	it('renders image pointing to the logo by symbol and exchange endpoint when exchange is provided', () => {
+		const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+		render(StockLogo, {
+			props: {
+				symbol: 'RY',
+				exchange: 'TSX'
+			}
+		});
+
+		const img = screen.getByRole('img');
+		expect(img).toBeInTheDocument();
+		expect(img).toHaveAttribute('src', `${apiBaseUrl}/api/v1/market/logo?symbol=RY&exchange=TSX`);
+		expect(img).toHaveAttribute('alt', 'RY logo');
+	});
+
+	it('shows monogram fallback immediately when both securityId and symbol are missing or empty', () => {
+		render(StockLogo, {
+			props: {
+				securityId: null,
+				symbol: ''
+			}
+		});
+
 		expect(screen.queryByRole('img')).not.toBeInTheDocument();
 		const fallback = screen.getByTestId('stock-logo-fallback');
 		expect(fallback).toBeInTheDocument();
-		expect(fallback).toHaveTextContent('GO');
 	});
 
 	it('hides fallback once image is loaded', async () => {

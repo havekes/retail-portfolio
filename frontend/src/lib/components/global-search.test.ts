@@ -109,6 +109,8 @@ describe('GlobalSearch component', () => {
 
 		await waitFor(() => expect(mocks.marketService.search).toHaveBeenCalledWith('AAPL'));
 
+		expect(await screen.findByTestId('stock-logo')).toBeInTheDocument();
+
 		const toggleBtn = await screen.findByRole('button', { name: 'Toggle watchlist' });
 		const starSvg = toggleBtn.querySelector('svg');
 		expect(starSvg).toHaveClass('fill-amber-400');

@@ -328,19 +328,18 @@ async def market_get_security(
     return SecuritySchema.model_validate(security)
 
 
-@market_router.get("/securities/{security_id}/logo")
-async def market_get_security_logo(
-    security_id: SecurityId,
-    services: DepContainer,
+async def _resolve_and_cache_logo(
+    symbol: str,
+    exchange: str,
+    logo_cache: LogoCache,
 ) -> Response:
-    """
-    Get logo PNG image bytes for a security, proxying from FMP with caching.
-    """
-    security_repository = await services.aget(SecurityRepository)
-    security = await security_repository.get_by_id_or_fail(security_id)
+    clean_symbol = symbol.strip()
+    if not clean_symbol:
+        raise HTTPException(status_code=404, detail="Logo not found")
 
-    ticker = map_to_fmp_ticker(security.symbol, security.exchange)
-    logo_cache = await services.aget(LogoCache)
+    ticker = map_to_fmp_ticker(clean_symbol, exchange.strip())
+    if not ticker:
+        raise HTTPException(status_code=404, detail="Logo not found")
 
     cached_image = await logo_cache.get(ticker)
     if cached_image is not None:
@@ -352,7 +351,7 @@ async def market_get_security_logo(
             headers={"Cache-Control": "public, max-age=604800"},
         )
 
-    image_bytes = await fetch_logo_image(security.symbol, security.exchange)
+    image_bytes = await fetch_logo_image(clean_symbol, exchange.strip())
     if image_bytes is None:
         await logo_cache.set_not_found(ticker)
         raise HTTPException(status_code=404, detail="Logo not found")
@@ -363,6 +362,33 @@ async def market_get_security_logo(
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=604800"},
     )
+
+
+@market_router.get("/logo")
+async def market_get_logo(
+    services: DepContainer,
+    symbol: Annotated[str, Query(description="Ticker symbol")],
+    exchange: Annotated[str, Query(description="Exchange code")] = "",
+) -> Response:
+    """
+    Get logo PNG image bytes by ticker symbol and optional exchange.
+    """
+    logo_cache = await services.aget(LogoCache)
+    return await _resolve_and_cache_logo(symbol, exchange, logo_cache)
+
+
+@market_router.get("/securities/{security_id}/logo")
+async def market_get_security_logo(
+    security_id: SecurityId,
+    services: DepContainer,
+) -> Response:
+    """
+    Get logo PNG image bytes for a security, proxying from FMP with caching.
+    """
+    security_repository = await services.aget(SecurityRepository)
+    security = await security_repository.get_by_id_or_fail(security_id)
+    logo_cache = await services.aget(LogoCache)
+    return await _resolve_and_cache_logo(security.symbol, security.exchange, logo_cache)
 
 
 @market_router.get("/watchlists")

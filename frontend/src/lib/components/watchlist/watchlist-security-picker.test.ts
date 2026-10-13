@@ -170,6 +170,8 @@ describe('WatchlistSecurityPicker component', () => {
 		const input = screen.getByPlaceholderText('Search securities to add...');
 		await fireEvent.input(input, { target: { value: 'TSLA' } });
 
+		expect(await screen.findByTestId('stock-logo')).toBeInTheDocument();
+
 		const item = await screen.findByText(/Tesla Inc\./);
 		await fireEvent.click(item);
 

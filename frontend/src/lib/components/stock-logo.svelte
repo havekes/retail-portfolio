@@ -19,18 +19,27 @@
 	interface Props {
 		securityId?: string | null;
 		symbol: string;
+		exchange?: string | null;
 		size?: 'xs' | 'sm' | 'md' | 'lg';
 		class?: string;
 	}
 
-	let { securityId = null, symbol, size = 'md', class: className }: Props = $props();
+	let {
+		securityId = null,
+		symbol,
+		exchange = null,
+		size = 'md',
+		class: className
+	}: Props = $props();
 
 	let hasError = $state(false);
 	let isLoaded = $state(false);
 
 	$effect(() => {
-		// Reset image loading states when securityId changes
+		// Reset image loading states when identifier changes
 		void securityId;
+		void symbol;
+		void exchange;
 		hasError = false;
 		isLoaded = false;
 	});
@@ -45,6 +54,18 @@
 	};
 
 	const monogram = $derived(getMonogram(symbol));
+
+	const logoSrc = $derived.by(() => {
+		if (securityId) {
+			return `${apiBaseUrl}/api/v1/market/securities/${securityId}/logo`;
+		}
+		if (symbol && symbol.trim()) {
+			const encSymbol = encodeURIComponent(symbol.trim());
+			const encExchange = exchange && exchange.trim() ? encodeURIComponent(exchange.trim()) : '';
+			return `${apiBaseUrl}/api/v1/market/logo?symbol=${encSymbol}${encExchange ? `&exchange=${encExchange}` : ''}`;
+		}
+		return null;
+	});
 </script>
 
 <div
@@ -55,9 +76,9 @@
 		className
 	)}
 >
-	{#if !hasError && securityId}
+	{#if !hasError && logoSrc}
 		<img
-			src={`${apiBaseUrl}/api/v1/market/securities/${securityId}/logo`}
+			src={logoSrc}
 			alt={`${symbol} logo`}
 			class={cn('h-full w-full object-contain p-0.5', !isLoaded && 'invisible')}
 			onload={() => {
@@ -68,7 +89,7 @@
 			}}
 		/>
 	{/if}
-	{#if hasError || !isLoaded || !securityId}
+	{#if hasError || !isLoaded || !logoSrc}
 		<span
 			data-testid="stock-logo-fallback"
 			class={cn(
