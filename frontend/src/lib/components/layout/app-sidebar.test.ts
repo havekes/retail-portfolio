@@ -268,6 +268,7 @@ describe('AppSidebar Modular Components', () => {
 
 			const logos = document.querySelectorAll('[data-testid="stock-logo"]');
 			expect(logos.length).toBeGreaterThan(0);
+			expect(logos[0]).toHaveClass('size-8');
 
 			// Fallback monogram initials for tickers are rendered
 			expect(screen.getByText('C')).toBeInTheDocument();
@@ -318,6 +319,7 @@ describe('AppSidebar Modular Components', () => {
 
 			const logos = document.querySelectorAll('[data-testid="stock-logo"]');
 			expect(logos.length).toBeGreaterThan(0);
+			expect(logos[0]).toHaveClass('size-6');
 		});
 
 		it('shows numeric shortcut hints on default watchlist tickers only', () => {

@@ -37,14 +37,18 @@ export class SecurityPageDataService {
 		try {
 			const { from, to } = getChartDateWindow(new SvelteDate(), '1d');
 
-			const [security, priceResponse] = await Promise.all([
-				this.client.getSecurity(securityId),
-				this.client.getPrices(securityId, from, to, '1d')
-			]);
+			const securityPromise = this.client.getSecurity(securityId).then((security) => {
+				if (seq === this.loadSeq) {
+					this.security = security;
+				}
+				return security;
+			});
+
+			const pricePromise = this.client.getPrices(securityId, from, to, '1d');
+
+			const [, priceResponse] = await Promise.all([securityPromise, pricePromise]);
 
 			if (seq !== this.loadSeq) return null;
-
-			this.security = security;
 
 			if (!priceResponse.items || priceResponse.items.length === 0) {
 				this.error = 'No price data available for this security';

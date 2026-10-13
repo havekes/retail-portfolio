@@ -336,7 +336,7 @@ describe('HoldingsTable', () => {
 
 		const logos = screen.getAllByTestId('stock-logo');
 		expect(logos).toHaveLength(3);
-		expect(logos[0]).toHaveClass('size-7');
+		expect(logos[0]).toHaveClass('size-9');
 	});
 
 	it('renders account badges using Badge variant="secondary" with smaller lighter styling and a dash when blank', () => {

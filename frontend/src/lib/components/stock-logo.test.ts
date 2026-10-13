@@ -125,7 +125,7 @@ describe('StockLogo Component', () => {
 		});
 
 		const logoContainer = container.querySelector('[data-testid="stock-logo"]');
-		expect(logoContainer).toHaveClass('size-8');
+		expect(logoContainer).toHaveClass('size-10');
 		expect(logoContainer).toHaveClass('custom-logo-class');
 	});
 });

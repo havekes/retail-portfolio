@@ -61,13 +61,13 @@
 			{#snippet child({ props })}
 				<a href={resolve(`/security/${security.id}`)} {...props}>
 					{#if sidebar.state === 'collapsed'}
-						<StockLogo securityId={security.id} symbol={security.symbol} size="sm" class="size-6" />
+						<StockLogo securityId={security.id} symbol={security.symbol} size="md" class="size-8" />
 					{:else}
 						<StockLogo
 							securityId={security.id}
 							symbol={security.symbol}
-							size="sm"
-							class="mr-1.5 size-4 shrink-0"
+							size="xs"
+							class="mr-2 size-6 shrink-0"
 						/>
 						<span>{security.symbol}</span>
 						<span class="ml-1 truncate text-xs font-normal text-muted-foreground">

@@ -819,14 +819,12 @@
 	<PageHeader {isLoading} {error}>
 		{#snippet titleSlot()}
 			<div class="flex items-center gap-2">
-				{#if security}
-					<StockLogo
-						securityId={security.id}
-						symbol={security.symbol}
-						size="md"
-						class="size-6 shrink-0"
-					/>
-				{/if}
+				<StockLogo
+					securityId={security?.id ?? data.security_id}
+					symbol={security?.symbol ?? ''}
+					size="lg"
+					class="size-8 shrink-0"
+				/>
 				<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
 				{#if security}
 					{@const currentSecurity = security}

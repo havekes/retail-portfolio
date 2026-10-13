@@ -484,7 +484,7 @@
 						securityId={row.security_id}
 						symbol={row.security_symbol}
 						size="md"
-						class="size-7 shrink-0"
+						class="size-9 shrink-0"
 					/>
 					<div class="flex flex-col">
 						<span

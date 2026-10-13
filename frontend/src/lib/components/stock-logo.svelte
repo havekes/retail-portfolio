@@ -38,10 +38,10 @@
 	const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 	const sizeMap = {
-		xs: 'size-4 text-[9px]',
-		sm: 'size-5 text-[10px]',
-		md: 'size-6 text-xs',
-		lg: 'size-8 text-sm'
+		xs: 'size-6 text-[10px]',
+		sm: 'size-7 text-xs',
+		md: 'size-8 text-xs font-bold',
+		lg: 'size-10 text-sm font-bold'
 	};
 
 	const monogram = $derived(getMonogram(symbol));
