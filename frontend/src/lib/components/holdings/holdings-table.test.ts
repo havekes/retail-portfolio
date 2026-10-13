@@ -326,6 +326,17 @@ describe('HoldingsTable', () => {
 			const symbol = within(link).getByTestId('security-symbol');
 			expect(symbol.className).not.toContain('group-hover:underline');
 		}
+
+		const logos = screen.getAllByTestId('stock-logo');
+		expect(logos).toHaveLength(3);
+	});
+
+	it('renders StockLogo in the security column alongside ticker symbol and company name', () => {
+		render(HoldingsTable, { props: { holdings: sortRows } });
+
+		const logos = screen.getAllByTestId('stock-logo');
+		expect(logos).toHaveLength(3);
+		expect(logos[0]).toHaveClass('size-9');
 	});
 
 	it('renders account badges using Badge variant="secondary" with smaller lighter styling and a dash when blank', () => {

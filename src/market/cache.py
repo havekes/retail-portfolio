@@ -20,6 +20,9 @@ from src.market.schema import IndicatorSpecSchema
 logger = logging.getLogger(__name__)
 
 DEFAULT_SEARCH_CACHE_TTL = 2_592_000  # 30 days in seconds
+LOGO_CACHE_TTL = 2_592_000  # 30 days in seconds
+LOGO_NEGATIVE_CACHE_TTL = 86_400  # 1 day in seconds
+LOGO_NOT_FOUND_SENTINEL = b"__not_found__"
 
 
 class IndicatorCache:
@@ -370,6 +373,98 @@ class SecuritySearchCache:
 async def security_search_cache_factory() -> SecuritySearchCache:
     """Factory function to create security search cache instance."""
     return SecuritySearchCache(redis_manager=redis_manager)
+
+
+class LogoCache:
+    """Cache for security logo image bytes backed by Redis."""
+
+    NEGATIVE_SENTINEL: bytes = LOGO_NOT_FOUND_SENTINEL
+
+    def __init__(
+        self,
+        redis_client: Redis | None = None,
+        redis_manager: RedisManager | None = None,
+        cache_ttl: int = LOGO_CACHE_TTL,
+        negative_ttl: int = LOGO_NEGATIVE_CACHE_TTL,
+    ) -> None:
+        self._redis_client = redis_client
+        self._redis_manager = redis_manager
+        self._cache_ttl = cache_ttl
+        self._negative_ttl = negative_ttl
+
+    def _get_cache_key(self, ticker: str) -> str:
+        return f"market:logo:{ticker.strip().upper()}"
+
+    @contextlib.asynccontextmanager
+    async def _get_client(self) -> AsyncIterator[Redis]:
+        if self._redis_client is not None:
+            yield self._redis_client
+        elif self._redis_manager is not None:
+            async with self._redis_manager.client() as client:
+                yield client
+        else:
+            async with redis_manager.client() as client:
+                yield client
+
+    async def get(self, ticker: str) -> bytes | None:
+        """Get cached logo bytes or negative sentinel, or None if not cached."""
+        clean_ticker = ticker.strip().upper()
+        if not clean_ticker:
+            return None
+
+        cache_key = self._get_cache_key(clean_ticker)
+        try:
+            async with self._get_client() as client:
+                cached = await client.get(cache_key)
+
+            if cached is None:
+                return None
+            if isinstance(cached, str):
+                if cached == "__not_found__":
+                    return LOGO_NOT_FOUND_SENTINEL
+                return cached.encode("latin1")
+            return bytes(cached)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("LogoCache get error for %s: %s", clean_ticker, e)
+            return None
+
+    async def set(
+        self,
+        ticker: str,
+        image_bytes: bytes,
+        ttl: int | None = None,
+    ) -> None:
+        """Cache raw logo bytes or negative sentinel for ticker."""
+        clean_ticker = ticker.strip().upper()
+        if not clean_ticker:
+            return
+
+        cache_key = self._get_cache_key(clean_ticker)
+        effective_ttl = (
+            ttl
+            if ttl is not None
+            else (
+                self._negative_ttl
+                if image_bytes == LOGO_NOT_FOUND_SENTINEL
+                else self._cache_ttl
+            )
+        )
+
+        try:
+            async with self._get_client() as client:
+                await client.setex(cache_key, effective_ttl, image_bytes)
+            logger.debug("Cached logo bytes for ticker %s", clean_ticker)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("LogoCache set error for %s: %s", clean_ticker, e)
+
+    async def set_not_found(self, ticker: str, ttl: int | None = None) -> None:
+        """Cache negative hit for ticker."""
+        await self.set(ticker, LOGO_NOT_FOUND_SENTINEL, ttl=ttl or self._negative_ttl)
+
+
+async def logo_cache_factory() -> LogoCache:
+    """Factory function to create logo cache instance."""
+    return LogoCache(redis_manager=redis_manager)
 
 
 # --------------------------------------------------------------------------- #

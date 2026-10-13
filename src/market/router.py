@@ -19,13 +19,14 @@ from src.core.pagination import PaginatedResponse, PaginationParams
 from src.market.ai_service import AIService
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
-from src.market.cache import IndicatorCache, SecuritySearchCache
+from src.market.cache import IndicatorCache, LogoCache, SecuritySearchCache
 from src.market.enum import PriceInterval
 from src.market.exception import (
     WatchlistDuplicateNameError,
     WatchlistNotFoundError,
     WatchlistOrderIdentityError,
 )
+from src.market.fmp import fetch_logo_image, map_to_fmp_ticker
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
@@ -325,6 +326,69 @@ async def market_get_security(
     security_repository = await services.aget(SecurityRepository)
     security = await security_repository.get_by_id_or_fail(security_id)
     return SecuritySchema.model_validate(security)
+
+
+async def _resolve_and_cache_logo(
+    symbol: str,
+    exchange: str,
+    logo_cache: LogoCache,
+) -> Response:
+    clean_symbol = symbol.strip()
+    if not clean_symbol:
+        raise HTTPException(status_code=404, detail="Logo not found")
+
+    ticker = map_to_fmp_ticker(clean_symbol, exchange.strip())
+    if not ticker:
+        raise HTTPException(status_code=404, detail="Logo not found")
+
+    cached_image = await logo_cache.get(ticker)
+    if cached_image is not None:
+        if cached_image == LogoCache.NEGATIVE_SENTINEL:
+            raise HTTPException(status_code=404, detail="Logo not found")
+        return Response(
+            content=cached_image,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=604800"},
+        )
+
+    image_bytes = await fetch_logo_image(clean_symbol, exchange.strip())
+    if image_bytes is None:
+        await logo_cache.set_not_found(ticker)
+        raise HTTPException(status_code=404, detail="Logo not found")
+
+    await logo_cache.set(ticker, image_bytes)
+    return Response(
+        content=image_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=604800"},
+    )
+
+
+@market_router.get("/logo")
+async def market_get_logo(
+    services: DepContainer,
+    symbol: Annotated[str, Query(description="Ticker symbol")],
+    exchange: Annotated[str, Query(description="Exchange code")] = "",
+) -> Response:
+    """
+    Get logo PNG image bytes by ticker symbol and optional exchange.
+    """
+    logo_cache = await services.aget(LogoCache)
+    return await _resolve_and_cache_logo(symbol, exchange, logo_cache)
+
+
+@market_router.get("/securities/{security_id}/logo")
+async def market_get_security_logo(
+    security_id: SecurityId,
+    services: DepContainer,
+) -> Response:
+    """
+    Get logo PNG image bytes for a security, proxying from FMP with caching.
+    """
+    security_repository = await services.aget(SecurityRepository)
+    security = await security_repository.get_by_id_or_fail(security_id)
+    logo_cache = await services.aget(LogoCache)
+    return await _resolve_and_cache_logo(security.symbol, security.exchange, logo_cache)
 
 
 @market_router.get("/watchlists")

@@ -10,6 +10,7 @@
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import type { SecuritySchema } from '$lib/api/marketService';
 	import { sortWatchlistsByOrder } from '$lib/components/watchlist/watchlist-utils';
+	import StockLogo from '$lib/components/stock-logo.svelte';
 	import { cn } from '$lib/utils.js';
 	import { getContext } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -47,17 +48,6 @@
 		if (index < 0 || index > 9) return undefined;
 		return index === 9 ? '0' : String(index + 1);
 	}
-
-	function getTickerFontSize(symbol: string): string {
-		const len = symbol.length;
-		if (len <= 2) {
-			return 'text-xs';
-		}
-		if (len <= 4) {
-			return 'text-[10px]';
-		}
-		return 'text-[8.5px]';
-	}
 </script>
 
 {#snippet securityItem(security: SecuritySchema, shortcut?: string)}
@@ -71,15 +61,14 @@
 			{#snippet child({ props })}
 				<a href={resolve(`/security/${security.id}`)} {...props}>
 					{#if sidebar.state === 'collapsed'}
-						<span
-							class={cn(
-								'flex h-full w-full items-center justify-center overflow-visible text-center leading-none font-semibold tracking-tight whitespace-nowrap',
-								getTickerFontSize(security.symbol)
-							)}
-						>
-							{security.symbol}
-						</span>
+						<StockLogo securityId={security.id} symbol={security.symbol} size="md" class="size-8" />
 					{:else}
+						<StockLogo
+							securityId={security.id}
+							symbol={security.symbol}
+							size="xs"
+							class="mr-2 size-6 shrink-0"
+						/>
 						<span>{security.symbol}</span>
 						<span class="ml-1 truncate text-xs font-normal text-muted-foreground">
 							{security.name}

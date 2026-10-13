@@ -1,10 +1,11 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, patch
+from uuid import uuid4
 
 import pytest
 
-from src.market.model import IntradayPriceModel, PriceModel
+from src.market.model import IntradayPriceModel, PriceModel, SecurityModel
 from src.market.schema import PriceSchema
 from src.market.service import MarketService
 
@@ -1184,5 +1185,253 @@ async def test_chart_snapshot_with_valuation_in_drawings(auth_client, test_secur
         "lower_bound": 45.5,
         "upper_bound": 80.0,
     }
+
+
+@pytest.mark.anyio
+async def test_get_security_logo_public_access_unauthenticated(
+    client, test_security, mock_redis_storage, monkeypatch
+):
+    """GET /market/securities/{id}/logo is public and accessible without authentication."""
+    fake_png = b"\x89PNG\r\n\x1a\npublic_logo"
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        return fake_png
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    response = await client.get(
+        f"/api/v1/market/securities/{test_security.id}/logo"
+    )
+    assert response.status_code == 200
+    assert response.content == fake_png
+    assert "public, max-age=604800" in response.headers["cache-control"]
+
+
+@pytest.mark.anyio
+async def test_get_security_logo_not_found_security(auth_client):
+    """GET /market/securities/{id}/logo returns 404 for unknown security."""
+    fake_id = uuid4()
+    response = await auth_client.get(f"/api/v1/market/securities/{fake_id}/logo")
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_get_security_logo_success_and_cached(
+    auth_client, test_security, mock_redis_storage, monkeypatch
+):
+    """GET /market/securities/{id}/logo serves PNG bytes and caches repeat requests in Redis."""
+    fake_png = b"\x89PNG\r\n\x1a\nfake_logo_bytes"
+    fetch_calls = []
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        fetch_calls.append((symbol, exchange))
+        return fake_png
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    # First request: cache miss, calls fetch_logo_image, writes to Redis
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/logo"
+    )
+    assert response.status_code == 200
+    assert response.content == fake_png
+    assert response.headers["content-type"] == "image/png"
+    assert "public, max-age=604800" in response.headers["cache-control"]
+    assert len(fetch_calls) == 1
+    assert mock_redis_storage.data["market:logo:AAPL"] == fake_png
+
+    # Second request: cache hit, serves from Redis, does not call fetch_logo_image
+    repeat_response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/logo"
+    )
+    assert repeat_response.status_code == 200
+    assert repeat_response.content == fake_png
+    assert len(fetch_calls) == 1
+
+
+@pytest.mark.anyio
+async def test_get_security_logo_upstream_404_negative_cached(
+    auth_client, test_security, mock_redis_storage, monkeypatch
+):
+    """GET /market/securities/{id}/logo negative-caches upstream 404s."""
+    fetch_calls = []
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        fetch_calls.append((symbol, exchange))
+        return None
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    # First request: upstream 404, writes negative sentinel (__not_found__) to Redis
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/logo"
+    )
+    assert response.status_code == 404
+    assert len(fetch_calls) == 1
+    assert mock_redis_storage.data["market:logo:AAPL"] == b"__not_found__"
+
+    # Second request: negative cache hit, returns 404 without hitting upstream
+    repeat_response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/logo"
+    )
+    assert repeat_response.status_code == 404
+    assert len(fetch_calls) == 1
+
+
+@pytest.mark.anyio
+async def test_get_security_logo_canadian_ticker_suffixing(
+    auth_client, db_session, mock_redis_storage, monkeypatch
+):
+    """GET /market/securities/{id}/logo maps TSX/TO to .TO and TSXV to .V without double suffixing."""
+    tsx_sec = SecurityModel(
+        id=uuid4(),
+        symbol="RY",
+        exchange="TSX",
+        currency="CAD",
+        name="Royal Bank of Canada",
+        is_active=True,
+    )
+    to_sec = SecurityModel(
+        id=uuid4(),
+        symbol="VGRO",
+        exchange="TO",
+        currency="CAD",
+        name="Vanguard Growth ETF",
+        is_active=True,
+    )
+    already_suffixed_sec = SecurityModel(
+        id=uuid4(),
+        symbol="VGRO.TO",
+        exchange="TSX",
+        currency="CAD",
+        name="Vanguard Growth ETF Portfolio",
+        is_active=True,
+    )
+    tsxv_sec = SecurityModel(
+        id=uuid4(),
+        symbol="ABC",
+        exchange="TSXV",
+        currency="CAD",
+        name="ABC Mining Corp",
+        is_active=True,
+    )
+    db_session.add_all([tsx_sec, to_sec, already_suffixed_sec, tsxv_sec])
+    await db_session.commit()
+
+    captured_fetches = []
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        captured_fetches.append((symbol, exchange))
+        return b"\x89PNG\r\n\x1a\ncanada_logo"
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    resp_tsx = await auth_client.get(f"/api/v1/market/securities/{tsx_sec.id}/logo")
+    assert resp_tsx.status_code == 200
+    assert "market:logo:RY.TO" in mock_redis_storage.data
+
+    resp_to = await auth_client.get(f"/api/v1/market/securities/{to_sec.id}/logo")
+    assert resp_to.status_code == 200
+    assert "market:logo:VGRO.TO" in mock_redis_storage.data
+
+    resp_suffixed = await auth_client.get(
+        f"/api/v1/market/securities/{already_suffixed_sec.id}/logo"
+    )
+    assert resp_suffixed.status_code == 200
+    assert "market:logo:VGRO.TO" in mock_redis_storage.data
+    assert "market:logo:VGRO.TO.TO" not in mock_redis_storage.data
+
+    resp_tsxv = await auth_client.get(f"/api/v1/market/securities/{tsxv_sec.id}/logo")
+    assert resp_tsxv.status_code == 200
+    assert "market:logo:ABC.V" in mock_redis_storage.data
+
+
+@pytest.mark.anyio
+async def test_get_logo_by_symbol_success_and_cached(
+    client, mock_redis_storage, monkeypatch
+):
+    """GET /market/logo serves PNG bytes publicly and caches in Redis."""
+    fake_png = b"\x89PNG\r\n\x1a\npublic_logo_bytes"
+    fetch_calls = []
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        fetch_calls.append((symbol, exchange))
+        return fake_png
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    # First request: unauthenticated, cache miss, fetches and caches
+    resp = await client.get("/api/v1/market/logo?symbol=MSFT")
+    assert resp.status_code == 200
+    assert resp.content == fake_png
+    assert resp.headers["content-type"] == "image/png"
+    assert "public, max-age=604800" in resp.headers["cache-control"]
+    assert len(fetch_calls) == 1
+    assert mock_redis_storage.data["market:logo:MSFT"] == fake_png
+
+    # Second request: served from cache
+    repeat_resp = await client.get("/api/v1/market/logo?symbol=MSFT")
+    assert repeat_resp.status_code == 200
+    assert repeat_resp.content == fake_png
+    assert len(fetch_calls) == 1
+
+
+@pytest.mark.anyio
+async def test_get_logo_by_symbol_and_exchange_canadian(
+    client, mock_redis_storage, monkeypatch
+):
+    """GET /market/logo maps TSX/TSXV and avoids double suffixes."""
+    fake_png = b"\x89PNG\r\n\x1a\ncanada_logo"
+
+    async def mock_fetch(_symbol: str, _exchange: str = "") -> bytes | None:
+        return fake_png
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    resp_tsx = await client.get("/api/v1/market/logo?symbol=RY&exchange=TSX")
+    assert resp_tsx.status_code == 200
+    assert "market:logo:RY.TO" in mock_redis_storage.data
+
+    resp_to = await client.get("/api/v1/market/logo?symbol=VGRO.TO&exchange=TO")
+    assert resp_to.status_code == 200
+    assert "market:logo:VGRO.TO" in mock_redis_storage.data
+    assert "market:logo:VGRO.TO.TO" not in mock_redis_storage.data
+
+    resp_tsxv = await client.get("/api/v1/market/logo?symbol=XYZ&exchange=TSXV")
+    assert resp_tsxv.status_code == 200
+    assert "market:logo:XYZ.V" in mock_redis_storage.data
+
+
+@pytest.mark.anyio
+async def test_get_logo_by_symbol_upstream_404_negative_cached(
+    client, mock_redis_storage, monkeypatch
+):
+    """GET /market/logo negative-caches upstream 404s."""
+    fetch_calls = []
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        fetch_calls.append((symbol, exchange))
+        return None
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
+    resp = await client.get("/api/v1/market/logo?symbol=UNKNOWN")
+    assert resp.status_code == 404
+    assert len(fetch_calls) == 1
+    assert mock_redis_storage.data["market:logo:UNKNOWN"] == b"__not_found__"
+
+    repeat_resp = await client.get("/api/v1/market/logo?symbol=UNKNOWN")
+    assert repeat_resp.status_code == 404
+    assert len(fetch_calls) == 1
+
+
+@pytest.mark.anyio
+async def test_get_logo_by_symbol_missing_or_empty_symbol(client):
+    """GET /market/logo returns 422 if symbol is missing, 404 if whitespace."""
+    resp_missing = await client.get("/api/v1/market/logo")
+    assert resp_missing.status_code == 422
+
+    resp_empty = await client.get("/api/v1/market/logo?symbol=%20%20")
+    assert resp_empty.status_code == 404
 
 

@@ -6,6 +6,7 @@
 	import type { MarketSearchResult, WatchlistRead } from '@/api/marketService';
 	import { debounce } from '@/utils';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import StockLogo from '$lib/components/stock-logo.svelte';
 	import Star from '@lucide/svelte/icons/star';
 
 	let {
@@ -166,9 +167,18 @@
 							onSelect={() => onSelect(result)}
 							class="flex w-full items-center justify-between"
 						>
-							<span class="truncate">
-								<strong>{result.code}.{result.exchange}</strong> - {result.name}
-							</span>
+							<div class="flex min-w-0 items-center gap-2">
+								<StockLogo
+									symbol={result.code}
+									exchange={result.exchange}
+									securityId={getWatchlistSecurity(result)?.id}
+									size="sm"
+									class="size-6 shrink-0"
+								/>
+								<span class="truncate">
+									<strong>{result.code}.{result.exchange}</strong> - {result.name}
+								</span>
+							</div>
 							<button
 								type="button"
 								onclick={(e) => handleWatchlistToggle(e, result)}

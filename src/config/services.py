@@ -77,8 +77,10 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     from src.market.cache import (  # noqa: PLC0415
         IndicatorCache,
+        LogoCache,
         SecuritySearchCache,
         indicator_cache_factory,
+        logo_cache_factory,
         security_search_cache_factory,
     )
     from src.market.composite import (  # noqa: PLC0415
@@ -163,6 +165,7 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(SecuritySearchCache, security_search_cache_factory)
+    registry.register_factory(LogoCache, logo_cache_factory)
     registry.register_factory(FxRateProvider, fx_rate_provider_factory)
     registry.register_factory(EndpointResponseCache, endpoint_response_cache_factory)
     registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)

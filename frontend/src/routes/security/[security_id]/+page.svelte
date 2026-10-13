@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
+	import StockLogo from '$lib/components/stock-logo.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import IndicatorsGroup from '@/components/actions-sidebar/indicator/indicator-group.svelte';
 	import PriceAlertsGroup from '@/components/actions-sidebar/price-alert/price-alert-group.svelte';
@@ -818,6 +819,12 @@
 	<PageHeader {isLoading} {error}>
 		{#snippet titleSlot()}
 			<div class="flex items-center gap-2">
+				<StockLogo
+					securityId={security?.id ?? data.security_id}
+					symbol={security?.symbol ?? ''}
+					size="lg"
+					class="size-8 shrink-0"
+				/>
 				<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
 				{#if security}
 					{@const currentSecurity = security}
