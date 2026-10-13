@@ -299,6 +299,25 @@ class SymbolLookupResult(BaseModel):
     country: str | None = None
 
 
+class InstitutionalOwnershipPoint(BaseModel):
+    """Quarterly institutional ownership data point."""
+
+    date: date
+    ownership_percent: Decimal | None = None
+    investors_count: int | None = None
+    total_invested: Decimal | None = None
+
+
+class InstitutionalOwnershipResponse(BaseModel):
+    """Institutional ownership summary and quarterly historical series."""
+
+    symbol: str
+    current_ownership_percent: Decimal | None = None
+    investors_count: int | None = None
+    total_invested: Decimal | None = None
+    history: list[InstitutionalOwnershipPoint] = Field(default_factory=list)
+
+
 # --------------------------------------------------------------------------- #
 # Options
 #

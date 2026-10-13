@@ -17,6 +17,8 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipPoint,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     Quote,
@@ -781,6 +783,59 @@ _FUNDAMENTAL_FINANCIAL_RATIOS: dict[str, dict[str, Any]] = {
     },
 }
 
+_FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "current_ownership_percent": Decimal("60.12"),
+        "investors_count": 5834,
+        "total_invested": Decimal(1980000000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("60.12"),
+                "investors_count": 5834,
+                "total_invested": Decimal(1980000000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("59.85"),
+                "investors_count": 5790,
+                "total_invested": Decimal(1920000000000),
+            },
+            {
+                "date": date(2023, 12, 31),
+                "ownership_percent": Decimal("59.20"),
+                "investors_count": 5720,
+                "total_invested": Decimal(1890000000000),
+            },
+            {
+                "date": date(2023, 9, 30),
+                "ownership_percent": Decimal("58.75"),
+                "investors_count": 5650,
+                "total_invested": Decimal(1850000000000),
+            },
+        ],
+    },
+    "MSFT": {
+        "current_ownership_percent": Decimal("72.45"),
+        "investors_count": 6120,
+        "total_invested": Decimal(2300000000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("72.45"),
+                "investors_count": 6120,
+                "total_invested": Decimal(2300000000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("71.90"),
+                "investors_count": 6080,
+                "total_invested": Decimal(2250000000000),
+            },
+        ],
+    },
+}
+
 
 def _validate_period(period: str) -> str:
     """Validate an FMP statement period, mirroring the real gateway."""
@@ -1059,6 +1114,32 @@ class StubFmpGateway(MarketGateway):
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return FinancialRatios(**_FUNDAMENTAL_FINANCIAL_RATIOS[normalized])
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        """Get institutional ownership metrics and quarterly history for a symbol."""
+        _ = exchange
+        normalized = self._resolve_symbol(symbol)
+        fixture = _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP.get(normalized)
+        if fixture is None:
+            return InstitutionalOwnershipResponse(
+                symbol=normalized,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+        return InstitutionalOwnershipResponse(
+            symbol=normalized,
+            current_ownership_percent=fixture["current_ownership_percent"],
+            investors_count=fixture["investors_count"],
+            total_invested=fixture["total_invested"],
+            history=[InstitutionalOwnershipPoint(**p) for p in fixture["history"]],
+        )
 
     def get_quote(
         self,

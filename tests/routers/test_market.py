@@ -1435,3 +1435,71 @@ async def test_get_logo_by_symbol_missing_or_empty_symbol(client):
     assert resp_empty.status_code == 404
 
 
+@pytest.mark.anyio
+async def test_get_institutional_ownership_success(auth_client, test_security):
+    """Test getting institutional ownership for a known security."""
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/institutional-ownership"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["symbol"] == "AAPL"
+    assert float(data["current_ownership_percent"]) == 60.12
+    assert data["investors_count"] == 5834
+    assert len(data["history"]) == 4
+    assert data["history"][0]["date"] == "2024-06-30"
+    assert float(data["history"][0]["ownership_percent"]) == 60.12
+
+
+@pytest.mark.anyio
+async def test_get_institutional_ownership_cached_repeat(auth_client, test_security):
+    """Test institutional ownership response is cached in Redis on repeat calls."""
+    from src.core.redis import redis_manager
+
+    cache_key = f"market:institutional_ownership:{test_security.id}"
+    async with redis_manager.client() as redis:
+        await redis.delete(cache_key)
+
+    response1 = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/institutional-ownership"
+    )
+    assert response1.status_code == 200
+
+    async with redis_manager.client() as redis:
+        cached_raw = await redis.get(cache_key)
+        assert cached_raw is not None
+
+    response2 = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/institutional-ownership"
+    )
+    assert response2.status_code == 200
+    assert response2.json() == response1.json()
+
+
+@pytest.mark.anyio
+async def test_get_institutional_ownership_empty_data(auth_client, db_session):
+    """Test getting institutional ownership for a security without filings returns null percent."""
+    from uuid import uuid4
+    from src.market.model import SecurityModel
+
+    sec = SecurityModel(
+        id=uuid4(),
+        symbol="EMPTY",
+        exchange="NASDAQ",
+        currency="USD",
+        name="Empty Corp",
+        is_active=True,
+    )
+    db_session.add(sec)
+    await db_session.commit()
+
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{sec.id}/institutional-ownership"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["symbol"] == "EMPTY"
+    assert data["current_ownership_percent"] is None
+    assert data["history"] == []
+
+

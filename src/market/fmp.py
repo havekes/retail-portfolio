@@ -32,6 +32,8 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipPoint,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     Quote,
@@ -1059,6 +1061,92 @@ class FmpGateway(MarketGateway):
     ) -> Quote:
         payload = self._fetch_quote(symbol, exchange)
         return self._parse_quote(payload, symbol)
+
+    def _fetch_institutional_ownership(
+        self,
+        symbol: str,
+        exchange: str | None,
+    ) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
+        return self._get_json(
+            "api/v4/institutional-ownership/symbol-ownership", {"symbol": ticker}
+        )
+
+    def _parse_institutional_ownership(
+        self, payload: object, symbol: str, exchange: str
+    ) -> InstitutionalOwnershipResponse:
+        self._raise_for_error_payload(payload, symbol, exchange)
+        rows: object = (
+            payload
+            if isinstance(payload, list)
+            else (payload.get("data") if isinstance(payload, dict) else None)
+        )
+        if not isinstance(rows, list) or not rows:
+            return InstitutionalOwnershipResponse(
+                symbol=symbol,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+
+        points: list[InstitutionalOwnershipPoint] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            row_date = _to_date(row.get("date"))
+            if row_date is None:
+                continue
+            ownership_pct = _to_decimal(
+                _pick(row, "ownershipPercent", "ownership_percent", "ownership")
+            )
+            investors = _to_int(
+                _pick(
+                    row,
+                    "investorsCount",
+                    "investors_count",
+                    "investorCount",
+                    "investor_count",
+                )
+            )
+            total_inv = _to_decimal(_pick(row, "totalInvested", "total_invested"))
+            points.append(
+                InstitutionalOwnershipPoint(
+                    date=row_date,
+                    ownership_percent=ownership_pct,
+                    investors_count=investors,
+                    total_invested=total_inv,
+                )
+            )
+
+        points.sort(key=lambda p: p.date, reverse=True)
+
+        if not points:
+            return InstitutionalOwnershipResponse(
+                symbol=symbol,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+
+        latest = points[0]
+        return InstitutionalOwnershipResponse(
+            symbol=symbol,
+            current_ownership_percent=latest.ownership_percent,
+            investors_count=latest.investors_count,
+            total_invested=latest.total_invested,
+            history=points,
+        )
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        payload = self._fetch_institutional_ownership(symbol, exchange)
+        return self._parse_institutional_ownership(payload, symbol, exchange or "")
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,

@@ -115,6 +115,21 @@ export interface SecurityValuation {
 	updated_at?: string;
 }
 
+export interface InstitutionalOwnershipPoint {
+	date: string;
+	ownership_percent: number | null;
+	investors_count: number | null;
+	total_invested: number | null;
+}
+
+export interface InstitutionalOwnershipResponse {
+	symbol: string;
+	current_ownership_percent: number | null;
+	investors_count: number | null;
+	total_invested: number | null;
+	history: InstitutionalOwnershipPoint[];
+}
+
 export class MarketService extends ApiClient {
 	async search(query: string): Promise<MarketSearchResult[]> {
 		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
@@ -262,6 +277,17 @@ export class MarketService extends ApiClient {
 		return await this.put<WatchlistRead, { security_ids: string[] }>(
 			`/market/watchlists/${watchlistId}/securities/order`,
 			{ security_ids: securityIds },
+			{},
+			token
+		);
+	}
+
+	async getInstitutionalOwnership(
+		securityId: string,
+		token?: string | null
+	): Promise<InstitutionalOwnershipResponse | null> {
+		return await this.get<InstitutionalOwnershipResponse>(
+			`/market/securities/${securityId}/institutional-ownership`,
 			{},
 			token
 		);
