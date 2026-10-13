@@ -58,6 +58,7 @@ _INTRADAY_NOT_SUPPORTED = "capability not supported by this provider"
 # pass-through precedent set by ``SecurityApi``.
 FMP_EXCHANGE_SUFFIXES: dict[str, str] = {
     "TSX": ".TO",
+    "TO": ".TO",
     "TSXV": ".V",
     "TSX-V": ".V",
     "V": ".V",
@@ -99,6 +100,8 @@ def map_to_fmp_ticker(symbol: str, exchange: str) -> str:
         return clean_symbol
     suffix = FMP_EXCHANGE_SUFFIXES.get(clean_exchange)
     if suffix is None:
+        return clean_symbol
+    if clean_symbol.endswith(suffix):
         return clean_symbol
     return f"{clean_symbol}{suffix}"
 

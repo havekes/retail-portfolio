@@ -35,6 +35,8 @@
 		isLoaded = false;
 	});
 
+	const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+
 	const sizeMap = {
 		xs: 'size-4 text-[9px]',
 		sm: 'size-5 text-[10px]',
@@ -55,7 +57,7 @@
 >
 	{#if !hasError && securityId}
 		<img
-			src={`/api/v1/market/securities/${securityId}/logo`}
+			src={`${apiBaseUrl}/api/v1/market/securities/${securityId}/logo`}
 			alt={`${symbol} logo`}
 			class={cn('h-full w-full object-contain p-0.5', !isLoaded && 'invisible')}
 			onload={() => {

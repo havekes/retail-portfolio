@@ -1188,12 +1188,23 @@ async def test_chart_snapshot_with_valuation_in_drawings(auth_client, test_secur
 
 
 @pytest.mark.anyio
-async def test_get_security_logo_unauthorized(client, test_security):
-    """GET /market/securities/{id}/logo returns 401 when unauthenticated."""
+async def test_get_security_logo_public_access_unauthenticated(
+    client, test_security, mock_redis_storage, monkeypatch
+):
+    """GET /market/securities/{id}/logo is public and accessible without authentication."""
+    fake_png = b"\x89PNG\r\n\x1a\npublic_logo"
+
+    async def mock_fetch(symbol: str, exchange: str = "") -> bytes | None:
+        return fake_png
+
+    monkeypatch.setattr("src.market.router.fetch_logo_image", mock_fetch)
+
     response = await client.get(
         f"/api/v1/market/securities/{test_security.id}/logo"
     )
-    assert response.status_code == 401
+    assert response.status_code == 200
+    assert response.content == fake_png
+    assert "public, max-age=604800" in response.headers["cache-control"]
 
 
 @pytest.mark.anyio
@@ -1271,13 +1282,29 @@ async def test_get_security_logo_upstream_404_negative_cached(
 async def test_get_security_logo_canadian_ticker_suffixing(
     auth_client, db_session, mock_redis_storage, monkeypatch
 ):
-    """GET /market/securities/{id}/logo maps TSX to .TO and TSXV to .V."""
+    """GET /market/securities/{id}/logo maps TSX/TO to .TO and TSXV to .V without double suffixing."""
     tsx_sec = SecurityModel(
         id=uuid4(),
         symbol="RY",
         exchange="TSX",
         currency="CAD",
         name="Royal Bank of Canada",
+        is_active=True,
+    )
+    to_sec = SecurityModel(
+        id=uuid4(),
+        symbol="VGRO",
+        exchange="TO",
+        currency="CAD",
+        name="Vanguard Growth ETF",
+        is_active=True,
+    )
+    already_suffixed_sec = SecurityModel(
+        id=uuid4(),
+        symbol="VGRO.TO",
+        exchange="TSX",
+        currency="CAD",
+        name="Vanguard Growth ETF Portfolio",
         is_active=True,
     )
     tsxv_sec = SecurityModel(
@@ -1288,7 +1315,7 @@ async def test_get_security_logo_canadian_ticker_suffixing(
         name="ABC Mining Corp",
         is_active=True,
     )
-    db_session.add_all([tsx_sec, tsxv_sec])
+    db_session.add_all([tsx_sec, to_sec, already_suffixed_sec, tsxv_sec])
     await db_session.commit()
 
     captured_fetches = []
@@ -1302,6 +1329,17 @@ async def test_get_security_logo_canadian_ticker_suffixing(
     resp_tsx = await auth_client.get(f"/api/v1/market/securities/{tsx_sec.id}/logo")
     assert resp_tsx.status_code == 200
     assert "market:logo:RY.TO" in mock_redis_storage.data
+
+    resp_to = await auth_client.get(f"/api/v1/market/securities/{to_sec.id}/logo")
+    assert resp_to.status_code == 200
+    assert "market:logo:VGRO.TO" in mock_redis_storage.data
+
+    resp_suffixed = await auth_client.get(
+        f"/api/v1/market/securities/{already_suffixed_sec.id}/logo"
+    )
+    assert resp_suffixed.status_code == 200
+    assert "market:logo:VGRO.TO" in mock_redis_storage.data
+    assert "market:logo:VGRO.TO.TO" not in mock_redis_storage.data
 
     resp_tsxv = await auth_client.get(f"/api/v1/market/securities/{tsxv_sec.id}/logo")
     assert resp_tsxv.status_code == 200

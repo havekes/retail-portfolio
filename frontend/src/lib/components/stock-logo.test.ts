@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import StockLogo, { getMonogram } from './stock-logo.svelte';
 
@@ -34,6 +34,7 @@ describe('getMonogram', () => {
 
 describe('StockLogo Component', () => {
 	it('renders image pointing to the backend logo endpoint', () => {
+		const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 		render(StockLogo, {
 			props: {
 				securityId: 'sec-123',
@@ -43,8 +44,25 @@ describe('StockLogo Component', () => {
 
 		const img = screen.getByRole('img');
 		expect(img).toBeInTheDocument();
-		expect(img).toHaveAttribute('src', '/api/v1/market/securities/sec-123/logo');
+		expect(img).toHaveAttribute('src', `${apiBaseUrl}/api/v1/market/securities/sec-123/logo`);
 		expect(img).toHaveAttribute('alt', 'AAPL logo');
+	});
+
+	it('prefixes logo url with VITE_API_BASE_URL stripping trailing slash', () => {
+		vi.stubEnv('VITE_API_BASE_URL', 'http://api.example.com/');
+		render(StockLogo, {
+			props: {
+				securityId: 'sec-456',
+				symbol: 'GOOGL'
+			}
+		});
+
+		const img = screen.getByRole('img');
+		expect(img).toHaveAttribute(
+			'src',
+			'http://api.example.com/api/v1/market/securities/sec-456/logo'
+		);
+		vi.unstubAllEnvs();
 	});
 
 	it('shows monogram fallback when image fails to load (error event)', async () => {

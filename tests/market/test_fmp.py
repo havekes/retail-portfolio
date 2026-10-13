@@ -113,8 +113,11 @@ def test_map_to_fmp_ticker_us_exchanges():
 
 def test_map_to_fmp_ticker_non_us_exchanges():
     assert map_to_fmp_ticker("RY", "TSX") == "RY.TO"
+    assert map_to_fmp_ticker("RY", "TO") == "RY.TO"
+    assert map_to_fmp_ticker("VGRO", "TO") == "VGRO.TO"
     assert map_to_fmp_ticker("VOD", "LSE") == "VOD.L"
     assert map_to_fmp_ticker("ry", "tsx") == "RY.TO"
+    assert map_to_fmp_ticker("vgro", "to") == "VGRO.TO"
 
 
 def test_map_to_fmp_ticker_tsxv_exchanges():
@@ -122,6 +125,16 @@ def test_map_to_fmp_ticker_tsxv_exchanges():
     assert map_to_fmp_ticker("XYZ", "TSX-V") == "XYZ.V"
     assert map_to_fmp_ticker("XYZ", "V") == "XYZ.V"
     assert map_to_fmp_ticker("xyz", "tsxv") == "XYZ.V"
+
+
+def test_map_to_fmp_ticker_avoids_double_suffixing():
+    assert map_to_fmp_ticker("VGRO.TO", "TSX") == "VGRO.TO"
+    assert map_to_fmp_ticker("VGRO.TO", "TO") == "VGRO.TO"
+    assert map_to_fmp_ticker("vgro.to", "tsx") == "VGRO.TO"
+    assert map_to_fmp_ticker("vgro.to", "to") == "VGRO.TO"
+    assert map_to_fmp_ticker("XYZ.V", "TSXV") == "XYZ.V"
+    assert map_to_fmp_ticker("xyz.v", "v") == "XYZ.V"
+    assert map_to_fmp_ticker("VOD.L", "LSE") == "VOD.L"
 
 
 @pytest.mark.anyio

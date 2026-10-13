@@ -330,7 +330,6 @@ async def market_get_security(
 
 @market_router.get("/securities/{security_id}/logo")
 async def market_get_security_logo(
-    _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
 ) -> Response:

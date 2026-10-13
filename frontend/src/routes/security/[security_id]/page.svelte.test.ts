@@ -5422,9 +5422,10 @@ describe('Security Page - Instant Shell with Async Chart Data', () => {
 		expect(screen.getByText('AAPL')).toBeInTheDocument();
 		expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
 		expect(screen.getByTestId('stock-logo')).toBeInTheDocument();
+		const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 		expect(screen.getByRole('img')).toHaveAttribute(
 			'src',
-			`/api/v1/market/securities/${aaplSecurity.id}/logo`
+			`${apiBaseUrl}/api/v1/market/securities/${aaplSecurity.id}/logo`
 		);
 		expect(screen.getByText('Loading chart data...')).toBeInTheDocument();
 		expect(mockChartProps).toBeNull();
