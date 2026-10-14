@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from collections.abc import Sequence
@@ -16,18 +17,26 @@ from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.context import get_request_id
 from src.core.pagination import PaginatedResponse, PaginationParams
+from src.core.redis import redis_manager
 from src.market.ai_service import AIService
 from src.market.api import SecurityApi
-from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
+from src.market.api_types import (
+    InstitutionalOwnershipResponse,
+    SecurityId,
+    SecuritySearchResult,
+    WatchlistId,
+)
 from src.market.cache import IndicatorCache, LogoCache, SecuritySearchCache
 from src.market.enum import PriceInterval
 from src.market.exception import (
+    MarketDataNotFoundError,
+    MarketDataProviderError,
     WatchlistDuplicateNameError,
     WatchlistNotFoundError,
     WatchlistOrderIdentityError,
 )
 from src.market.fmp import fetch_logo_image, map_to_fmp_ticker
-from src.market.gateway import MarketGateway
+from src.market.gateway import DataPlaneMarketGateway, MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
     calculate_50_week_ma,
@@ -389,6 +398,78 @@ async def market_get_security_logo(
     security = await security_repository.get_by_id_or_fail(security_id)
     logo_cache = await services.aget(LogoCache)
     return await _resolve_and_cache_logo(security.symbol, security.exchange, logo_cache)
+
+
+_INSTITUTIONAL_OWNERSHIP_CACHE_TTL = 86_400
+
+
+@market_router.get("/securities/{security_id}/institutional-ownership")
+async def market_get_institutional_ownership(
+    _: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> InstitutionalOwnershipResponse:
+    """Get institutional ownership summary and quarterly history for a security."""
+    cache_key = f"market:institutional_ownership:{security_id}"
+    try:
+        async with redis_manager.client() as redis:
+            cached = await redis.get(cache_key)
+            if cached is not None:
+                return InstitutionalOwnershipResponse.model_validate_json(cached)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Redis cache read failed for %s: %s", cache_key, e)
+
+    security_repository = await services.aget(SecurityRepository)
+    security = await security_repository.get_by_id_or_fail(security_id)
+    gateway = services.get(DataPlaneMarketGateway)
+
+    should_cache = True
+    try:
+        data = await asyncio.to_thread(
+            gateway.get_institutional_ownership,
+            security.symbol,
+            exchange=security.exchange,
+        )
+    except MarketDataNotFoundError as exc:
+        logger.warning(
+            "Upstream institutional ownership not found for %s: %s",
+            security.symbol,
+            exc,
+        )
+        data = InstitutionalOwnershipResponse(
+            symbol=security.symbol,
+            current_ownership_percent=None,
+            investors_count=None,
+            total_invested=None,
+            history=[],
+        )
+    except MarketDataProviderError as exc:
+        logger.warning(
+            "Upstream institutional ownership provider error for %s: %s",
+            security.symbol,
+            exc,
+        )
+        data = InstitutionalOwnershipResponse(
+            symbol=security.symbol,
+            current_ownership_percent=None,
+            investors_count=None,
+            total_invested=None,
+            history=[],
+        )
+        should_cache = False
+
+    if should_cache:
+        try:
+            async with redis_manager.client() as redis:
+                await redis.setex(
+                    cache_key,
+                    _INSTITUTIONAL_OWNERSHIP_CACHE_TTL,
+                    data.model_dump_json(),
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Redis cache write failed for %s: %s", cache_key, e)
+
+    return data
 
 
 @market_router.get("/watchlists")

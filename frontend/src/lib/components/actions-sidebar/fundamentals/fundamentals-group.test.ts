@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/svelte';
+import { render, screen, waitFor, fireEvent } from '@testing-library/svelte';
 import FundamentalsGroup from './fundamentals-group.svelte';
 import type { SecurityValuationRead } from '$lib/api/valuationClient';
+import type { InstitutionalOwnershipResponse } from '$lib/api/marketService';
 
 vi.mock('$lib/api/valuationClient', () => ({
 	valuationClient: {
 		setValuation: vi.fn(),
 		getValuation: vi.fn()
+	}
+}));
+
+vi.mock('$lib/api/marketService', () => ({
+	marketService: {
+		getInstitutionalOwnership: vi.fn()
 	}
 }));
 
@@ -17,12 +24,13 @@ vi.mock('$lib/api/userPreferencesService', () => ({
 }));
 
 import { valuationClient } from '$lib/api/valuationClient';
+import { marketService } from '$lib/api/marketService';
 import { userPreferencesService } from '$lib/api/userPreferencesService';
-import { fireEvent } from '@testing-library/svelte';
 
 describe('FundamentalsGroup Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(marketService.getInstitutionalOwnership).mockResolvedValue(null);
 	});
 
 	it('renders empty state when no valuation exists', async () => {
@@ -122,6 +130,90 @@ describe('FundamentalsGroup Component', () => {
 
 		await waitFor(() => {
 			expect(screen.getByText('Oct 5, 2026')).toBeInTheDocument();
+		});
+	});
+
+	it('renders institutional ownership metric when data is present', async () => {
+		const mockOwnership: InstitutionalOwnershipResponse = {
+			symbol: 'AAPL',
+			current_ownership_percent: 60.12,
+			investors_count: 5834,
+			total_invested: 1980000000000,
+			history: [
+				{
+					date: '2024-06-30',
+					ownership_percent: 60.12,
+					investors_count: 5834,
+					total_invested: 1980000000000
+				}
+			]
+		};
+		vi.mocked(marketService.getInstitutionalOwnership).mockResolvedValue(mockOwnership);
+
+		render(FundamentalsGroup, {
+			securityId: 'sec-1',
+			currency: 'USD',
+			expanded: true
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Institutional Ownership')).toBeInTheDocument();
+			const trigger = screen.getByTestId('ownership-metric-trigger');
+			expect(trigger).toHaveTextContent('60.12%');
+			expect(trigger).not.toBeDisabled();
+		});
+	});
+
+	it('opens institutional ownership modal when trigger is clicked', async () => {
+		const mockOwnership: InstitutionalOwnershipResponse = {
+			symbol: 'AAPL',
+			current_ownership_percent: 60.12,
+			investors_count: 5834,
+			total_invested: 1980000000000,
+			history: [
+				{
+					date: '2024-06-30',
+					ownership_percent: 60.12,
+					investors_count: 5834,
+					total_invested: 1980000000000
+				}
+			]
+		};
+		vi.mocked(marketService.getInstitutionalOwnership).mockResolvedValue(mockOwnership);
+
+		render(FundamentalsGroup, {
+			securityId: 'sec-1',
+			symbol: 'AAPL',
+			currency: 'USD',
+			expanded: true
+		});
+
+		await waitFor(() => {
+			expect(screen.getByTestId('ownership-metric-trigger')).toHaveTextContent('60.12%');
+		});
+
+		const trigger = screen.getByTestId('ownership-metric-trigger');
+		await fireEvent.click(trigger);
+
+		await waitFor(() => {
+			expect(screen.getByTestId('modal-title')).toHaveTextContent('AAPL Institutional Ownership');
+		});
+	});
+
+	it('renders disabled N/A state when institutional ownership data is null or unavailable', async () => {
+		vi.mocked(marketService.getInstitutionalOwnership).mockResolvedValue(null);
+
+		render(FundamentalsGroup, {
+			securityId: 'sec-1',
+			currency: 'USD',
+			expanded: true
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Institutional Ownership')).toBeInTheDocument();
+			const trigger = screen.getByTestId('ownership-metric-trigger');
+			expect(trigger).toHaveTextContent('N/A');
+			expect(trigger).toBeDisabled();
 		});
 	});
 });

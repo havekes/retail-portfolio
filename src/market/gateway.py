@@ -10,6 +10,7 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     OptionExpirations,
@@ -180,6 +181,16 @@ class MarketGateway(ABC):
         ``exchange`` is optional and forwarded for non-US ticker mapping.
         """
         _ = symbol, period, exchange
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        """Get institutional ownership metrics and quarterly history for a symbol."""
+        _ = symbol, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_options_chain(

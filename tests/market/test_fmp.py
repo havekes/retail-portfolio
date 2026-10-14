@@ -8,6 +8,7 @@ Everything is offline: outbound HTTP is driven through an injected
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from decimal import Decimal
+import logging
 from typing import Any, get_args
 from uuid import uuid4
 
@@ -21,6 +22,8 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipPoint,
+    InstitutionalOwnershipResponse,
     KeyMetrics,
     Quote,
     SupportedExchange,
@@ -1484,3 +1487,199 @@ def test_stub_fmp_gateway_quote_is_deterministic():
         gateway.get_quote("ZZZZ")
     with pytest.raises(MarketDataProviderError):
         StubFmpGateway(api_key="stub", fail_on_symbols={"AAPL"}).get_quote("AAPL")
+
+
+# --------------------------------------------------------------------------- #
+# Institutional Ownership tests
+# --------------------------------------------------------------------------- #
+
+
+_INSTITUTIONAL_OWNERSHIP_ROWS = [
+    {
+        "symbol": "AAPL",
+        "date": "2024-06-30",
+        "investorsHolding": 5834,
+        "ownershipPercent": 60.12,
+        "totalInvested": 1980000000000,
+    },
+    {
+        "symbol": "AAPL",
+        "date": "2024-03-31",
+        "investorsHolding": 5790,
+        "ownershipPercent": 59.85,
+        "totalInvested": 1920000000000,
+    },
+]
+
+
+def test_get_institutional_ownership_success():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
+        assert request.url.params["symbol"] == "AAPL"
+        return httpx.Response(200, json=_INSTITUTIONAL_OWNERSHIP_ROWS)
+
+    gateway = _gateway(handler)
+    result = gateway.get_institutional_ownership("AAPL")
+
+    assert isinstance(result, InstitutionalOwnershipResponse)
+    assert result.symbol == "AAPL"
+    assert result.current_ownership_percent == Decimal("60.12")
+    assert result.investors_count == 5834
+    assert result.total_invested == Decimal(1980000000000)
+    assert len(result.history) == 2
+    assert result.history[0].date == date(2024, 6, 30)
+    assert result.history[0].ownership_percent == Decimal("60.12")
+    assert result.history[1].date == date(2024, 3, 31)
+    assert result.history[1].ownership_percent == Decimal("59.85")
+
+
+def test_get_institutional_ownership_legacy_investors_count():
+    legacy_rows = [
+        {
+            "symbol": "AAPL",
+            "date": "2024-06-30",
+            "investorsCount": 5834,
+            "ownershipPercent": 60.12,
+            "totalInvested": 1980000000000,
+        }
+    ]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
+        return httpx.Response(200, json=legacy_rows)
+
+    gateway = _gateway(handler)
+    result = gateway.get_institutional_ownership("AAPL")
+    assert result.investors_count == 5834
+
+
+def test_get_institutional_ownership_non_us_ticker():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
+        assert request.url.params["symbol"] == "SHOP.TO"
+        return httpx.Response(200, json=_INSTITUTIONAL_OWNERSHIP_ROWS)
+
+    gateway = _gateway(handler)
+    result = gateway.get_institutional_ownership("SHOP", exchange="TSX")
+    assert result.symbol == "SHOP"
+
+
+def test_get_institutional_ownership_empty_payload():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
+        return httpx.Response(200, json=[])
+
+    gateway = _gateway(handler)
+    result = gateway.get_institutional_ownership("SMALLCAP")
+
+    assert isinstance(result, InstitutionalOwnershipResponse)
+    assert result.symbol == "SMALLCAP"
+    assert result.current_ownership_percent is None
+    assert result.investors_count is None
+    assert result.total_invested is None
+    assert result.history == []
+
+
+def test_get_institutional_ownership_error_payload():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200, json={"Error Message": "Symbol not found or unavailable."}
+        )
+
+    gateway = _gateway(handler)
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_institutional_ownership("UNKNOWN")
+
+
+def test_get_institutional_ownership_http_error():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="Internal Server Error")
+
+    gateway = _gateway(handler)
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_institutional_ownership("AAPL")
+
+
+def test_get_institutional_ownership_http_402_fallback_to_stub(
+    caplog: pytest.LogCaptureFixture,
+):
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(402, text="Payment Required")
+
+    gateway = _gateway(handler)
+    with caplog.at_level(logging.WARNING, logger="src.market.fmp"):
+        result = gateway.get_institutional_ownership("OSCR")
+
+    assert isinstance(result, InstitutionalOwnershipResponse)
+    assert result.symbol == "OSCR"
+    assert result.current_ownership_percent == Decimal("68.45")
+    assert result.investors_count == 312
+    assert result.total_invested == Decimal(2450000000)
+    assert len(result.history) == 4
+    assert result.history[0].date == date(2024, 6, 30)
+    assert result.history[0].ownership_percent == Decimal("68.45")
+    assert any(
+        "FMP institutional ownership endpoint is restricted (HTTP 402); using stub fixture for OSCR for UI testing"
+        in record.message
+        for record in caplog.records
+    )
+
+
+def test_get_institutional_ownership_http_402_unknown_symbol_raises():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(402, text="Payment Required")
+
+    gateway = _gateway(handler)
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_institutional_ownership("UNKNOWN")
+
+
+def test_stub_fmp_gateway_institutional_ownership():
+    gateway = StubFmpGateway(api_key="stub")
+
+    aapl = gateway.get_institutional_ownership("AAPL")
+    assert aapl.symbol == "AAPL"
+    assert aapl.current_ownership_percent == Decimal("60.12")
+    assert aapl.investors_count == 5834
+    assert len(aapl.history) == 4
+
+    msft = gateway.get_institutional_ownership("MSFT")
+    assert msft.symbol == "MSFT"
+    assert msft.current_ownership_percent == Decimal("72.45")
+    assert msft.investors_count == 6120
+
+    oscr = gateway.get_institutional_ownership("OSCR")
+    assert oscr.symbol == "OSCR"
+    assert oscr.current_ownership_percent == Decimal("68.45")
+    assert oscr.investors_count == 312
+    assert len(oscr.history) == 4
+
+    zeta = gateway.get_institutional_ownership("ZETA")
+    assert zeta.symbol == "ZETA"
+    assert zeta.current_ownership_percent == Decimal("72.30")
+    assert zeta.investors_count == 420
+    assert len(zeta.history) == 4
+
+    shop = gateway.get_institutional_ownership("SHOP")
+    assert shop.symbol == "SHOP"
+    assert shop.current_ownership_percent is None
+    assert shop.history == []
+
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_institutional_ownership("ZZZZ")
+
+    with pytest.raises(MarketDataProviderError):
+        StubFmpGateway(api_key="stub", fail_on_symbols={"AAPL"}).get_institutional_ownership("AAPL")
+

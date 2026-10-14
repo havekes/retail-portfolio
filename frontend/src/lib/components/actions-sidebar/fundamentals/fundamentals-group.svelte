@@ -9,14 +9,19 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { valuationClient, type SecurityValuationRead } from '$lib/api/valuationClient';
+	import { marketService, type InstitutionalOwnershipResponse } from '$lib/api/marketService';
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
 	import { formatDate } from '$lib/utils/date';
 	import ValuationModal from './valuation-modal.svelte';
+	import InstitutionalOwnershipModal, {
+		type InstitutionalOwnershipModalData
+	} from './institutional-ownership-modal.svelte';
 	import { ModalState } from '$lib/utils/modal-state.svelte';
 
 	let {
 		securityId,
 		currency = 'USD',
+		symbol,
 		valuation = $bindable<SecurityValuationRead | null>(null),
 		showOverlay = $bindable(true),
 		expanded = $bindable(true),
@@ -24,6 +29,7 @@
 	} = $props<{
 		securityId?: string;
 		currency?: string;
+		symbol?: string;
 		valuation?: SecurityValuationRead | null;
 		showOverlay?: boolean;
 		expanded?: boolean;
@@ -33,16 +39,34 @@
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 
+	let institutionalOwnership = $state<InstitutionalOwnershipResponse | null>(null);
+	let isOwnershipLoading = $state(false);
+
+	let hasOwnershipData = $derived(
+		institutionalOwnership != null && institutionalOwnership.current_ownership_percent != null
+	);
+
 	const valuationModalState = new ModalState<{
 		securityId: string;
 		valuation?: SecurityValuationRead | null;
 	}>();
+
+	const institutionalOwnershipModalState = new ModalState<InstitutionalOwnershipModalData>();
 
 	const handleOpenModal = () => {
 		if (!securityId) return;
 		valuationModalState.open({
 			securityId,
 			valuation
+		});
+	};
+
+	const handleOpenOwnershipModal = () => {
+		if (!securityId || !hasOwnershipData) return;
+		institutionalOwnershipModalState.open({
+			securityId,
+			symbol: symbol || institutionalOwnership?.symbol,
+			data: institutionalOwnership
 		});
 	};
 
@@ -60,10 +84,24 @@
 		}
 	};
 
+	const fetchOwnership = async () => {
+		if (!securityId) return;
+		isOwnershipLoading = true;
+		try {
+			institutionalOwnership = await marketService.getInstitutionalOwnership(securityId);
+		} catch (err) {
+			console.error('Failed to fetch institutional ownership:', err);
+			institutionalOwnership = null;
+		} finally {
+			isOwnershipLoading = false;
+		}
+	};
+
 	$effect(() => {
 		if (expanded && securityId) {
 			untrack(() => {
 				fetchValuation();
+				fetchOwnership();
 			});
 		}
 	});
@@ -93,6 +131,8 @@
 		onSaved?.(saved);
 	}}
 />
+
+<InstitutionalOwnershipModal modalState={institutionalOwnershipModalState} />
 
 <Sidebar.Group>
 	<GroupTitle
@@ -155,6 +195,49 @@
 					</div>
 				</div>
 			{/if}
+
+			<!-- Institutional Ownership Metric Card -->
+			<div
+				class="mt-2 rounded-md bg-muted/40 p-2.5 text-sm"
+				data-testid="institutional-ownership-card"
+			>
+				<div class="flex items-center justify-between">
+					<span class="text-xs text-muted-foreground">Institutional Ownership</span>
+					{#if hasOwnershipData}
+						<button
+							type="button"
+							data-testid="open-ownership-modal"
+							onclick={handleOpenOwnershipModal}
+							class="text-xs text-primary hover:underline"
+						>
+							View
+						</button>
+					{/if}
+				</div>
+				<div class="mt-1 flex items-center justify-between">
+					{#if isOwnershipLoading}
+						<Skeleton class="h-6 w-16 rounded bg-background" />
+					{:else if hasOwnershipData}
+						<button
+							type="button"
+							data-testid="ownership-metric-trigger"
+							onclick={handleOpenOwnershipModal}
+							class="cursor-pointer text-left font-semibold text-foreground transition-colors hover:text-primary"
+						>
+							{institutionalOwnership?.current_ownership_percent?.toFixed(2)}%
+						</button>
+					{:else}
+						<button
+							type="button"
+							data-testid="ownership-metric-trigger"
+							disabled
+							class="cursor-not-allowed text-left font-semibold text-muted-foreground opacity-60"
+						>
+							N/A
+						</button>
+					{/if}
+				</div>
+			</div>
 		</Sidebar.GroupContent>
 	{/if}
 </Sidebar.Group>

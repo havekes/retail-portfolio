@@ -17,6 +17,8 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipPoint,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     Quote,
@@ -67,6 +69,22 @@ _KNOWN_SYMBOLS: dict[str, dict[str, str]] = {
         "security_type": "Common Stock",
         "country": "CA",
     },
+    "OSCR": {
+        "name": "Oscar Health, Inc.",
+        "exchange": "New York Stock Exchange",
+        "exchange_short_name": "NYSE",
+        "currency": "USD",
+        "security_type": "Common Stock",
+        "country": "US",
+    },
+    "ZETA": {
+        "name": "Zeta Global Holdings Corp.",
+        "exchange": "New York Stock Exchange",
+        "exchange_short_name": "NYSE",
+        "currency": "USD",
+        "security_type": "Common Stock",
+        "country": "US",
+    },
 }
 
 _BASE_PRICES: dict[str, float] = {
@@ -75,6 +93,8 @@ _BASE_PRICES: dict[str, float] = {
     "RY": 120.0,
     "VOD": 8.5,
     "SHOP": 75.0,
+    "OSCR": 18.5,
+    "ZETA": 25.0,
 }
 
 _VALID_PERIODS = frozenset({"annual", "quarter"})
@@ -202,6 +222,50 @@ _FUNDAMENTAL_PROFILES: dict[str, dict[str, Any]] = {
         "cik": "0001594607",
         "isin": "CA82509L1076",
         "image": "https://images.example.com/SHOP.png",
+        "is_actively_trading": True,
+    },
+    "OSCR": {
+        "symbol": "OSCR",
+        "company_name": "Oscar Health, Inc.",
+        "market_cap": "4200000000",
+        "sector": "Healthcare",
+        "industry": "Healthcare Plans",
+        "beta": "1.35",
+        "price": "18.50",
+        "website": "https://www.hioscar.com",
+        "description": "Oscar Health, Inc. provides health insurance services.",
+        "ceo": "Mark T. Bertolini",
+        "full_time_employees": 2700,
+        "exchange_short_name": "NYSE",
+        "exchange": "New York Stock Exchange",
+        "currency": "USD",
+        "ipo_date": "2021-03-03",
+        "cik": "0001568651",
+        "isin": "US6877931000",
+        "image": "https://images.example.com/OSCR.png",
+        "is_actively_trading": True,
+    },
+    "ZETA": {
+        "symbol": "ZETA",
+        "company_name": "Zeta Global Holdings Corp.",
+        "market_cap": "5500000000",
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "beta": "1.20",
+        "price": "25.00",
+        "website": "https://www.zetaglobal.com",
+        "description": (
+            "Zeta Global Holdings Corp. operates an omnichannel marketing platform."
+        ),
+        "ceo": "David A. Steinberg",
+        "full_time_employees": 1700,
+        "exchange_short_name": "NYSE",
+        "exchange": "New York Stock Exchange",
+        "currency": "USD",
+        "ipo_date": "2021-06-10",
+        "cik": "0001851003",
+        "isin": "US98953P1012",
+        "image": "https://images.example.com/ZETA.png",
         "is_actively_trading": True,
     },
 }
@@ -781,6 +845,121 @@ _FUNDAMENTAL_FINANCIAL_RATIOS: dict[str, dict[str, Any]] = {
     },
 }
 
+_FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "current_ownership_percent": Decimal("60.12"),
+        "investors_count": 5834,
+        "total_invested": Decimal(1980000000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("60.12"),
+                "investors_count": 5834,
+                "total_invested": Decimal(1980000000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("59.85"),
+                "investors_count": 5790,
+                "total_invested": Decimal(1920000000000),
+            },
+            {
+                "date": date(2023, 12, 31),
+                "ownership_percent": Decimal("59.20"),
+                "investors_count": 5720,
+                "total_invested": Decimal(1890000000000),
+            },
+            {
+                "date": date(2023, 9, 30),
+                "ownership_percent": Decimal("58.75"),
+                "investors_count": 5650,
+                "total_invested": Decimal(1850000000000),
+            },
+        ],
+    },
+    "MSFT": {
+        "current_ownership_percent": Decimal("72.45"),
+        "investors_count": 6120,
+        "total_invested": Decimal(2300000000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("72.45"),
+                "investors_count": 6120,
+                "total_invested": Decimal(2300000000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("71.90"),
+                "investors_count": 6080,
+                "total_invested": Decimal(2250000000000),
+            },
+        ],
+    },
+    "OSCR": {
+        "current_ownership_percent": Decimal("68.45"),
+        "investors_count": 312,
+        "total_invested": Decimal(2450000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("68.45"),
+                "investors_count": 312,
+                "total_invested": Decimal(2450000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("66.80"),
+                "investors_count": 298,
+                "total_invested": Decimal(2380000000),
+            },
+            {
+                "date": date(2023, 12, 31),
+                "ownership_percent": Decimal("65.10"),
+                "investors_count": 285,
+                "total_invested": Decimal(2290000000),
+            },
+            {
+                "date": date(2023, 9, 30),
+                "ownership_percent": Decimal("63.40"),
+                "investors_count": 270,
+                "total_invested": Decimal(2150000000),
+            },
+        ],
+    },
+    "ZETA": {
+        "current_ownership_percent": Decimal("72.30"),
+        "investors_count": 420,
+        "total_invested": Decimal(3100000000),
+        "history": [
+            {
+                "date": date(2024, 6, 30),
+                "ownership_percent": Decimal("72.30"),
+                "investors_count": 420,
+                "total_invested": Decimal(3100000000),
+            },
+            {
+                "date": date(2024, 3, 31),
+                "ownership_percent": Decimal("71.15"),
+                "investors_count": 405,
+                "total_invested": Decimal(2980000000),
+            },
+            {
+                "date": date(2023, 12, 31),
+                "ownership_percent": Decimal("69.80"),
+                "investors_count": 390,
+                "total_invested": Decimal(2850000000),
+            },
+            {
+                "date": date(2023, 9, 30),
+                "ownership_percent": Decimal("68.50"),
+                "investors_count": 375,
+                "total_invested": Decimal(2700000000),
+            },
+        ],
+    },
+}
+
 
 def _validate_period(period: str) -> str:
     """Validate an FMP statement period, mirroring the real gateway."""
@@ -1059,6 +1238,32 @@ class StubFmpGateway(MarketGateway):
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return FinancialRatios(**_FUNDAMENTAL_FINANCIAL_RATIOS[normalized])
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        """Get institutional ownership metrics and quarterly history for a symbol."""
+        _ = exchange
+        normalized = self._resolve_symbol(symbol)
+        fixture = _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP.get(normalized)
+        if fixture is None:
+            return InstitutionalOwnershipResponse(
+                symbol=normalized,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+        return InstitutionalOwnershipResponse(
+            symbol=normalized,
+            current_ownership_percent=fixture["current_ownership_percent"],
+            investors_count=fixture["investors_count"],
+            total_invested=fixture["total_invested"],
+            history=[InstitutionalOwnershipPoint(**p) for p in fixture["history"]],
+        )
 
     def get_quote(
         self,

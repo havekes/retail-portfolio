@@ -29,6 +29,7 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     OptionExpirations,
@@ -194,6 +195,15 @@ class CompositeMarketGateway(MarketGateway):
     ) -> FinancialRatios:
         """Get financial ratios for a symbol (FMP)."""
         return self._fmp.get_financial_ratios(symbol, period, exchange=exchange)
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        """Get institutional ownership metrics and quarterly history."""
+        return self._fmp.get_institutional_ownership(symbol, exchange=exchange)
 
     def get_quote(
         self,

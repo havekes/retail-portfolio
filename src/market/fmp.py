@@ -32,6 +32,8 @@ from src.market.api_types import (
     FinancialRatios,
     HistoricalPrice,
     IncomeStatement,
+    InstitutionalOwnershipPoint,
+    InstitutionalOwnershipResponse,
     IntradayHistoricalPrice,
     KeyMetrics,
     Quote,
@@ -45,12 +47,14 @@ from src.market.exception import (
     MarketDataProviderError,
 )
 from src.market.gateway import MarketGateway
+from src.stubs.fmp import _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://financialmodelingprep.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 _INTRADAY_NOT_SUPPORTED = "capability not supported by this provider"
+_HTTP_PAYMENT_REQUIRED = 402
 
 # Internal exchange code -> FMP ticker suffix. FMP appends a market suffix for
 # non-US listings (``RY.TO``, ``VOD.L``); US/primary venues use the bare ticker.
@@ -273,6 +277,25 @@ def _to_bool(value: object) -> bool | None:
     if text in {"false", "0", "no"}:
         return False
     return None
+
+
+def _is_payment_required_error(exc: BaseException) -> bool:
+    """Return True if the exception represents an HTTP 402 Payment Required."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        return (
+            exc.response is not None
+            and exc.response.status_code == _HTTP_PAYMENT_REQUIRED
+        )
+    if isinstance(exc, MarketDataProviderError):
+        cause = exc.__cause__
+        if isinstance(cause, httpx.HTTPStatusError):
+            return (
+                cause.response is not None
+                and cause.response.status_code == _HTTP_PAYMENT_REQUIRED
+            )
+        if getattr(cause, "status_code", None) == _HTTP_PAYMENT_REQUIRED:
+            return True
+    return getattr(exc, "status_code", None) == _HTTP_PAYMENT_REQUIRED
 
 
 def _pick(row: dict[str, object], *keys: str) -> object:
@@ -1059,6 +1082,118 @@ class FmpGateway(MarketGateway):
     ) -> Quote:
         payload = self._fetch_quote(symbol, exchange)
         return self._parse_quote(payload, symbol)
+
+    def _fetch_institutional_ownership(
+        self,
+        symbol: str,
+        exchange: str | None,
+    ) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
+        return self._get_json(
+            "stable/institutional-ownership/symbol-positions-summary",
+            {"symbol": ticker},
+        )
+
+    def _parse_institutional_ownership(
+        self, payload: object, symbol: str, exchange: str
+    ) -> InstitutionalOwnershipResponse:
+        self._raise_for_error_payload(payload, symbol, exchange)
+        rows: object = (
+            payload
+            if isinstance(payload, list)
+            else (payload.get("data") if isinstance(payload, dict) else None)
+        )
+        if not isinstance(rows, list) or not rows:
+            return InstitutionalOwnershipResponse(
+                symbol=symbol,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+
+        points: list[InstitutionalOwnershipPoint] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            row_date = _to_date(row.get("date"))
+            if row_date is None:
+                continue
+            ownership_pct = _to_decimal(
+                _pick(row, "ownershipPercent", "ownership_percent", "ownership")
+            )
+            investors = _to_int(
+                _pick(
+                    row,
+                    "investorsHolding",
+                    "investors_holding",
+                    "investorsCount",
+                    "investors_count",
+                    "investorCount",
+                    "investor_count",
+                )
+            )
+            total_inv = _to_decimal(_pick(row, "totalInvested", "total_invested"))
+            points.append(
+                InstitutionalOwnershipPoint(
+                    date=row_date,
+                    ownership_percent=ownership_pct,
+                    investors_count=investors,
+                    total_invested=total_inv,
+                )
+            )
+
+        points.sort(key=lambda p: p.date, reverse=True)
+
+        if not points:
+            return InstitutionalOwnershipResponse(
+                symbol=symbol,
+                current_ownership_percent=None,
+                investors_count=None,
+                total_invested=None,
+                history=[],
+            )
+
+        latest = points[0]
+        return InstitutionalOwnershipResponse(
+            symbol=symbol,
+            current_ownership_percent=latest.ownership_percent,
+            investors_count=latest.investors_count,
+            total_invested=latest.total_invested,
+            history=points,
+        )
+
+    def get_institutional_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> InstitutionalOwnershipResponse:
+        try:
+            payload = self._fetch_institutional_ownership(symbol, exchange)
+        except (MarketDataProviderError, httpx.HTTPStatusError) as exc:
+            if _is_payment_required_error(exc):
+                fixture = _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP.get(symbol.upper())
+                if fixture is not None:
+                    logger.warning(
+                        "FMP institutional ownership endpoint is restricted "
+                        "(HTTP 402); using stub fixture for %s for UI testing",
+                        symbol,
+                    )
+                    return InstitutionalOwnershipResponse(
+                        symbol=symbol,
+                        current_ownership_percent=fixture["current_ownership_percent"],
+                        investors_count=fixture["investors_count"],
+                        total_invested=fixture["total_invested"],
+                        history=[
+                            InstitutionalOwnershipPoint(**p)
+                            for p in fixture.get("history", [])
+                        ],
+                    )
+            if isinstance(exc, httpx.HTTPStatusError):
+                raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc
+            raise
+        return self._parse_institutional_ownership(payload, symbol, exchange or "")
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
