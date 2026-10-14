@@ -1069,7 +1069,8 @@ class FmpGateway(MarketGateway):
     ) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
         return self._get_json(
-            "api/v4/institutional-ownership/symbol-ownership", {"symbol": ticker}
+            "stable/institutional-ownership/symbol-positions-summary",
+            {"symbol": ticker},
         )
 
     def _parse_institutional_ownership(
@@ -1103,6 +1104,8 @@ class FmpGateway(MarketGateway):
             investors = _to_int(
                 _pick(
                     row,
+                    "investorsHolding",
+                    "investors_holding",
                     "investorsCount",
                     "investors_count",
                     "investorCount",

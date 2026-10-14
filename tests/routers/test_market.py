@@ -1478,8 +1478,9 @@ async def test_get_institutional_ownership_cached_repeat(auth_client, test_secur
 
 @pytest.mark.anyio
 async def test_get_institutional_ownership_empty_data(auth_client, db_session):
-    """Test getting institutional ownership for a security without filings returns null percent."""
+    """Test getting institutional ownership for a security without filings returns null percent and is cached."""
     from uuid import uuid4
+    from src.core.redis import redis_manager
     from src.market.model import SecurityModel
 
     sec = SecurityModel(
@@ -1493,6 +1494,10 @@ async def test_get_institutional_ownership_empty_data(auth_client, db_session):
     db_session.add(sec)
     await db_session.commit()
 
+    cache_key = f"market:institutional_ownership:{sec.id}"
+    async with redis_manager.client() as redis:
+        await redis.delete(cache_key)
+
     response = await auth_client.get(
         f"/api/v1/market/securities/{sec.id}/institutional-ownership"
     )
@@ -1501,5 +1506,41 @@ async def test_get_institutional_ownership_empty_data(auth_client, db_session):
     assert data["symbol"] == "EMPTY"
     assert data["current_ownership_percent"] is None
     assert data["history"] == []
+
+    async with redis_manager.client() as redis:
+        cached = await redis.get(cache_key)
+        assert cached is not None
+
+
+@pytest.mark.anyio
+async def test_get_institutional_ownership_provider_error_not_cached(
+    auth_client, test_security, monkeypatch
+):
+    """Test that MarketDataProviderError returns empty data but is not cached in Redis."""
+    from src.core.redis import redis_manager
+    from src.market.composite import CompositeMarketGateway
+    from src.market.exception import MarketDataProviderError
+
+    cache_key = f"market:institutional_ownership:{test_security.id}"
+    async with redis_manager.client() as redis:
+        await redis.delete(cache_key)
+
+    def mock_get(self, symbol: str, *, exchange: str | None = None):
+        raise MarketDataProviderError("Provider restricted")
+
+    monkeypatch.setattr(CompositeMarketGateway, "get_institutional_ownership", mock_get)
+
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/institutional-ownership"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["symbol"] == "AAPL"
+    assert data["current_ownership_percent"] is None
+    assert data["history"] == []
+
+    async with redis_manager.client() as redis:
+        cached = await redis.get(cache_key)
+        assert cached is None
 
 

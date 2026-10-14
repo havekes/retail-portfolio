@@ -1497,14 +1497,14 @@ _INSTITUTIONAL_OWNERSHIP_ROWS = [
     {
         "symbol": "AAPL",
         "date": "2024-06-30",
-        "investorsCount": 5834,
+        "investorsHolding": 5834,
         "ownershipPercent": 60.12,
         "totalInvested": 1980000000000,
     },
     {
         "symbol": "AAPL",
         "date": "2024-03-31",
-        "investorsCount": 5790,
+        "investorsHolding": 5790,
         "ownershipPercent": 59.85,
         "totalInvested": 1920000000000,
     },
@@ -1513,7 +1513,10 @@ _INSTITUTIONAL_OWNERSHIP_ROWS = [
 
 def test_get_institutional_ownership_success():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v4/institutional-ownership/symbol-ownership"
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
         assert request.url.params["symbol"] == "AAPL"
         return httpx.Response(200, json=_INSTITUTIONAL_OWNERSHIP_ROWS)
 
@@ -1532,9 +1535,35 @@ def test_get_institutional_ownership_success():
     assert result.history[1].ownership_percent == Decimal("59.85")
 
 
+def test_get_institutional_ownership_legacy_investors_count():
+    legacy_rows = [
+        {
+            "symbol": "AAPL",
+            "date": "2024-06-30",
+            "investorsCount": 5834,
+            "ownershipPercent": 60.12,
+            "totalInvested": 1980000000000,
+        }
+    ]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
+        return httpx.Response(200, json=legacy_rows)
+
+    gateway = _gateway(handler)
+    result = gateway.get_institutional_ownership("AAPL")
+    assert result.investors_count == 5834
+
+
 def test_get_institutional_ownership_non_us_ticker():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v4/institutional-ownership/symbol-ownership"
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
         assert request.url.params["symbol"] == "SHOP.TO"
         return httpx.Response(200, json=_INSTITUTIONAL_OWNERSHIP_ROWS)
 
@@ -1545,7 +1574,10 @@ def test_get_institutional_ownership_non_us_ticker():
 
 def test_get_institutional_ownership_empty_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v4/institutional-ownership/symbol-ownership"
+        assert (
+            request.url.path
+            == "/stable/institutional-ownership/symbol-positions-summary"
+        )
         return httpx.Response(200, json=[])
 
     gateway = _gateway(handler)

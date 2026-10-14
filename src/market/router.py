@@ -423,15 +423,16 @@ async def market_get_institutional_ownership(
     security = await security_repository.get_by_id_or_fail(security_id)
     gateway = services.get(DataPlaneMarketGateway)
 
+    should_cache = True
     try:
         data = await asyncio.to_thread(
             gateway.get_institutional_ownership,
             security.symbol,
             exchange=security.exchange,
         )
-    except (MarketDataNotFoundError, MarketDataProviderError) as exc:
+    except MarketDataNotFoundError as exc:
         logger.warning(
-            "Upstream institutional ownership lookup failed for %s: %s",
+            "Upstream institutional ownership not found for %s: %s",
             security.symbol,
             exc,
         )
@@ -442,16 +443,31 @@ async def market_get_institutional_ownership(
             total_invested=None,
             history=[],
         )
+    except MarketDataProviderError as exc:
+        logger.warning(
+            "Upstream institutional ownership provider error for %s: %s",
+            security.symbol,
+            exc,
+        )
+        data = InstitutionalOwnershipResponse(
+            symbol=security.symbol,
+            current_ownership_percent=None,
+            investors_count=None,
+            total_invested=None,
+            history=[],
+        )
+        should_cache = False
 
-    try:
-        async with redis_manager.client() as redis:
-            await redis.setex(
-                cache_key,
-                _INSTITUTIONAL_OWNERSHIP_CACHE_TTL,
-                data.model_dump_json(),
-            )
-    except Exception as e:  # noqa: BLE001
-        logger.warning("Redis cache write failed for %s: %s", cache_key, e)
+    if should_cache:
+        try:
+            async with redis_manager.client() as redis:
+                await redis.setex(
+                    cache_key,
+                    _INSTITUTIONAL_OWNERSHIP_CACHE_TTL,
+                    data.model_dump_json(),
+                )
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Redis cache write failed for %s: %s", cache_key, e)
 
     return data
 
