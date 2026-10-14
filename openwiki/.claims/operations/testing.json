@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2ad59231adacd24191d9fba6bf42fad7f859701d7baaca33756928b903accdac",
+  "pageVersion": "sha256:3b0a62d435bea7f5e74ae5d29839b1d74d88c2d5b2fd2bb3e77c52f2ebee2fcd",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
       "statement": "Tests must never depend on external services: Redis, outbound HTTP APIs, SMTP and DNS are mocked or stubbed across the backend, and all API calls are mocked on the frontend; the ephemeral testcontainers PostgreSQL instance (or TEST_DATABASE_URL) is the only allowed infrastructure dependency, so a test that performs a real network, Redis or SMTP call is broken by definition rather than something to fix by requiring the service.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L17-L17",
+          "resource": "repo://AGENTS.md#L34-L34",
           "version": "repo-lines-v1:sha256:0a32d005589b4167dd0ca5638c3b4537796bd06b1c91a4d50fb95d9e44448e84:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk0Zjc4MGJjMDU4NWNmMzgzMTA1NTIzNTFkMTJhM2RhYjAwMjA4ZDUwNWI5YmU3Y2JhZTc2NGVlNDk4NjE0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
@@ -32,15 +32,19 @@
     },
     {
       "id": "claim_d534dff1345f4bdfbf06fa78380b61e5",
-      "statement": "tests/ is organized by domain and by architectural layer, with routers/, services/, repositories/, tasks/, market/ (including market/commands/), account/ (including account/commands/ and account/csv/), auth/commands/, commands/ for the top-level CLI commands (seed_data, flush_market_data), integration/brokers/, email/, ws/, shared fixtures/, and root-level files covering app startup, settings, logging, request IDs and migration drift.",
+      "statement": "tests/ is organized by domain and by architectural layer, with routers/, services/, repositories/, tasks/ (including the integration broker-sync task suite), market/ (indicators, provider gateways and the provider-agnostic gateway contract, FX, security/search/valuation, the data-plane router and endpoint cache, price alerts, market/commands/ and the contracts/ OpenAPI snapshot), account/ (including account/commands/ and account/csv/), auth/commands/, commands/ for the top-level CLI commands (seed_data, flush_market_data), integration/brokers/, email/, ws/, shared fixtures/, and root-level files covering app startup, settings, logging, request IDs and migration drift.",
       "evidence": [
         {
-          "resource": "repo://tests/commands/test_seed.py#L1-L18",
-          "version": "repo-lines-v1:sha256:8d36289505bce8123dba8795607c494bfdaa53c2ef354600d92d8ae0263afdd9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiN2ExODcxMjdhYjhkYTBjZTNhMjI1NGJkZGYwY2JjYWZkYjdkYjI1ODUwZGE3NjBmZjY1NGZjNmU1YmM1ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkNTcwZWZlMmI1YmFjOGFhZjQ5YTFkNTBiMmM3YWViZWI0YzgwNDYyMTRiNzM4Yjk2MGE2YTIwZTk1ODUyNzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYTVjM2RlNTM3NDljNzdlOWY5Yjg4NDU3NWE0NTI5Mzc4NTMwYmU3YTdlYTQ0ZjdhMGEwNWMzNjE0OTliZmIifQ"
+          "resource": "repo://tests/conftest.py#L1-L39",
+          "version": "repo-lines-v1:sha256:cae6be6ddce27a30e2d570e7295f900d3db17ffec80703a3976f675f290cfce6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MGY2YTVhYjBmNDdmOWQ1MjdiYWY0MGZkMDc0MTY1ZmIzNTI3ZWUxODE5YWU2YWU2NTY4Yjk3MmU3YTZjZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYjdmNzNhYzQ3MWZmZGQwMDI4ZDBmYTE0NjVjMDViYjI3ZWFhODgzNzFhODYwYTA3ZTViOWJjZTY4MDFlYjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMmVlM2E4YzE1ODY1ZWVkNmJhZDZhZTBkZDM0N2YzZTNjZDk2NDA0OWIzZWIxMzZhMDRkYzExNjViZDAyMTYifQ"
         },
         {
-          "resource": "repo://tests/conftest.py#L1-L35",
-          "version": "repo-lines-v1:sha256:ce5c0524533135f4d60b877514eb98c47827ddd024ff79d671662471cc3f63f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MGY2YTVhYjBmNDdmOWQ1MjdiYWY0MGZkMDc0MTY1ZmIzNTI3ZWUxODE5YWU2YWU2NTY4Yjk3MmU3YTZjZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlZDUxMWVlN2I4MjJkNjNhZTk0YTk0OGVlMGU4NTBmYWMxNDI5ZDRhZTE5YjE2Y2Y3OWJjNTRjZDYwMDU3NTQifQ"
+          "resource": "repo://tests/market/test_data_plane_contract.py#L1-L26",
+          "version": "repo-lines-v1:sha256:e91f83989b827c6d0d65b7d87da851bb4d6324ba8491331892f47299e716cc42:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmYTk2MDk5MGIzMzhmYjAxN2IzMmMzZTQ0ZjRjZGY1MmVmYzQ1ZmNhOTMwZmIyODAwMDI3YWFmOWY5ZGVkODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNDE1NWJjOTIzNTFhM2Y1YzA2ODA1NGUzOGExNTk3ZTllYWE0YjQxNWY0OGYxZWExYWNjNWE3OTc4OGIwZGIifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L1-L50",
+          "version": "repo-lines-v1:sha256:a34bd6c890c82e6b525ccce0f0bbd5333a67376779f4bb9964c290ba5acc7f3d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNGM5Y2RkNDJmOGQ4OGMwNDQyNTM3M2E3MzM2MjA5ZjZiMmEyZGNlYmVjMzJiNGQ0MDU5M2Y5MGJlMmJiMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3OTE5YjQ1MWRlY2Y2NDdlZTczYjc2ZTY5NjU1ZjY2YzkwMDMxOWQwYjY2OGVhYzI2YTVhOWJjYmEzZDQ5MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
         },
         {
           "resource": "repo://tests/test_main.py#L1-L16",
@@ -54,28 +58,28 @@
     },
     {
       "id": "claim_3262b4d2882049cbac5ff0c1d833125f",
-      "statement": "tests/conftest.py sets SECRET_KEY, ENVIRONMENT=test and STUB_EXTERNAL_API=true in os.environ before importing anything from src, so settings validation and the app factory see a test configuration.",
+      "statement": "tests/conftest.py sets SECRET_KEY, ENVIRONMENT=test, STUB_EXTERNAL_API=true, a baseline MARKET_DATA_SERVICE_TOKEN and baseline FMP_API_KEY/POLYGON_API_KEY values in os.environ before importing anything from src, so settings validation and the app factory see a test configuration (including Settings() built on the prod path).",
       "evidence": [
         {
-          "resource": "repo://tests/conftest.py#L11-L16",
-          "version": "repo-lines-v1:sha256:b038e663dc483bd8ee3ae0f094c6ff28e8052cd4fef39e1d191dba98b4cf8986:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzMyY2YyZjJiZDZjNzEzNzBjZWE5YjMyODc2ZTUwYzQ4MjI4ZWRjZDlmYzFkOTlmZjkzNDM2OWJhZGM1Mjg3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFhMjc3MDBlNTY0OWVkNDc2MjNkOGE1ZDM3YzVjMTU4ZDg2YTU1NGZhYjg2OTZhYWI5YzM5NzE1NTQ2ZDg5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDMwMjIzZmMzZjk5OGZhOThmNjZjOTM5MjEwNTZhYmQ4NTM2OWVjZjVjYjhjYTEzNTdkZmQ0NGM4NDg4OTc0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDM0NDMwZjliODJjNjE2YTA3YmNhODc0MDVkMWYzNjFlODYwYTQ3ZDhkOTVmMjRiZmVlZGZiY2JkZDA5NTkyYiJ9"
+          "resource": "repo://tests/conftest.py#L11-L23",
+          "version": "repo-lines-v1:sha256:f8039fc3727c2e4f6eec339996a79aece8b0bcc3fd96418ea36c5cc0727f5eaa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMmNmMmYyYmQ2YzcxMzcwY2VhOWIzMjg3NmU1MGM0ODIyOGVkY2Q5ZmMxZDk5ZmY5MzQzNjliYWRjNTI4N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4YTBlYWQ1NzEzMzM2Yjc1Y2VlNDhiYWYwMjIwMDMwNDczZjgxNjdhYTQ3NDE2MmQzM2QxMTBlYTcxNGVkZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzMDIyM2ZjM2Y5OThmYTk4ZjY2YzkzOTIxMDU2YWJkODUzNjllY2Y1Y2I4Y2ExMzU3ZGZkNDRjODQ4ODk3NDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzNDQzMGY5YjgyYzYxNmEwN2JjYTg3NDA1ZDFmMzYxZTg2MGE0N2Q4ZDk1ZjI0YmZlZWRmYmNiZGQwOTU5MmIifQ"
         }
       ]
     },
     {
       "id": "claim_6df513f4fe074e18b6dafceb9ba26c1a",
-      "statement": "Database fixtures give a session-scoped PostgreSQL service (reusing TEST_DATABASE_URL when it is a Postgres URL, otherwise starting a PostgresContainer for postgres:17-alpine and rewriting the driver to postgresql+asyncpg), a function-scoped test_engine that rebinds sessionmanager's engine and sessionmaker to the test database and creates the full schema per test before dropping it afterwards, a function-scoped db_session that rolls back, and seed_reference_data that commits AccountTypeModel and InstitutionModel reference rows.",
+      "statement": "Database fixtures give a session-scoped PostgreSQL service (reusing TEST_DATABASE_URL when it is a Postgres URL, otherwise starting a PostgresContainer for postgres:17-alpine and rewriting the driver to postgresql+asyncpg), a function-scoped test_engine that rebinds sessionmanager's engine and sessionmaker to the test database and creates the full schema per test before dropping it afterwards, a function-scoped db_session that rolls back, and seed_reference_data that commits five AccountTypeModel rows (TFSA, RRSP, FHSA, Non-Registered, Spousal RRSP) plus the Wealthsimple InstitutionModel row carrying WEALTHSIMPLE_CSV_FORMAT.",
       "evidence": [
         {
           "resource": "repo://docker-compose.yml#L19-L24",
           "version": "repo-lines-v1:sha256:157e1d9597f389a5599fc244227a87116aa4a292c9d431c361017672955b84fa:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEzZjRkOTY2MWU5ZDJjM2UxYTI4OWU1ODMyMjk5YmVhMTRjZGI2NGJmODg2NjFkZjcxN2IxMmZhMDJkMDExZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTgyNzNkZWI2NGVlMTdhODM3ODc2NTZjYTc0OTA4ZWRjOWM5MmE2MTdiOGJkZGI2YmY3YTBkNDBhNDljZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTEzMjY2YTM2MDViMzY1MjgwNDQzNWM2MWM2MzJjYTc0ZWYwZGVhOWNkYjg1ZWRhNDI0NmEzOGNhMDFiNmIwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTM1M2JmNGU1NWM4ZDg2Yjk1MzNiYzI1ZGRjY2QxMDIxMjU2YTQ2N2U0ZDA1MGE2ZWE3MzE0NGMxYzRkZTc5MiJ9"
         },
         {
-          "resource": "repo://tests/conftest.py#L139-L193",
-          "version": "repo-lines-v1:sha256:3c10544ebdefca6b9b464ac7831d306cbe729b18c8d4f92d371383cda36514f4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyODkyOTQ3NDJjZTFlZGZlMzYyMWI2ODQwYTA0OTQ1NmYxZDE1MjM4NTU5Mjg0YWQ3OGQ0Y2FmMTA4MzBlZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNjRlZWI2MDJiMzM2MzEwNjUzNzU5MDBkN2ZmY2Y0NGEzMWM3ODZjODA3Mjc0NTk2YjkxZjI0OTYyZTc2YzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiOWZlOGUyZDViZDdhMzE4NjY3ODIzYzRjNjBkNzY2M2Y5NzU3ODhlMWI4NDc3MjQ0ODNiMjBmMWQ0ZjMwZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://tests/conftest.py#L146-L206",
+          "version": "repo-lines-v1:sha256:27f43e10792d25435d05b61a1cddf86e3426ba6e19fe23856e06ba97717477d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyODkyOTQ3NDJjZTFlZGZlMzYyMWI2ODQwYTA0OTQ1NmYxZDE1MjM4NTU5Mjg0YWQ3OGQ0Y2FmMTA4MzBlZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNjRlZWI2MDJiMzM2MzEwNjUzNzU5MDBkN2ZmY2Y0NGEzMWM3ODZjODA3Mjc0NTk2YjkxZjI0OTYyZTc2YzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiOWZlOGUyZDViZDdhMzE4NjY3ODIzYzRjNjBkNzY2M2Y5NzU3ODhlMWI4NDc3MjQ0ODNiMjBmMWQ0ZjMwZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://tests/conftest.py#L89-L136",
+          "resource": "repo://tests/conftest.py#L96-L143",
           "version": "repo-lines-v1:sha256:309ad97cdc9799d4d932e1cb33f9443b6bcc550ef8571d6b7dc3883f9d1c58f1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMDM2NWQxNGM3ZGFiM2Q2NWIyMGVlYjNhZmU3ZTVkNGUzMGU4Zjc5OGU3OWFkMDZlNTk0MjI4Nzc0YTc0ODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZmQ4NTJjMGVlMWMyYWY1YmFmODE2ZWUzMjk2NTYyMDFiOTk4ZmFkOTljYmNhYWM1OGZmNDdmNzM5ODBjODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhYmE5YmNkZmIzZThjMWRjNzNiMTUwMTJmYTc2YjI2NDFkMWM2NDllNzAzNDA3MGI0NjZjOTQ5YTk2YjBjY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1MDUzYjhmN2ZmODI3ZDU3MTdjNzJlN2RiMmE2YzFiYTg0ZmMxNjc0NDQxYjRmZjVmYzgzMjNlNGMwYTBlNTcifQ"
         }
       ]
@@ -85,7 +89,7 @@
       "statement": "The autouse session-scoped global_mocks fixture forces Huey into immediate mode so tasks run synchronously without a broker, patches ConnectionManager.init_redis/close/send_personal_message/send_personal_message_sync on the class (stashing the originals as _orig_* attributes), and patches src.main.init_worker_dashboard and src.main.close_worker_dashboard to avoid real AsyncRedis connections whose aclose() costs roughly four seconds per test.",
       "evidence": [
         {
-          "resource": "repo://tests/conftest.py#L37-L86",
+          "resource": "repo://tests/conftest.py#L44-L93",
           "version": "repo-lines-v1:sha256:1bf7ed8c46b1dfbf573eff07c1ec4ddefcf2eaf90065cd9cfa8072678f06d4ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlMzZhODM0MWIzMmViMGZkZGY4YTk0MzAyNjlkNzRiNmQ4MTBjMDMyYmI2NTk5MjUzNWE2MzQ0MDdiYzNjMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNDQ2MGRiOTA0NDY3Y2U1NWRhMDZlYTU3YTY4YjFhN2QzMDllNzMwMzBiMDE5MGVhZDQ3NTcwZjk3NmYxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OWVkZGU5OGY1MThlMzY5NjZmYWVhNzdiYzcwYTlmZmM5ZmE0M2FmYTczNmJhMzQ2MjI2Yjc2ZTQ3MmJlZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMzc1ZjdjZDVkMWMzYWI1YzFlMjE1N2ViNjFhNjRhMDRlOTZiZDA1YTg1NThkYmY0MWRmZWUxMTE4YjcxMDcifQ"
         },
         {
@@ -103,7 +107,7 @@
           "version": "repo-lines-v1:sha256:3ec5318dc4f0887f33c3db5c04328a2188a1430ce587d062723c4b7ad2b09f9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjNjMzFmMDcxOGM0ZmU4NGNkNWZmNzc4NDhhN2Q2ODIwODk0NDdmZTAyNjhlMDY3OGI0M2MwMDMwY2U0MTg1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
         },
         {
-          "resource": "repo://tests/fixtures/redis.py#L119-L143",
+          "resource": "repo://tests/fixtures/redis.py#L125-L149",
           "version": "repo-lines-v1:sha256:f96d6e08e2da82ea24f808ed5bb679127853be4a6fc120a08df8e63ad86ee9d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMDg2NmY0MDExZTU4NWZmYzA5MDkyZWRmMDgzMmUxN2I1MmY0YzkwYzRjYTBiNDJkY2ZhMDUwZmEzNzViNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMTNkYjM3MDJkYzljOGRmMGRmZTI1NGNiYTdjY2FiMjUyNzAwZDZlYTU1M2FlMzhjNjg0ZDRiZTk2ZjU1Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyNDhkY2Q3MzE3MTBjODBlMjgzYjVkMGNiNzVmY2Q5Mjk2NmJhM2EyYTkyOWM3ZjY5MjI5Y2EyMGRkNThjYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -114,11 +118,15 @@
     },
     {
       "id": "claim_ce31b488f8044f548f077270311ac7f1",
-      "statement": "tests/fixtures/auth.py supplies MockEodhdGateway (a MarketGateway implementation returning fixed price/search payloads via StubEodhdGateway), an authenticated auth_client carrying a UserApi-issued bearer token and an unauthenticated client, both built on ASGITransport + LifespanManager against the real app with the eodhd gateway factory and EmailService.send_verification_email patched, plus test_user and other_user fixtures for ownership/authorization tests.",
+      "statement": "tests/fixtures/auth.py supplies MockEodhdGateway — a MarketGateway implementation whose search delegates to StubEodhdGateway and whose price methods return fixed payloads — exposed as the mock_eodhd_gateway fixture; auth_client builds SqlAlchemy repositories on the test db_session, mints a bearer token with UserApi.create_access_token and yields an httpx.AsyncClient over ASGITransport against the real app via LifespanManager with base_url http://test, while the unauthenticated client is the same construction without the Authorization header; both monkeypatch src.market.eodhd.eodhd_gateway_factory and replace EmailService.send_verification_email on the class so no router test reaches a provider or SMTP; test_user and other_user persist verified, Argon2-hashed users for ownership and authorization tests.",
       "evidence": [
         {
           "resource": "repo://tests/fixtures/auth.py#L114-L167",
           "version": "repo-lines-v1:sha256:adb1a47eccfd3d8a3fec1fc951b3a4d482c8a1dea37c7f4090697b8158ad6953:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZDIwMzRlZTM0YmUyZTBmMDVkZGQxNjEwMWJlMzUwOGY3ZGZiNmEwMzkzZTQ2MDk5YWEwMTRiYzhiZDlmMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljOWRmOWI1ZDk1MDNkZTU1OWI5ODQxMTA1OGE2ZjYxN2MxNGM1Zjk0MmMyZDk3YzMxYjkyMDQ4MDc4N2FmNjAifQ"
+        },
+        {
+          "resource": "repo://tests/fixtures/auth.py#L170-L234",
+          "version": "repo-lines-v1:sha256:6e99e0c2c0792411d91f4a599e383ac0583c64d7b04e9527365676573e776796:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4ZDYzZmQ0NjUyOTQ5YjQzYzliZTY0NmU1NWQ5MTk4Nzc5Y2ZmZDQ3NGY4MWU3YjM3YzVjOWNhYTAzMzY1NmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
         },
         {
           "resource": "repo://tests/fixtures/auth.py#L237-L261",
@@ -126,7 +134,7 @@
         },
         {
           "resource": "repo://tests/fixtures/auth.py#L29-L111",
-          "version": "repo-lines-v1:sha256:31e43e296174f135d3c08ec5944df77f5bf70ab4a72fc19f8f708460d4d8343f:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMGY2ZTQ2NzhkYjk5NGMyNjI2OGM0MjZjNWY2NTk5N2I5ZjkwNjlhYTQwNzg0NmI0MDVlNmUyMTlhZGNmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MmYyZjhjYzMwOGNjMzZhNTQzNWZlYWY2NzVmZTA5NjQ5NDA0MDZiZGMwMmUxYmNlOTAwMDQ2NmM2YjI0YjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTAzZjRhNzBmYjJiYTFhMDk3OWMzOThjNTMxOTMwNDQ0OGExNjEyZTNlZWYwMjFjMTVlZDRhOTE5MjUzMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+          "version": "repo-lines-v1:sha256:ac3969062dc1c3ff3f76e7ef44965a8949bf139297c67f5c044d1fe05fd42e71:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiMGY2ZTQ2NzhkYjk5NGMyNjI2OGM0MjZjNWY2NTk5N2I5ZjkwNjlhYTQwNzg0NmI0MDVlNmUyMTlhZGNmNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MmYyZjhjYzMwOGNjMzZhNTQzNWZlYWY2NzVmZTA5NjQ5NDA0MDZiZGMwMmUxYmNlOTAwMDQ2NmM2YjI0YjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTAzZjRhNzBmYjJiYTFhMDk3OWMzOThjNTMxOTMwNDQ0OGExNjEyZTNlZWYwMjFjMTVlZDRhOTE5MjUzMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
         }
       ]
     },
@@ -152,11 +160,11 @@
     },
     {
       "id": "claim_017e861873564415a6b629c092d9b90f",
-      "statement": "frontend/src/setupTest.ts imports @testing-library/jest-dom/vitest, spies on console.warn to drop only messages containing bits-ui's derived_inert warning while forwarding every other argument to the captured original, waits 50 ms in an afterAll hook so bits-ui's pending body-scroll-lock timer fires before the jsdom environment is destroyed, and stubs window.location with a URL('http://localhost/')-derived object exposing href/origin/protocol/host/hostname/port/pathname/search/hash plus assign/replace/reload/toString spies.",
+      "statement": "frontend/src/setupTest.ts imports @testing-library/jest-dom/vitest, spies on console.warn to drop only messages containing bits-ui's derived_inert warning while forwarding every other argument to the captured original, waits 50 ms in an afterAll hook so bits-ui's pending body-scroll-lock timer fires before the jsdom environment is destroyed, installs a no-op Element.prototype.scrollIntoView and a no-op globalThis.ResizeObserver when jsdom lacks one, and stubs window.location with a URL('http://localhost/')-derived object exposing href/origin/protocol/host/hostname/port/pathname/search/hash plus assign/replace/reload/toString spies.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/setupTest.ts#L1-L58",
-          "version": "repo-lines-v1:sha256:f478993d80952c4a451f64bdc80851a1f8fc18afa28ed282db3fd0fa20a10c92:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxYTNjODk2MmEwZWRjYjk1NjIwNmE1MDFkOTQzZmU5OWUxYzc4YzZkNGQ4YjVjOWE5NDhhMzM2MmM3NTk3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/setupTest.ts#L1-L69",
+          "version": "repo-lines-v1:sha256:43ee85cb0dd1901274a629fd910b5208c75231137df558304509b0a5502dd39f:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxYTNjODk2MmEwZWRjYjk1NjIwNmE1MDFkOTQzZmU5OWUxYzc4YzZkNGQ4YjVjOWE5NDhhMzM2MmM3NTk3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
     },
@@ -202,11 +210,19 @@
     },
     {
       "id": "claim_bab378fdd49f4b8987f10e53e294e034",
-      "statement": "The agent harness covers only the backend and frontend ecosystems — its BACKEND/FRONTEND constants and detect_ecosystems classifier have no third value — while the Go indicator service is verified by its own CI job running go vet, go build and go test in services/indicator-service.",
+      "statement": "The agent harness covers only the backend and frontend ecosystems — its BACKEND/FRONTEND constants and detect_ecosystems classifier have no third value — while both Go services are verified outside it: services/indicator-service and services/mcp-gateway each run go vet, go build and go test ./... in their own CI jobs, and locally through the host Go toolchain or the just recipes just test-indicator-service / just test-mcp-gateway / just test-all.",
       "evidence": [
         {
-          "resource": "repo://.github/workflows/ci.yml#L78-L108",
-          "version": "repo-lines-v1:sha256:b94c2d33e741768b2caa5d0261f07c1a2da4d5e8c8f4d67e7a011281a46c70a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YmVlMDgyMmQ2OTE5ZGQ4YTQxODExN2VhZjRlMmYwYjZkMTc5Mzc5MzM0Y2UxYzI2M2VjNTBjZDg5ZjE0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://.github/workflows/ci.yml#L147-L211",
+          "version": "repo-lines-v1:sha256:694099eaf9a683b9d0b3fa4e620192e17dfdfab663965e173eff77f9fd8d88b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMzdkNTdhMDRiMzY4YzkxNTc4NTRkZmM2OTE4NWY0YWU2ZGFkODFjNDI2NWI0ZjYxNDMwOTE4ZmQ0MjFkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/ci.yml#L81-L146",
+          "version": "repo-lines-v1:sha256:23baa13b45ed437093c803d76232f579d7ab958f42fa367c02b647b5cbb0a614:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4NTIwYTJhMjJmMTRjMTE4NzE4NjViNTYwMjRmZTEwNjViZGEwMzZmODllN2NhNzllZWYyOTRkMDgxNGExZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiM2VmZjUxYmNhOTEyNzFiNjg0YTc5YTBmYjJlOWVmNGFjMDY0ZWQ1NTBjNGFjNTY3MjU0OTU0NDNmMDZhNDQifQ"
+        },
+        {
+          "resource": "repo://justfile#L18-L32",
+          "version": "repo-lines-v1:sha256:dd97be2857418f313de971367abbd24d2cfa811eeceb0af128ef3e980e7d8abd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjBjYWRjYmJlOTdhNTVhMzgzMzRiNGI2MzNiYjZkNGM0MjQ5ZjZkMWMyNjI0ZGNjMTVlODQ1NzBkNmYzNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZDE5N2VkNGQyYTkwNTU2NWQ3NmExNDU0NThhZTZlMTYxYzBlZGYxZGQyOWEzYTVlZWI3YWE1MzA2YTEwNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlMDJjZTk3NTQwYWVlYWNkNmVhMTBmZDFhMTUyZDc3YmEzZmUxMzc0ZTBlOWMwMTEzNTRmMGFlNmJjYzAxZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzNjg4MTM4MzM3MjY3MDRhY2RkMmQ4YjM5YWNmZTFkM2RlNmMxNTFhZDgzOWQ4YjY2MTRiZWE4ZGNlMDczZjYifQ"
         },
         {
           "resource": "repo://scripts/agent-test#L50-L51",
@@ -220,25 +236,37 @@
     },
     {
       "id": "claim_9351d38aafb847579a1ae5964a519225",
-      "statement": "CI runs three independent jobs: backend (Python 3.14, uv sync --dev, ty check, ruff check + ruff format --check, pytest) with no Redis and no database service because Redis is faked and PostgreSQL is supplied by testcontainers; frontend (Node 25, npm install, npm run check, npm run lint, npm run test:run with VITE_* and JWT_SECRET env); and indicator-service (Go 1.27 vet/build/test).",
+      "statement": "CI runs four independent jobs: backend (Python 3.14, uv sync --dev, ty check, ruff check + ruff format --check, pytest) with no Redis and no database service because Redis is faked and PostgreSQL is supplied by testcontainers; frontend (Node 25, npm install, npm run check, npm run lint, npm run test:run with VITE_* and JWT_SECRET env, then node --test scripts/opencode-go-session-fetch.test.mjs); and separate indicator-service and mcp-gateway Go 1.27.1 jobs that each run go mod download, go vet, a gofmt -l check, staticcheck@v0.8.1, govulncheck@v1.8.0 (tolerating a scan whose findings are only in the pinned Go standard library), go build and go test ./....",
       "evidence": [
         {
-          "resource": "repo://.github/workflows/ci.yml#L12-L77",
-          "version": "repo-lines-v1:sha256:8303900accdc7e73c7ec0ff1ca1138bf28996a4d95e4543b8e0497a38e55f9c7:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxNmQwMWYzNTE0ZmVjZGNhNTI3ZGI5Y2Y5MGQ4M2FkYjk0ZGVkZDE2ZjJhOWUyOWFmYzlhMjNiZDM3MmNiYmEifQ"
+          "resource": "repo://.github/workflows/ci.yml#L12-L79",
+          "version": "repo-lines-v1:sha256:cf741131e341cbf0b940a48b8033c33c4f8e2ce68921a7b83a9e4fbfb506a558:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxZDQzYmZhMjFjM2NhNjU1ZGQ3NWFjOWM3ZTZhZDNjZmRkZmY4ZTMzNzk5OGYxOTUzYWE4Y2E4ZTViYTkyNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4NjBlMGY5YjQwZmYzZGI2MzExODYzNzc1NmE1ZWJjNzE5ODMyZTg4Y2FiN2ZlZGIzNTc5MzQ3YTIyYjhmNjcifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/ci.yml#L147-L211",
+          "version": "repo-lines-v1:sha256:694099eaf9a683b9d0b3fa4e620192e17dfdfab663965e173eff77f9fd8d88b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMzdkNTdhMDRiMzY4YzkxNTc4NTRkZmM2OTE4NWY0YWU2ZGFkODFjNDI2NWI0ZjYxNDMwOTE4ZmQ0MjFkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://.github/workflows/ci.yml#L81-L146",
+          "version": "repo-lines-v1:sha256:23baa13b45ed437093c803d76232f579d7ab958f42fa367c02b647b5cbb0a614:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4NTIwYTJhMjJmMTRjMTE4NzE4NjViNTYwMjRmZTEwNjViZGEwMzZmODllN2NhNzllZWYyOTRkMDgxNGExZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiM2VmZjUxYmNhOTEyNzFiNjg0YTc5YTBmYjJlOWVmNGFjMDY0ZWQ1NTBjNGFjNTY3MjU0OTU0NDNmMDZhNDQifQ"
         }
       ]
     },
     {
       "id": "claim_7497e250808d4850a456ea5e43a64deb",
-      "statement": "All development commands must run inside Docker via docker compose exec <backend|frontend>, and before committing the area guides require lint, type checks, formatting and tests; a model edit additionally requires an Alembic autogenerate migration, with the agent harness the preferred entrypoint and the raw pytest/vitest commands the fallback.",
+      "statement": "All backend and frontend development commands must run inside Docker via docker compose exec <backend|frontend>, while Go microservice checks run on the host Go toolchain (gofmt, staticcheck, go vet, go test ./...) or through just (just lint-go); before committing the area guides require lint, type checks, formatting and tests, a model edit additionally requires an Alembic autogenerate migration, and the agent harness is the preferred entrypoint with the raw pytest/vitest commands as the fallback.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L19-L35",
-          "version": "repo-lines-v1:sha256:5fc9b665f6019084e1425421617aa0db604f97ade70588cb609ec2f28181beac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YzRmNWNhYzU0ODE2ZWVkMTY0ZDM2NTZiZTM3NjRiYTk3MDQwZTQ5ZDNmY2M4ZTQ3NzMzNmYzZTFiMzc3YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5MjQ1ZjI5ZDhmYTEyN2Y5ZjZiZDM5NjRkYTI2NGZmNzg0MWU0YzViMjMxYzU0ZGY1MGI1MjkxYTRhM2U4NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
+          "resource": "repo://AGENTS.md#L34-L52",
+          "version": "repo-lines-v1:sha256:00082ab6809bf4780361e7fd3308491559e0aec6305531982ffd17f192ecff19:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMzJkMDA1NTg5YjQxNjdkZDBjYTU2MzhjM2I0NTM3Nzk2YmQwNmIxYzkxYTRkNTBmYjk1ZDllNDQ0NDhlODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzZWM4MmUwMmQwNjRmY2JiNGVkODcyOGNkNDA2MmJjYTZjODhjNzQ2ZmUxOWVlMDA3YmY0OTlkZGFlZGNjMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NGY3ODBiYzA1ODVjZjM4MzEwNTUyMzUxZDEyYTNkYWIwMDIwOGQ1MDViOWJlN2NiYWU3NjRlZTQ5ODYxNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwZjA1ZjI4Njc4MzU4YzY5ZDNjNTYxOGEwNzZlMDZmZjViZmEwZjNjNDFkMDM5NDljODQwNTE5NDEyNjk3N2YifQ"
         },
         {
           "resource": "repo://frontend/AGENTS.md#L19-L33",
           "version": "repo-lines-v1:sha256:c984e9050e7a5924850de0f2224ee43c2a1b0d178d8e31c0191c57083bf47391:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2MTVlODUwMmNkM2RkYWIwNGI2OWJlYWRmYzY0ODg2MmEwYTk1YWM0NjY4Mjc2MjBiMzNkYzMxYjgxMzY2MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxYTFjZDg5NzI0OGNkYjkxYTA1YzU3MWQ4ZjViZDc1NjE1NjE5MzY3Y2M4NjMxNmM0NzU0ZjZlMGU2NGNkZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNmUwMmRhNmQyZGY5MzVkNmU1N2U4OTI0NGVhMTYyMDkzYzk4N2FlMGIzMjZhZTFiYmVlNTYzZDg3YWZhNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEifQ"
+        },
+        {
+          "resource": "repo://justfile#L34-L45",
+          "version": "repo-lines-v1:sha256:500b4a2a633d531c3155b097d895fceed5a196c97f7dff5a6478170ca5301308:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2N2Q3NDdkYjdmYjgxNGU0MDhkZWQ1ZTg0MzViMzdjYjEwMjY3YTc1M2VmN2MwNTlkZWE4YjgyOTA5MzcxNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMWY2YWZiYTcyMTFiYjZjNmYzNjFiMDY1MGZiNzYzOWUwM2MyNWY3NmFkNThjZDc5MjRiNzM2MmE0MmUwNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzOWQ4ZWYyMmE0ZWU4N2E2MmFkMDNhMWQ5M2I4MWNhZjc3Mzg1YmY2YTU5MDM2YmMzNmYwMTlhMjY5MjFhYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NWEzMWNhYTUzMmEzYTA2MjIwZTM4ZmYwOTI5ZGNhYTZmYTAxMjNjNGUyYTgzMGYxYzlmNGU0NWRhNzNlZDEifQ"
         },
         {
           "resource": "repo://src/AGENTS.md#L25-L38",
@@ -259,7 +287,7 @@
           "version": "repo-lines-v1:sha256:ab357a59aaeccdb46e4585648745a133fc0469fc6b33fa1101513ded6b356999:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0MDViYmQ5MTM0YTM4MDA2MjVmNTFlMDEwMzI5ZmIwYWRhYjA2NTk5MzFhOGZjMGYxMmJhOTIxOGVhZDBiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjM3ZTViMzU1MGEwYjZkZWZiYzc0N2MxN2M0MWEwYzMwZjI4Yjc1YmM1YTRlMjJkYjZkZWU3OTBiOTM4YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkN2QzZjQ5ZWI5ZTk5OGI3ODc4NGNhMDE1MTg5ZWQxMzc2ODFmNGE0MzJlN2FmODM4MjcyMjIxNjg4MTJjNmMifQ"
         },
         {
-          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L31-L37",
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L32-L38",
           "version": "repo-lines-v1:sha256:66bbe975a55adecb616e4e464d94ce895deb1b1ac074456e97949699122308cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODUzYzU1OGRiODFkOGEyYjg4MmUxNGQ1Mjk3ODFiYTVjYzY1YjY5ZTg0MmE1YjE0OWZmYmYxMjk4ZWZlZmJhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTg0MWNiMWNkZThiYzQ1ZDJhMzBlMjNiYzY0MWEwNDM1ZjFiMzZkYTkxZWU2NTVmMjNlNDg0YTZjNWJiYWQwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODFjMTQyNmJlYTdmYWJhMDVhMTJjMWUxYzg2MGRhNjdjNjE3MzhmZmNjY2NhNGY2NzZlNGI5MjZkZWE2NmUwMiJ9"
         }
       ]
@@ -276,19 +304,15 @@
     },
     {
       "id": "claim_ae8310fa8d054c92b8e697d85a40a8f1",
-      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and then handing back a hand-built client whose every method is a vi.fn() — search, createOrUpdateSecurity, getWatchlists, createWatchlist, renameWatchlist, updateWatchlistSort, deleteWatchlist, addSecurityToWatchlist, removeSecurityFromWatchlist, reorderWatchlistSecurities, addToWatchlist, removeFromWatchlist — which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access; HoldingsService uses the same shape but mocks two modules, $lib/api/accountService and $lib/api/marketService, returning only the getUserHoldings and getValuationsBatch methods it actually calls, and covers paging until offset reaches total, the stale-total guard, and returning the caught ApiError so callers can route a 401.",
+      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and then handing back a hand-built client whose every method is a vi.fn() — search, createOrUpdateSecurity, getWatchlists, createWatchlist, renameWatchlist, updateWatchlistSort, deleteWatchlist, addSecurityToWatchlist, removeSecurityFromWatchlist, reorderWatchlistSecurities, addToWatchlist, removeFromWatchlist — which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access; HoldingsService uses the same shape but mocks three single-vi.fn() factories — $lib/api/accountService, $lib/api/accountClient and $lib/api/marketService — returning only the getUserHoldings, getAccountTotals and getValuationsBatch methods it actually calls, and covers paging until offset reaches total, the stale-total guard, and returning the caught ApiError so callers can route a 401.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L101-L162",
-          "version": "repo-lines-v1:sha256:529224b842a0477cab851398b969a856ea7b954bbddd4af7a57fc8e6b7cf9cd5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNDhmNTQ0ZTJhZDNiMzhmMzk5YzY1ZTQ0YTc3MjEzMDViNzc2ZmU4Mjc0MDZhZDYzNDQ5ZjNmZjJkZWFhZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0ZTRkOWIxYmJlNWJlNTI3NzAwN2Q4MGRiYTVkYzQ1YzcyNzk2OWVjNTdiOTk1NDlmZTRiZjQ1ZDhkYzVlOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmMzVjOGE4MjBjOGQ4YjgxZTU5YzhmMDcwNThjYWUwZDIzZDg1YzExOGU0N2QzOTJmZmJmM2FlNzZhZTMwZWIifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L3-L17",
+          "version": "repo-lines-v1:sha256:3cc90d9c110f8d6a1a0a25ca40c1acd7d1451421a8c751c0000738d142c49e16:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2YzM2I5NGVkMTU4NTk1ZjdlNGU0M2M4YjhmOTgzMjg1OTVkNzI5OWEwNDAzMzQ0MjQ1ZTIyNGVmYzg5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YzFmMDk4OGJjY2I0YWQyOWE3YWNkOWQxMjNkMjRkOWE5NmU2NWQ0ZWZmYzE2ZWU2Y2FmZmI3YTA1MmVmMmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODU5Yzk2OGVlNGEyZTc1NjdhNGZlNTU0NTJjNTg1NjhhNTM2NTk2NDJlMTE2ZTc1M2JmOWYzNWJlMjc5NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4N2E2NGZjYTZhOGM4ZjRjMWIyNDMxNzMxMWZlZjM1N2I2MjAwOTc2NWEyMjBmYzcyZDAyNzFkNDAxMjBlMjYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L3-L15",
-          "version": "repo-lines-v1:sha256:4540434818ef2b60e74277e0215eba8489fe033555fa8dad0f6213fd2a9b52cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2YzM2I5NGVkMTU4NTk1ZjdlNGU0M2M4YjhmOTgzMjg1OTVkNzI5OWEwNDAzMzQ0MjQ1ZTIyNGVmYzg5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3M2VlZmNlOWUyMzUyZmE2NDYyYTM1ZjZhNWU5MTQ0YmYwNzVmNGU0YzlmMzRhMTM1NTQ5ZDE4YzIyMDc3MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODU5Yzk2OGVlNGEyZTc1NjdhNGZlNTU0NTJjNTg1NjhhNTM2NTk2NDJlMTE2ZTc1M2JmOWYzNWJlMjc5NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ZTllMDg5YmM3OTAyZDA4MDljMjlmYTY0ODdiNDU5NmFmNzJkZWMxMWUxMzQwZWVhZWZkYjdlYTVmMWRlZDgifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L58-L68",
-          "version": "repo-lines-v1:sha256:682eb53ee1959ca22b09caa5803dbece515d820a09f8a27359ed58fa93cab99e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMzE4NjMyNzRjOTc3ZDQ1NTdmOTE1MzhiMWJkNTkyZGVmODQ0YjgxM2FlZjVkZDdmM2NjMWExMDQ4YjUxMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhYTY2MTExMjgzMzY0YTJlNjI4NTIxNDJhOWNlMDhkNzJiZDIxNjg1YzY0MWJhNjI1NDMzZmI4MzNjMTIzNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNWMyYzA5Nzc2ZjZlZmQ3NDlmN2MxNjA3MTM5ZjU4OTg4ZGRmYWJmODNmZWY2YmFkM2Y1M2NiZTM4MzhlMGQifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L78-L93",
+          "version": "repo-lines-v1:sha256:01c28276d539bd95631b9a266533d1a3fe8d9d83882ebf2edb63077d03109568:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMzE4NjMyNzRjOTc3ZDQ1NTdmOTE1MzhiMWJkNTkyZGVmODQ0YjgxM2FlZjVkZDdmM2NjMWExMDQ4YjUxMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhYTY2MTExMjgzMzY0YTJlNjI4NTIxNDJhOWNlMDhkNzJiZDIxNjg1YzY0MWJhNjI1NDMzZmI4MzNjMTIzNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNWMyYzA5Nzc2ZjZlZmQ3NDlmN2MxNjA3MTM5ZjU4OTg4ZGRmYWJmODNmZWY2YmFkM2Y1M2NiZTM4MzhlMGQifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L12-L14",
@@ -371,15 +395,15 @@
           "version": "repo-lines-v1:sha256:8ebe50a40a623dbed62c730dd5bf0ab00838783b60df63a4c0e537f6079c2e76:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiY2RlYTUwOWU3ODNkYTdkMzkwMmY1ZTIwODY3MjNhYjA0ZDVlNzFhMmQ4NjI1MTVkOTljZTlhMjA1MmU1ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5N2EzOGUzN2RiMDA0MWY2ZWU1NTQxM2M0ODYzOTcyOTIwNjNkNTg0YmNmZTQyZjJiZGJmMmQ2ZTg1YTkxODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L203-L243",
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L284-L324",
           "version": "repo-lines-v1:sha256:c157a5392bca6ea617c3e2782b29276c7e6c43263c0c2f222c1b9fe61af60725:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0MzU3NTFjMDk3MzdmMmM1MTdhNDM2ZGQ4MGY5MGFjOWM5NDcyNWRjYzBlZGU5MjJjYWNhODkzZTZmMGU3MmYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L245-L272",
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L326-L353",
           "version": "repo-lines-v1:sha256:b904067680ba29744f43096069fff3efd53324b871e46f68ffcb06c4eb62b2f8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkNDdkYjVlYjg3NThkYzYyYmY2ZjFlMWE0MzhiMGZmNDQyMzIzZjg4NzUzZjQzZjUyNjFiMTE4MTBiZmEyNTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmZTUyNjc3YTg0ZTY0MmVlZWNmYzgwMTg1MDdhZDdiNjUyNzcwYmZhYWRhYWExMDdkZDMyNDYwNjhjNDEwZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyOTRmZDExY2I5OGI3OTNmZDUwODczMWU1NDdiYjU1NjMwMTQxNWY0MzBhNTA2MTQ1N2MxMjQ0MDc0ZTBiOTEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L450-L457",
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L618-L625",
           "version": "repo-lines-v1:sha256:2b8c4ca48d9558e6c087d52b39d4fcfb4d5c3f4fd54913c984c022a80257dc35:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ5MDRiYWU2ZTJmZTljZjY0NWUwNDBhYWJjNGEzMGI2NzBjMWExZDFlODk5MmU0NTIyYzU3NWQ1NzM1YTQ2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDhjZmVjYTFmNGY5NTNjMGM3OTNjOTQzMTAxMzU4MjczMjE1ODU0YWVlNTc3OTcwOGNmNmRhMDZhYzFjOGU3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmOWNjNmQ5MmRjNWJlMDQ0NDg0MmZjMzMwMjQyNGI4ZTk0OTQ0MWJhYmJmMTQxNDg3NjVhMzVjZDFiMWQxOSJ9"
         }
       ]
@@ -545,10 +569,220 @@
           "version": "repo-lines-v1:sha256:9975e3ccc1af7d8f4b4808c6dea8dd441d6fcd1084cc17720bb5f29178807a6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxYjJjM2M5NWM4ZjQ0ZTkzNGI5NDdlNDhhNTI4NjQwNGExM2Y5YzEzN2QyZmVkNGZiNTI3MTM4NmQ3ODI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkYmYzZDFiOTU4NmQwMGZmYWQ5ZDkwOWE0OWNjMWFlNzViMDRjZDA4YzkwYzljNjI5MmNlMzMxNTI3YjI3MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4MzEyNTY0NTFiMjNlNTBjYmY0YmU2ODJmMGUwNDIxNGQ5ZDEyZGQ2OWEyY2UzMDIwMjYwMDQwNjE3YjRjMWIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_ab56365df7c444879b4586d46848e534",
+      "statement": "src/commands/export_data_plane_contract.py generates the committed data-plane snapshot by slicing the FastAPI OpenAPI schema down to the routes whose path starts with /api/v1/market/data, titling it 'Market Data Plane Contract' version 1.0.0 and serializing with indent=2, sort_keys=True into tests/market/contracts/data_plane_openapi.json; the parity test regenerates it in place when UPDATE_CONTRACTS=1, and the module can also be run as uv run python -m src.commands.export_data_plane_contract.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/export_data_plane_contract.py#L13-L49",
+          "version": "repo-lines-v1:sha256:62ba9a3cf5215c5fb56d0127134b8e8031080d8bb8750d79018d9fb37a190555:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MjcyM2M2NjIzOTQwZWM1OWM5Mjg3MTZmMDU2NWEyYTI5ZmE0ZTQ2MzhmOWQxN2Q2ZjYwNTYxMmIyOWZmMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYjRmOWE2NjYwODc2NDA3NzIzZTRhMmJjZDljZWNiMjdjZTMyYWM2MWM4MTllNjVjY2RiM2U5OTQxNWQyNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L29-L53",
+          "version": "repo-lines-v1:sha256:c21b9b081d19f5289640933275d7149cf77c431ae61d75fa1196773e490202df:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNTJhNDJhYzUyYzliODBhNTdkMDA3ZTQ3MDBhMWE0MzJkYjZjN2E1NjFhNjE4YjViYzhmNjg3OTk3OTE1OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MDA4ODc2Nzc1MmE3N2FlNTRkNTc3ZGVmYzUyODJmODEyM2IwZmFiMGM1MWUzZjc5ODVhNDc5NDFiY2NkYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4623541861d044e6812bf7553c8e28be",
+      "statement": "tests/market/test_data_plane_contract.py asserts the committed snapshot matches the live FastAPI schema byte-for-byte (reporting a unified committed-to-live diff on drift), pins the path set to exactly the eight expected data-plane routes with GET operations, checks in/required for every path and query parameter on those routes, forbids the provider names fmp/financialmodelingprep/polygon/eodhd in both the live schema and the snapshot, and requires currency on PriceHistoryResponse, IndicatorSeriesResponse, OptionsChain and Quote plus the boolean truncated flag on OptionsChain.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L156-L171",
+          "version": "repo-lines-v1:sha256:b6d27c97239bb7d717cb92709dffb735fffe41362fe6bd05535517dccb69da2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMDFhOWU2OTRlYzM2NWQ3MzRiNjNkMzRmNmE3NjlkMWYyZDFkZjZmODAyZmFiNzRiNTZhMzU2YWNmYTNmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MzUwMTk4MTFlY2E3NmU4NDJhZjgyMDBjYzQ2NDkyNzk0NThhNDI2MWJjYjBjMGRhNTU2NjRjNGQ1MGRkYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiMTFiNTM0M2Q2NDJlOGJlOTQ5ZGU3ZDI2NWEwYzI4M2E5MzAyZTkwYjQ2ZWQyMDQ3MzhmNWYyMjAwN2M1ZTQifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L17-L26",
+          "version": "repo-lines-v1:sha256:a7de87793c2f511b866c2a079f543080d1ea56780b5dba879926e6f8bdcde1cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmZDA3Mjk0ZWFiNDA2MmYzYTYyZGM1ZmY0ZTI3MTEyNWMzMDUxMDVhYzUyNjAzNGYwODNlZDNkYmZhZDNhYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExMWVkMGE4OWYxZmQyN2JhN2U1YzZmNjJkZDFmNmY0NjNhOTIyMDAwOGYwNTgyNGY1NDhhOTkzNGI5Yjc4ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNDE1NWJjOTIzNTFhM2Y1YzA2ODA1NGUzOGExNTk3ZTllYWE0YjQxNWY0OGYxZWExYWNjNWE3OTc4OGIwZGIifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L173-L202",
+          "version": "repo-lines-v1:sha256:f559d8cea534d709b66a0b2a75fe70b720592ba2479ababd0b01d693191bd98d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczNDI0ZTE1NjJmNzdmZDY5ZThmYzM2OWU1ZTZiZmU4MjNhODUwNDdjZDIwZTc2NDE3OWU0Y2FkMmU2ODVjOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NDcwZTRlYWU4NDk1NjFlMGI1MjkxMzJiOGJhYjFjMGVlNGQwZTAyZjVjMWY2NmRjMWQ0ZjNkZjM4YWRlMWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2ZGZiZjQ1M2Y3ZjFiZWJhYjcyODM2MWIwZjM5M2VlYjRjMWZiNjY4ZjllYTIyYjkxNmRhY2Y1ZGZmODFkODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L56-L153",
+          "version": "repo-lines-v1:sha256:97e91b0dcde5ac3e1bf1ee92a79da93955abd78fa57b99b0bd6101f40525c36b:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxOGU5YjQ1ZjI4MTA5NTBlM2RiNWEyNzNlMWVlY2NhZmRkMjA4MDc5ZWY5NWJkNzAwNzE2NzA0ZWNlOTk4NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxYzE3NTY4ZDRjNzNjNTY2ZDBhYzQ1Nzc3NzM4NWU1MmU2YjQxNDhmNmNiYWY5NWZhYTQyMzY4ODM0YTA3ZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljNWNlOTgwMGYyMjY3MTRmMDQ1ODc1ZWYxZmQ4NjM4MzYzMjZiMzFjYmMxYmViYjRlOGE2ZGM4ODBmNWJmZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_05b31134a3f347409dc1d10963931d18",
+      "statement": "services/mcp-gateway/internal/backend/contract_test.go reads the same committed snapshot, locating it via relative candidates plus upward traversal so go test ./... needs no configured path; it pins the OpenAPI version/title/version and the eight routes, drives the real MarketClient against an httptest stub whose handler validates each request against the contract (rejecting a missing X-Service-Token header, a path matching no contract route, an undefined query parameter and a missing required query parameter) and asserts 100% of contract routes were exercised, requires the exchange query enum on the five routes that carry it to equal the Go supportedExchanges vocabulary, and requires the options expiry parameter and boolean OptionsChain.truncated.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L120-L167",
+          "version": "repo-lines-v1:sha256:052b288f41d8a9f7d7096eb5f7bceee4c7043f4b9b4422ba36141ae77657d5c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkZDE5ZGU2ZDk2NDc4NDg3NTQzZWNlODQ5YWRjY2I5M2RmN2FmM2IwMGFmNjZhNTVmZjQzMjZjNmY3NzNiMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjljNWZmMTI0OGM0OTY4Mzc3NjgwODhmODgxOTAyYTc1NDRjMGIzYTliZWNjOTE0MzU1YThlY2QwZWU0YzExYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiOTMyYzkyMWI5M2I4YWE5OTg4NjAyOThlZThiMTllZGEwNzZhNTJkNjlhZjVlNjJkNjUxNThhZDZjZjMxMjAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L169-L212",
+          "version": "repo-lines-v1:sha256:e94d142ad347d3c29ba7cd50f10ddfafd91961e1504e05af6cf2060399a938cd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkN2QxODU0NDQ3ZGQ0NGY0NDQ1YzA5OWI1OWZmOWJmN2VhN2RmNmE4YjYzMmFjZTZjM2RhYzc2ZmU0ZGQ5YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmYjJhODI4NjA4MDNmMWJlMDhkYWI5MWJjODIyYjY3YmU5NzdiMTYyNDM5Zjc1NmNiZjI1N2YzYzY3ZTY3MmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZDA0ZDg5OGIwNDZlYjRkZjg5NGJlN2ZjZDczMTU3NmMzN2Y4ZTdlNGMxYTQxZmMxMGFhYmQ4ZjM2OGE1N2QifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L214-L352",
+          "version": "repo-lines-v1:sha256:88288f0b1f508b6e10e11b857bf7afb874d9150860f75d95af1e8429a76c30ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhZWM5Y2RmOWI2MWQzZDViYWVlMzM5MzhmMDFhYWM0NWExODczNzhjNmVlOTZlYTA5MGY0NzVjOGVhYmI5Zjc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4ZWJiZWIxMjcyYjFiYzljN2FhNmQxMzQ2ZTg0MGFiYTFmNWVkN2M5ZDdiMTA5NjRjZTYyMjdjMWJhNTdjMjg0In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L354-L444",
+          "version": "repo-lines-v1:sha256:69f0f6e1af31154aa8961df1c9251b3e56027d38637a08e09e858c3c0e136db2:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlOTY0MjI5YWNmMGVhZjc0Yjg2MzFiM2ZjZjlhNzg2NDZmMmE0NWZhZmE3YzgxNzcwZmQ3MWQ2YzI1MGIwZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZTBhMjFhMjkzYmMwYzg4NTNhM2ZlNWVmNDUxZDNiMTEyOTMxZGE3YWE1YzE1YWI0YjUyYjZkNDA4YTJiOTQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L47-L98",
+          "version": "repo-lines-v1:sha256:2ee5861ffcec90123034bcce61ed7ad21a8cf1f3c08286b609eb973e96bf0eed:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzOTI5MjViYTY2MTJmNmJjYTlhNDc1MDdlODFiZTJmY2UyZWY4NzUxYTlmNDUxZDIxZDAxNmIwNjcwYzkzYmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmODFjYzM5MmVkMjBkOWRiNTdhN2YyYjcyNmE5ZTdlYzg0MjllOWQwMTM4ZDZjOWQyYzE2ZjFkNmY5ZDk5MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1MTFmM2QyOWQ3MmYxZmMwMDFiYjE5ZWRjMjYzNzg2ODQwZjg5OGQyMzYyYzU1OTFhY2M4ZjQxYmQyZmY5ZDMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L472-L544",
+          "version": "repo-lines-v1:sha256:a4e2fe840c833bcc55a9164d4020129dcd5239323798950bec29c4b8a8caee36:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3OWEzYjM1NjMwZTUxYjUzYTdkZTBlM2Q3NDM0NTI3MDRlY2NiNDU0NWIyZTQwZTQwODc2MDAwNzQ5ZmExMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmZWRiMmE5YmI5OWM5MDFkNzc2NzY0OTJiM2FjOTRmNzI2YmQzNDc5NGUxMjJiOTVmNjhhNGM5MTgzYjI0YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4791c632652c474d8e7c58e8157432f6",
+      "statement": "tests/market/contracts/data_plane_openapi.json is the single committed source of truth for the data-plane wire contract, read by both the backend parity suite (tests/market/test_data_plane_contract.py) and the Go gateway contract suite (services/mcp-gateway/internal/backend/contract_test.go), so renaming or altering a data-plane route or query parameter requires regenerating and committing that snapshot in the same change — otherwise the FastAPI side or the Go client side fails.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L91-L102",
+          "version": "repo-lines-v1:sha256:f280b22a58555fe8c00efa059e9752022169fa669ee7e4ea055f1e8e105718d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2M2IyZDMwMTRkNmVmMGRlOWI0Mzc3NTYyZmMzMTg1OWI4NzY0MWU5OTgzYTZhOWJhMjk0YmE0ZWI0YzgxOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2Y2M1YzE1OWI1MjhhNzllOWM0MTMxZTU5NjEzN2Q1ZmExN2IwYjliMzllMDc5MGRjYzc5NmZjYTgyZjljMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhOTU1MWFiOTU5MzU0NjAyYmEyZjY1MzI5ZGQwNjM4YzQzODViOWMzMTdjYTQwYjVjYmZhZTU5YzFiYzViM2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxZDQxNDFmZTY2ZGE3ODA0ZTE5MDQ1OWZmYzYxZWU4YjYwY2VhYTNmMWZiY2Y3YzQzZjQ3M2VjMmQ4Y2Q0NWEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L214-L352",
+          "version": "repo-lines-v1:sha256:88288f0b1f508b6e10e11b857bf7afb874d9150860f75d95af1e8429a76c30ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhZWM5Y2RmOWI2MWQzZDViYWVlMzM5MzhmMDFhYWM0NWExODczNzhjNmVlOTZlYTA5MGY0NzVjOGVhYmI5Zjc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4ZWJiZWIxMjcyYjFiYzljN2FhNmQxMzQ2ZTg0MGFiYTFmNWVkN2M5ZDdiMTA5NjRjZTYyMjdjMWJhNTdjMjg0In0"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L29-L53",
+          "version": "repo-lines-v1:sha256:c21b9b081d19f5289640933275d7149cf77c431ae61d75fa1196773e490202df:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNTJhNDJhYzUyYzliODBhNTdkMDA3ZTQ3MDBhMWE0MzJkYjZjN2E1NjFhNjE4YjViYzhmNjg3OTk3OTE1OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MDA4ODc2Nzc1MmE3N2FlNTRkNTc3ZGVmYzUyODJmODEyM2IwZmFiMGM1MWUzZjc5ODVhNDc5NDFiY2NkYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1ef1f77046cc46fdbe2884cf583bafcb",
+      "statement": "Provider anonymity is asserted on both sides of the data-plane boundary: the backend contract suite rejects the strings fmp/financialmodelingprep/polygon/eodhd anywhere in the live schema or the committed snapshot, and the gateway's suites fail if any tool result, log line or error string mentions an upstream provider brand and assert that client errors never leak secrets or provider names.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L868-L903",
+          "version": "repo-lines-v1:sha256:f9c462dd7489052075e012a41ea511b5d9508e2cc3da27de80ff66336303c87a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNzZjYTAwZmNkOWJjNTFjYjZkMjRmOWZlYjlhNWY3YTE0ZjNiODMyNDk0ODY0N2FiM2Q3MjAyZmI4YTMzMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkOTc0Y2RmY2Y0YjU4YWMyNmU0ZTdjNmQ0MGY4NzU3MjIwY2RlYjQ4N2RjYTJjOTMyNjMwNTVmYzQ4NWQ2NzkifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L18-L26",
+          "version": "repo-lines-v1:sha256:d77901257a81b0cc37369450c007cbaac95a142e8cbfeb7705403566d00a2b21:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGQ2Y2I3ZDllNWZmMWJkNGI2YTUxNTQ2MGI5ZTlmMDc1NjAyYzA4ZjRlMDNkMDY0NjI2YzkxNDZlMGQ0MmIwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGQ3NTQ1YzUxY2Q1ZTg5YWViYTBmN2FhMDYwODIzYTQwMzQ3NGViNDMyOGQ1ZjlhMGUyNGUyNmRhMzU3YjZiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTJiYTk4OGIwNGFmYWVmYmI3YjNkNzdkYTI1Y2VkOTZlZmNkMzRhNDllOTEzNWQ5NDEwOWFiNTYzNmZjYjMyZSJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L156-L171",
+          "version": "repo-lines-v1:sha256:b6d27c97239bb7d717cb92709dffb735fffe41362fe6bd05535517dccb69da2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMDFhOWU2OTRlYzM2NWQ3MzRiNjNkMzRmNmE3NjlkMWYyZDFkZjZmODAyZmFiNzRiNTZhMzU2YWNmYTNmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MzUwMTk4MTFlY2E3NmU4NDJhZjgyMDBjYzQ2NDkyNzk0NThhNDI2MWJjYjBjMGRhNTU2NjRjNGQ1MGRkYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiMTFiNTM0M2Q2NDJlOGJlOTQ5ZGU3ZDI2NWEwYzI4M2E5MzAyZTkwYjQ2ZWQyMDQ3MzhmNWYyMjAwN2M1ZTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8488c088fedc4cc9b55e3f578e684c82",
+      "statement": "The data-plane endpoints are tested offline: tests/market/test_data_router.py drives them with a MagicMock gateway, the real require_service_token dependency and the real EndpointResponseCache layered over the autouse in-memory Redis fake, and tests/market/test_endpoint_cache.py exercises the cache itself (TTL classes, negative caching, Redis-error fallbacks) against the same fake, so no provider or Redis server is required.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1-L68",
+          "version": "repo-lines-v1:sha256:683a1a6929ad6e181520f6a11f2304af2091a26f4eb063253d4c9523b30d90fe:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4YTFkN2FmMjI2YTlhMzRkNDUzMDdjOGRhNTUyNWM2NzIyNTI4OWU5ZWM4MmQxZmI0NDFmNDUyZmZiZDcyMWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjNjA4YzE0ZDRkYmNjZGJlN2E0YjkzM2U4ODNkZWRlNDk1MTJkZjJlYmE2NzA3NGFlZWViNzMxODdmNjU5MzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L1-L40",
+          "version": "repo-lines-v1:sha256:fdd34602c29ba0d6db297081f1a7ac2ac593daf9ca994b52904e62a5ad525b93:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYzExNTQ5ZDQwN2JkY2RiMTE0NWYwNjc3ZGU3NmVkMjljY2QwYmNiMGYwZWE0NDFmYTQyZDc3OTI2YWI5MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwZWNhODdiZmNiYzY1YTBlYjBjYzMzMzQyM2Y0OTNjNzhkM2E4OTlmZDE0OTMyZTUyMmM0Y2UwZTkyNDYyMWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MWEyMDBiMDdhYTQ1NjE3YTFhOGYwNzU0YmUyYzUyNzE0YzU5NTRjMDMwYzdmZWVmNGM2MmYzZTgxNzI4OGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e7151b2b8f7450ebbe7a115a42d0a8f",
+      "statement": "services/indicator-service's Go suites cover internal/config (Load defaults, custom values and invalid LOG_LEVEL naming the variable), internal/indicators (SMA, EMA, Bollinger, MACD, RSI, OBV math, ComputeIndicator settings fallback and unsupported types, ScalePeriod timeframe scaling), internal/httpapi (/health and /compute method-not-allowed, invalid JSON, unknown indicator, daily-string vs intraday-number timestamp preservation, full-suite/custom-id, empty candles, request validation and at-limit success) and internal/logging plus the request-ID/access-log middleware.",
+      "evidence": [
+        {
+          "resource": "repo://services/indicator-service/internal/config/config_test.go#L8-L77",
+          "version": "repo-lines-v1:sha256:43a247901ef7b9214c7667e3556c13355785eaf87d51c51bdd6e2213c3bf393e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZTVlM2IwYzk3NGZkMmUxOWUwODE5NDkxMTNjNTY0OWZlODI3MDdlYmUwM2ZmOGFjZjU0MGQxMWMzNjFhMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDEzZTk0YzFjMjRkYTVlYzJiYjhhOTgwOWJlOWJlNzRmODM4OGJhNWMwZTA0OTRlZDEwNzI2YmIwNjVjYjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTljYzQ5MGMxMDE3OTYwOGZiMGI1MmViMjZkMDM2NGRiYjM3Zjg0YzMxYjQ1MDhmMzZlNjg3Zjk4YjhiZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwZmQ3OTFmNDk3ZDg3NGM4OWJlM2VhOWFmYzJjOWRiMTQxMTQwZjM3MjRkNTZlYTlkZDcyZTc3MjJlZmUwNjkifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/httpapi/handlers_test.go#L51-L418",
+          "version": "repo-lines-v1:sha256:cfba1508249c89c43a5f6157835abd43d3e19f19b777048d15cf7df6a6d418da:eyJzZWxlY3RlZExpbmVDb3VudCI6MzY4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4NmQ0MjVlZTAxMWU5OTBjYWUzMDY0MGM4NDM1YmJkYjliZjA2YTA0OGQzNjBjM2YwODA4OTRlM2NmMzg0MzFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzYmY2NzJmMDY1NDZhZmEzYjFmZTIyNTAzMWJhNjhhZmQ3Y2JmM2QzZDAyY2M5NmFmYzI2NDllYTZjZTA1YTk4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxNjMxYjZlMmNhMDdkOGJhZjBlYjQ0ZTc0OWRiZjQ5MGIzOTJlM2E1MzRlZjYxMDIyNzcxMTQ2Y2RmOWFmMWEyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjZGVjYzcyNWNiZjhmZjNhZGMyYmZkNmVjMzkxN2JjNzE4MmJmYmIwMDA4ZDAzOTQwYzdlY2VkMzQwYTM3ZDUyIn0"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/httpapi/handlers_test.go#L638-L815",
+          "version": "repo-lines-v1:sha256:bbe5814be46265b57ab5691730f0c0a64b87f478b3ef87842bf7a8d4cff7e0cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTc4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMzg5MDQxOWUxMTQ0YTYzNGMxY2FjZjM3NmIwM2QwOTM1MjAzZTc0NTRhYWY2MzBhODE0OWE1NmFhY2U4NjFlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYjYxMzZiMjExMzVlZDZhYWNmM2EzMjIyYzJkZDlkMjNjMGU0NDgyZmYzMzRjYmFhYzljNGQ5ZjEwOWI3MDFhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmMjgwYzgzYzc1OTBmZWE5MDZlN2Q0MjdlYmVmNDNjMTExZTc0YjVhZmU3N2RjMGM0NTExZDMxMDY5MjcwOGIxIn0"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/httpapi/middleware_test.go#L15-L133",
+          "version": "repo-lines-v1:sha256:b4ce08989fc02beeffa45b4bf4e452d403f6dbdc57260a6fef78d1f092ca39eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5MzVlMjIyODBlY2FiY2NjNDY4NmQyMWU5ZTExMjY2NGI3NjY1NTkzOWJkMGEyMDBmNmMyNTBlYTVhYmQ5MmM4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxNDQ0Yjg5YmIwYmIwOGZmMGYwMGY3NjAzZjEwY2NjMTNhNDRkNjM3NTM4Zjc1OWFiZmJhYjFiNDI0MmQwYWMxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjZDBiZGJlMWViNzliMzEyZDBlMTMwYmJiY2JkOTUyNzkxYTRhZWY1ZWEzMzkwNzg2Y2ExMjJmYzhiZDE2NjE5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1NDhlM2MyOTZjZGFiOWViYTgzNzRkMTExYjBkYjc5ZjZiMjQwMWEzYWYzZjhlMjU1OWM2MGE4MWM3NzdjZDIxIn0"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/indicators/calculator_test.go#L27-L274",
+          "version": "repo-lines-v1:sha256:a18362c937cf60a19e9ee7d29013aff80db60f616b4704255a9a80a475b8bf06:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQ4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyOTdjZjI2ZTcwZWM5YTE3OWUwYTNiY2NlZTNlOGQ2ZWFiMGE3ZTgzM2U4Zjc4YmYxMWFjMTA2NTFjMTViZTg5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNDliMjMwZWU4ZGQxZGQ0MjAzOTk3YmU0ODgxZjRkNTQyM2I1YWQ1N2FiZGQyOWM2YjRmYmRmNjEzYzdiN2NmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4YTFlM2VlZWE1MmUzYjU3Mzc3YzFlNjY2ZmFmY2QwOTQyNDVjOGIwMzRhODg2M2M0MjZjMTkxMjY4Mzc2NDg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4YzExYjIzOWZhMDg4NWVlNTk3ZGEwNjE2ODZlNDg2NWU3ZjZkOGI0Yjk2ZGQyYjY4MDhjYWRmOTYwM2IzZmQ1In0"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/indicators/timeframe_test.go#L7-L7",
+          "version": "repo-lines-v1:sha256:5d5e363c292490961949a27fb3b723ef6ccbd7d02aab1fe049326af9c319a48a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWQ1ZTM2M2MyOTI0OTA5NjE5NDlhMjdmYjNiNzIzZWY2Y2NiZDdkMDJhYWIxZmUwNDkzMjZhZjljMzE5YTQ4YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWQ1ZTM2M2MyOTI0OTA5NjE5NDlhMjdmYjNiNzIzZWY2Y2NiZDdkMDJhYWIxZmUwNDkzMjZhZjljMzE5YTQ4YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzNlOWNjNDkwYzEwMTc5NjA4ZmIwYjUyZWIyNmQwMzY0ZGJiMzdmODRjMzFiNDUwOGYzNmU2ODdmOThiOGJlZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZThmZjA2OGE1YjUyZTRmMDRjMDg3ODU0YTZlMmNkN2IxZjUyOTNiYjJhNDFlYWNjZmQ0YWM3M2ZiMGM4YjdjNiJ9"
+        },
+        {
+          "resource": "repo://services/indicator-service/internal/logging/logger_test.go#L11-L55",
+          "version": "repo-lines-v1:sha256:57cd4bd50cb68f711fbc3cfcebe362bd5ced324970a8aad80ce21d3d8bb2e510:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyYjYwNTUzODFjYzQxMzYyZTE0YzBiOWNkMzUwZTQ3NjMzODdmYzcyYzJmYzRlMGU2ZDNmNThhMWNiNzIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYTc4MGRhODg1NTUwZWVhYTAxM2UwOGIxMmEwYmJmYzBlMzk3MTE3MjM0MTcyNTQ2YWY3Y2Y2M2ZhZGZkOTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTljYzQ5MGMxMDE3OTYwOGZiMGI1MmViMjZkMDM2NGRiYjM3Zjg0YzMxYjQ1MDhmMzZlNjg3Zjk4YjhiZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OTdjMjJhZmEwMWFjMTc2YWE4ZDZmMzliMGVlNGYzODRlYTFlY2QxNTAyNDJmYTM4NTU5OTU2MzA5YTM1OGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd2e944a30e04336bdaf394ab1ed521d",
+      "statement": "services/mcp-gateway's Go suites cover internal/config (Load through injected getenv, defaults, DATA_PLANE_PATH/MARKET_DATA_PATH precedence and normalization, IsDev), internal/logging (level parsing, handler selection, token redaction, middleware status levels and provider-name compliance), internal/server (/health, MCP initialize and tool listing over the real streamable handler, session idle timeout, cross-origin protection), internal/backend (Transport construction validation, GET/POST with route-group isolation, error taxonomy, concurrency cap and saturation timeout, MarketClient endpoints, service-token header, error taxonomy and secret/provider leak checks) and internal/tools (tool-surface contract, removed tools unregistered, invalid or missing input rejected before any backend call, backend error mapping, exchange normalization, dev/error logging, plus per-family prices/symbols/fundamentals suites that wire a stub backend through the real MarketClient and MCP streamable handler on an httptest server).",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L92-L458",
+          "version": "repo-lines-v1:sha256:e15204541fb397940a314a5682fa926a793b6e73782ad1d89ef5651e012ccb8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzY3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MDlkODY4OGE1NjllMjkwZGVkNTViNTMzMTQzMDNlY2RjZWE3NGFkY2EwYTE1N2VjNTE4ZTI2MTUwMzUwODliIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJlM2NkYzFlMzRhYjgyZDEyOGNhMzliZTdmNjRlNjdjNTRmNWE3YjI0MjM1ZjVmMTJmYTk0MzhhZTgxOWEwNDk2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0MjY5OGNiZjcwZWVmMDQ2ZWJlNWE4NDg5MjhkMzdkN2E5OGZkNGI2Mjg0ZTRlOWNlNTRiYjZiYTMzOWE4Y2FhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkYTk2NGFmMjRiNTJmNTJlYjk1ZDk1NWNmZGFjODg0YTkzZDhkMDQ0OWZjNTNlMDliNTg5ZjhiNTY2YTgyMzE2In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L26-L120",
+          "version": "repo-lines-v1:sha256:0b029806e0355dfd08ad2fae8fd3bf7dd1d07e13755f2e2e21d484efd64e0605:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOGIzNWE5OWQzODkwN2Y1MDBlNTI0ZmMwYmIzNzdmOGYwMGY3MjE0ODRjYzdjZjdhZjA4OWRmMTQ0NTAwYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkZGFiZjY1NmZkNTRmMTdkZmNmNDcxMzYyYmQxY2JhOTczNTVhZDExODkyODI0NmFmYmM5ZTVmNjljNDE5ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmZWNhNDYwMjE5MDQ4MGEwMzRiM2U0N2I1NTM1ZGZjZDAwZTdjMDc5Nzk0MmNkNGZmYjIwZDlkZTcyMDA3MzAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/config/config_test.go#L14-L120",
+          "version": "repo-lines-v1:sha256:ef0b7431a751b1dc1e0f76905d8d51b5c864ac51e4b6d2ea90d2b68c3f1b4296:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiMDdhMGY2ZDI2MTA2NTViZGMyM2U2M2FhMDU5MTdiYmIxZGU1OTk0MTRmZTRmNjE0NDU2MjE0YjkxYjczNjc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjNDdjYjNjM2Y4OWI1ZDQ3NzdjZTVkZDJiOGI3NDJkYjAwZjliYWEyNDVjYzllNTYwMGMwMDJkYWM3YWZhM2QwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3NTJiZmEzYTU0OWIyMjlhMTNlMjJlNDBjMTU3YjVlY2IwMGU4YWZkNGZmNDI3NzYwNTU5OWE0OWYzMWNmNWVjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4YWM1NDFhMTVlNDkwZGU2YmQyN2Q5ZjU3ZDY4ZDJhM2FhYjVjODJiYjgyYWFjYzRhMjEzMzNmZmE4YzRkMzBmIn0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/logger_test.go#L12-L56",
+          "version": "repo-lines-v1:sha256:e47bf3f6590597ffad27a94f3f07d0b95a744ff98468c348e3081a14daea4575:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyYjYwNTUzODFjYzQxMzYyZTE0YzBiOWNkMzUwZTQ3NjMzODdmYzcyYzJmYzRlMGU2ZDNmNThhMWNiNzIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNjg1NTdhZjI3NjMxMDViMDA1MDBhMzY4MmZjMDRmZjFlNWIyYTViYWIwODY3MWQwODY4Y2ViZmIyMTkwMjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTljYzQ5MGMxMDE3OTYwOGZiMGI1MmViMjZkMDM2NGRiYjM3Zjg0YzMxYjQ1MDhmMzZlNjg3Zjk4YjhiZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NTVhNmQ3NmI5OTI4NzZhN2U4MDE2NTFmNmJlZWM2Y2UxYWEwMTUyZDU1YWVhMmQ1OTM0MDYyNjk5ZTAyYjcifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware_test.go#L23-L132",
+          "version": "repo-lines-v1:sha256:76b728e4afaaca12463b858573828b6078695dfe664ba592a2f8140e261a8fd4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmFjNWY4OGRmZmQ4Zjc1MjEwNDBmYmRiODE3ZDc2NjdkOTkzNmE4ODhmOGUyNDkyOTc0YzcwNjNiM2IwZDBlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0NTY5ZmI0ZmI0YzNkZTNlYThiMThkYTI3OWU0ZGFlNDE5MmNiMzQxNTk3NDc1Y2U5ZTA1OTVmZWVjYzZlNDQyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjOWZkMGYzYmFmYTQ0NmIxMTRhZjk4YzgxODgyMDQ1MTRmMmM4MjQ3MGRmMTIwMDI2OTMzYTU2MDQwOTgwOThhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNGY2Y2EwMGJkN2U0NGM2NjY1ZjRkYmJjNTFjM2Q5ZjQ1MjdlZjVjODhiNmQ2MDVmMDgzMTM4ZDY4MmU5ZDA1In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L66-L181",
+          "version": "repo-lines-v1:sha256:ba0b458a096ef673622771698e706133612f977db1a6e44b10939500c6feecbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzYzNkZDA1YjE4YTEzZmY2YmNmYThlZWY4ZTEyNTcyMGFhNzExMzI5OTBjOWIyNzc1ZTc4MDI2ODhlYmVlNTI5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJkZmJmNDAwOTc3NTA4OTIyY2IxMzVkNzI3ODdhNGY5M2U1NmMwOTYxYmM1MWQ0ZmJjZWU4ZDAxNTg2MjRlOTBmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ZGFiOWMzZTA5NDZlOTJjNmQxNTNlODAyODMyZjkyNmQ3NmQzYjZmMDRlN2EyNTBiNmI3ZDNhNTQyZjhlODc0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4OGRjMTQ1YzlkZTQzMTNmM2Q5NWNiN2NiMjNjMGZkZjQ3ZGRlMzI0YzVkOTU1NjgzZmY4OTc3MmI5MWQwZjQ3In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals_test.go#L12-L173",
+          "version": "repo-lines-v1:sha256:8b9a8314af91a676dfa84481d8d9140150d6297df70b8cc6ab9a6e13a13e9159:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwNjc5YmNiMDQ0YWRhYTZmMWE3N2ZkNzA1YzE5MGE3YWVjYWEwMTQwNjAyNjk0Mzc3YjZlN2ZlNTFlZGM3YmUzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1Y2ZlMjUxYmZiYmUzZWNjZWJjZDY3MDA3MDdmMmM1Mzk4ZWRhZGNlM2ZkMGE4Y2RjNTU5MmVkNDk4OTc0NzM5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0ZmI4YWFhY2U2NDhlNzk4MWVmNTU3MmFlOWYyOGFmNGJiZDY4MDE1ZTI2ODRiOWE3ODAzZTQ1Yjc4MDc4NzA5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4YTNlYWJmMTA4MmY4MmExZmIzMTM2YTJlMDcxODdiZGNmNmJjNTI4NzlhZDAxZmE3Y2UwN2M2OTA4YjE1ZTkyIn0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/prices_test.go#L12-L107",
+          "version": "repo-lines-v1:sha256:c10fb8c1814764d869bfe40f891db3110cd9da803dd61cf89991e6c69dbef0b2:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMTFhOTIzYzAxNzE3MzdjNTNhNGM3ZjQ5NTBjMjZhMjViZTQxNjNlMmZhYWE1ZWY0MTJkMGY0ODJkYjNiMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxOWQxZGIyZTQ4NjcxZTI1ZDE1OWUxNjMwMDllMzgyODI2MGFmNTM3N2RhZjYwYWUxNjdhMzU2ZTU3OTcyNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTljYzQ5MGMxMDE3OTYwOGZiMGI1MmViMjZkMDM2NGRiYjM3Zjg0YzMxYjQ1MDhmMzZlNjg3Zjk4YjhiZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjNDg0MGQyOWMyNGJmYjA2NjUwNWNmODQ2YzIzYjk2ZTRlNjIyNmNmMDdiYmQ4NzZjODg2ODY5YjBiOGViZTcifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1477-L1616",
+          "version": "repo-lines-v1:sha256:de0784c062f8a578c647328d98d131d73e292c851faa09a83a7727d5e5c07dd3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5ODk2ZmUzNTU1MGZiNDk0NWEyZmUwOTE2MzZhMDQ4YTUyN2Q2YjU3Y2IzYjA2NmM3ODI5ZjEyMGVkM2ZlMGYxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiYzIzZmY1M2JhZjE0OTNiZDg3OWUyZGJhNGQ0YjM5MDJmMDVhN2MwNWYxMmQ0NmU0MWE1NzQyODA3NGY5YTljIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1NWQ4ZDE1OGE3YTA0ZjVlNWFiYjM5M2E0NDc1NjA1ZjJjYjA4YmI5NjdjYTlkZGUzMTgxMGQ5NGU1ZjQ2M2MyIn0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L28-L53",
+          "version": "repo-lines-v1:sha256:6927178c69259b7562142ca4b08b6fa0b78a8cd03780a31aeb068141195f3f88:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTY4ZTU0ZDczNTBhNGQzMmRkYjMzNTgzZjUzNzZhMWNmNTEyNzQ3ZDQyZjBiZjI4YzZlNDAxNTliYTU2MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1Y2FjYjJmNzcyNmU3ZWU4OWJiODg2MmZhNjcwMTM3NzI2NGMwYWNlMDhiYjQ1NGE0NGEyZjY0ZGZhMmNjZWIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols_test.go#L15-L245",
+          "version": "repo-lines-v1:sha256:02e94fc8f8f278500bb4b29d5a8df062d98cdfdecfc7b66dba84ab466098db63:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2Yzc0N2VhNWRkOTM5YmZkYjVjYjkzNDBiZTdmMTRlN2ZiZjU4ODY1OTY2YzUyZTA4M2VmMWMzNWY0ZDQ1OWQ1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ZDg0MmY3ODY1OWE5ZWJlYWUzN2NhZGJlMzAzODQ3ZDQwM2ZhZGFjMjM2MGI0MzJhNjNjNmVlN2E4ZDIyOGNjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0ZmI4YWFhY2U2NDhlNzk4MWVmNTU3MmFlOWYyOGFmNGJiZDY4MDE1ZTI2ODRiOWE3ODAzZTQ1Yjc4MDc4NzA5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjOGU1NmQxOWJhZjU0YThlNDEyZDZiOTdiYzNiMzI2MTFjZDYxMTc1MzhjZmJmMGYwODlkNDQ2MzJjNDFkMDAxIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_4a456b465c3749c1841a8361a01a4cb2",
+      "statement": "The justfile exposes the non-backend verification entrypoints: just test-indicator-service and just test-mcp-gateway run go test ./... in each Go module, just test-scripts runs node --test scripts/opencode-go-session-fetch.test.mjs, just test-all fans out across backend, frontend, both Go modules and the node script in parallel, and just check chains the harness's Gate 0 with just lint-go (gofmt -l over both Go trees, staticcheck v0.8.1 and govulncheck v1.8.0).",
+      "evidence": [
+        {
+          "resource": "repo://justfile#L6-L45",
+          "version": "repo-lines-v1:sha256:5ee65c0cd7b85726901fb0d2cab7e190268ae7b727b530a927a08bb733f26616:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZWJiYTIxZjMzYmE2MmMxYTgyZWNjZmI2N2JlZmM1ZmJkNTIxYTlhNTE3YmVlYTE5Y2RmNmE5M2EyN2JiNjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMWY2YWZiYTcyMTFiYjZjNmYzNjFiMDY1MGZiNzYzOWUwM2MyNWY3NmFkNThjZDc5MjRiNzM2MmE0MmUwNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjYTJmNWEzYzM0OTY2NDlkMzY2NTA2MzVjZDAxNjRiMjE5ZDA0MTJiNTYxODUzNmM2YTZlMzNiZGVjMmNlYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NWEzMWNhYTUzMmEzYTA2MjIwZTM4ZmYwOTI5ZGNhYTZmYTAxMjNjNGUyYTgzMGYxYzlmNGU0NWRhNzNlZDEifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

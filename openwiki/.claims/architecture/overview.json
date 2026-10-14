@@ -1,36 +1,36 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:21e1a71fe97a3e2a43919a7a988795464e610d3b449bdc881608125a70f86383",
+  "pageVersion": "sha256:2f421cc6def312373e0afad8ac82b44de8b95abbe639595c624ccb96fbe19d5f",
   "claims": [
     {
       "id": "claim_af3b03e3ba854f68ac50e0d040bc8cd1",
-      "statement": "The runtime is a set of cooperating processes: a FastAPI backend served by `uvicorn src.main:app`, a Huey worker started as `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic`, a SvelteKit SSR frontend, a stateless Go indicator-service sidecar, plus PostgreSQL 18, Redis 7 and mailcrab; the backend and worker each depend on postgres, redis and mailcrab, while the frontend depends on backend and worker.",
+      "statement": "The runtime is a set of cooperating processes: a FastAPI backend served by `uvicorn src.main:app`, a Huey worker started as `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic`, a SvelteKit SSR frontend, a stateless Go indicator-service calculator and a Go mcp-gateway MCP server, plus PostgreSQL 18, Redis 7 and mailcrab; the backend and worker each depend on postgres, redis and mailcrab, the frontend depends on backend and worker, and the mcp-gateway depends on the backend being healthy.",
       "evidence": [
         {
-          "resource": "repo://README.md",
-          "version": "repo-file-v1:sha256:27a4e12c345f6d502be73301a80b43644280d33898fd304525c5d4749c7fa9f4"
+          "resource": "repo://README.md#L15-L22",
+          "version": "repo-lines-v1:sha256:8369ae4060b26014437a992b549af5fb7f06cc9134a7e1e30d5b712642fdea97:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjA1YmJhOGE5ZDM5MzJiM2YzYTM5YjllZmIzOWQ3YTY5ZjI2ZDJjYzljN2Q0NmYwMmIwMDA5N2NmYWQyOWEwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODQzNzRiYzc1YTIxYTZmNzA3ODBlNGE0YzljYTZhZTM2MDVmYWI2YjkxZGU4ZjE4ZmYwNzlmNDAwZjJmZDIwZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2JkNDljYTIxNzAxYTNlY2MwZTIxMjAwNGYxYzBiNmJkNjNlNjNiZWMwNWQwMTA4YjcxM2Y4YTI4ZTlhZjgyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDAzMmMzODYzYmZhNmQ0NTRmMjBkZjQ2MjRiMmI3NjdhYzI1OGU1YmM5MzNkNjc5NzRmYTIzMTNiMjQyNDQ1MyJ9"
         },
         {
-          "resource": "repo://docker-compose.yml",
-          "version": "repo-file-v1:sha256:2d1dc9e343d03415bf65406b0927f43639b831bb571f31fdb83323d4137c2d18"
+          "resource": "repo://docker-compose.yml#L1-L144",
+          "version": "repo-lines-v1:sha256:72a0029b091bc5d1755d64821c88294164a731017fe50049b49af999996ce570:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTczZmNjZGM5OWVhODM1OTY3YzdkZWU3ZWZiZWQxZjNjYTg3MjYwZDkyOTMxODUwZmRkNjZkYThjYjEyZjFkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MiwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1NjljMDRmODBlODM4ZWQwOGFhY2ZlOGY3ZmRhYzg4YmY0YWVhZmUxNjIxMGNlNDg0ZWU3YTZjYjhiNGU3OTU4In0"
         }
       ]
     },
     {
       "id": "claim_ef32779155f04bab9eabc97309dffb2d",
-      "statement": "The Go indicator sidecar is a stateless calculator with no authentication and no rate limiting, exposing only GET /health and POST /compute, and it is intended to be reachable only on the internal Docker network.",
+      "statement": "The Go indicator sidecar is a stateless calculator with no authentication and no rate limiting, exposing only GET /health and POST /compute, and it is intended to be reachable only on the internal Docker network; its entrypoint is `services/indicator-service/cmd/indicator-service/main.go` and its HTTP handlers live in `services/indicator-service/internal/httpapi/handlers.go`.",
       "evidence": [
         {
-          "resource": "repo://services/indicator-service/README.md#L1-L13",
-          "version": "repo-lines-v1:sha256:3ad78b97dd9e96df9aae7ac79a7b3f004b15db4244794eab21fab458a0fee531:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5MmE0ZjAyM2I5NGU5NGQwZGVhMTRkYzU0MmVmNGRkYjQ0NDZkNDIwMDY3NTc1NjQyOWRiYmI4ZDVhZjE3Y2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZDIzZjhkODQ3NDA1YTk3ZDk4OTAzZTU2ODM0MWI5Y2FiNmNhMDBjOTIzMWM0ZTQ0OTk3NDhmZjNmODk3MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjOGU1NDEyYzU0YTAzZTcxZWZiYzU3Y2NiOTJkZjEyN2U1MGJmZGQ1NTZhNDdlMmIyNWE1N2UyNTM5NDY2ZGUifQ"
+          "resource": "repo://services/indicator-service/README.md#L1-L31",
+          "version": "repo-lines-v1:sha256:2a3b34325907b81d76f7eb5b838f96be00a609c3052f3166dec038d6917d1056:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5MmE0ZjAyM2I5NGU5NGQwZGVhMTRkYzU0MmVmNGRkYjQ0NDZkNDIwMDY3NTc1NjQyOWRiYmI4ZDVhZjE3Y2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1MGJhNTg4ODRlYTA5MTFlZjcyMzY2YTRmMWJiODhjNWEzNGExZmNhMTA4YzZiMTViYWIzMWUxYmNmZTRiODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3NzgzNzE1OWE1MTk3MTE4NzE5MjlhMzI2ZGZlMDYzZWY5MDQ1MmNjMGQzY2QzODE4MzNiOGQ2MzU0ZTU2ZTAifQ"
         },
         {
-          "resource": "repo://services/indicator-service/handlers.go#L73-L79",
-          "version": "repo-lines-v1:sha256:2d9429852fd2120b5ce1eecbce7af7757ca22744fb20275b75abbfd5ce50b007:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjRmMGY5MzY4NjMxMTJhYzY2ODA3NjE0YWNlZmRkNWFlYmM4NjgxNTljZmVmN2FlYjZhZjAyMzE3NjYyZmY1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWIwZjc0NGMyYzFhNmJkZTEyMTZiZmEzMTljZWJmOGNkNjZiOGUxYzk1NGY0OWU3NzA3YTkwN2Y1OWE2ZmVjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+          "resource": "repo://services/indicator-service/cmd/indicator-service/main.go",
+          "version": "repo-file-v1:sha256:7e7132345b25a2de842e4fae6a068813d44edd246a01288a68cf5d4325e6e223"
         },
         {
-          "resource": "repo://services/indicator-service/main.go",
-          "version": "repo-file-v1:sha256:fd39abe882e1b7e2f1e91ca8fd27ab03da228d78e3b7419f0ecd96536a4b900c"
+          "resource": "repo://services/indicator-service/internal/httpapi/handlers.go",
+          "version": "repo-file-v1:sha256:2cd98127cb92754478124fc9ddc9ddcb8c404fc6eb4b9b63e585643a4f6e0644"
         }
       ]
     },
@@ -39,8 +39,8 @@
       "statement": "`src/main.py` builds the FastAPI app with `lifespan=lifespan_context`; the lifespan runs Alembic `upgrade(head)` in a worker thread when `settings.environment != \"test\"`, creates a fresh `svcs.Registry` stored on `app.state.svcs_registry`, calls `register_services(registry, sessionmanager)`, initializes the WebSocket manager Redis client/listener, and initializes the Huey worker dashboard with signal binding.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L43-L81",
-          "version": "repo-lines-v1:sha256:3997b00817c790332f3ca1dfe1b8b9930c0dfc044a64e2c542882ad334d10f8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2U4N2JlNmU0OTU1ZTRlNjAzZGYxMTMzM2FiMDQzYTU0MGFiOWQxYTM3NTFmODEwMzhhZTMzNzU1YzI4ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MjFlOTZlZDhkYTJiNGIyYTY5YWNjZGU2ZjYyYzFlNDQ3NjdmNzgxZGY0MmEwMzNlOTRlZTg0MjZkNGYwOTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYzRjMGI2NzdjMzQwMTlhOGFkN2Q0ODkwYWI1NDA1NDMwZDliYjQ4Zjk2YzZiMzZkZTk1MGExODlhNjA3OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTk5MTFkZjYwMGFlNjBmMmZkNmYzNjIzN2QyNDEwNjI5Y2IxZjA1ODk4ZGNhYzE3NjU2OWQ3N2YzZjk1ZWQifQ"
+          "resource": "repo://src/main.py#L52-L78",
+          "version": "repo-lines-v1:sha256:c9f79818c29a76c69dd02d075e2193a319423161c3565dd24721f777834854fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2MjhlYjI1MzM3YTlkNmRjZmUzYjQ5ZjA4N2U1NWUyNTNmYzdhMzBhZTM0MDE1ZWVhZjA4OGM4Y2RiNjJlMjMifQ"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "statement": "Lifespan teardown closes the Huey worker dashboard, the WebSocket manager and the Redis manager, and the lifespan body wraps its yield in a try/except so a failure during yield is logged instead of aborting shutdown.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L73-L81",
+          "resource": "repo://src/main.py#L80-L88",
           "version": "repo-lines-v1:sha256:24f0a9f340fd9594e92e61b9d5175769e1240645a297f41dc2bb4a76884f43ac:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQyMWU5NmVkOGRhMmI0YjJhNjlhY2NkZTZmNjJjMWU0NDc2N2Y3ODFkZjQyYTAzM2U5NGVlODQyNmQ0ZjA5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE1OTRmZjA4MDZjNzU5NzZkYWI5YjBkMzU5MGU4Yzc1MWU0ZjBmYjRkY2EzNjE5ZjI4MTMwMjBkMTk3MzM1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGI5OTkxMWRmNjAwYWU2MGYyZmQ2ZjM2MjM3ZDI0MTA2MjljYjFmMDU4OThkY2FjMTc2NTY5ZDc3ZjNmOTVlZCJ9"
         }
       ]
@@ -63,22 +63,30 @@
           "version": "repo-lines-v1:sha256:e13266a3605b3652804435c61c632ca74ef0dea9cdb85eda4246a38ca01b6b01:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODkxMzNlOTBlYjQzODBmNjUwMjRjMjQyNjI3NTNlMWJkZGVmMmNhZjAxZTE5NTM0NjI3YzEwOTc0NDc4NzA0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQxN2ZhZWU0MjY2ZmZhNTQ0YWFmMDc2NjdlYjIxMzhiMjU2ZDNlNTliMzhjMTYyZWZhZDU3ZGFmN2UyMGZjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGVkYjk5MzQwODhjNGNkOWU3N2E0NGMwMTQyYTIyZmFmNDFiYzBlMGYyNzliMjIyYjM4M2M4YzU1ZGJmNWI1MCJ9"
         },
         {
-          "resource": "repo://src/main.py#L86-L98",
+          "resource": "repo://src/main.py#L93-L105",
           "version": "repo-lines-v1:sha256:5b782fe1ef7d79a9c582186872c42049c9f171b8c469bc6137e748a091fe974a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlZjJiZWU5YmI1YzFhNjdiODk2NDNlODdkYzRhNTFhMjM0ZmM1Nzc1ZTdhNDJjNTY1MzI2NmQ1ZmMwMTBmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZDAwYWIxZjE4MWQ5N2M3MWQ4Y2MxYTMwN2FlNTdlMmJiOTBlYjcyYWFiNjM0OWVjNzY5NjVjYzAzMjUyMDQifQ"
         }
       ]
     },
     {
       "id": "claim_a19d9f94e17046298946fc02c1d4525b",
-      "statement": "HTTP API routes live under `/api/v1`: `src/main.py` creates one `APIRouter(prefix=\"/api/v1\")`, includes the account, portfolio, auth, institutions, integration and market domain routers into it, and mounts it on the app; domain routers are themselves prefix-less relative to that (for example `auth_router` is `APIRouter(prefix=\"/auth\")`), so older documentation describing bare `/api` paths without the `/v1` segment is inaccurate.",
+      "statement": "HTTP API routes live under `/api/v1`: `src/main.py` creates one `APIRouter(prefix=\"/api/v1\")`, includes the account, portfolio, auth, institutions, integration, market and data routers into it, and mounts it on the app; domain routers are themselves prefix-less relative to that (for example `auth_router` is `APIRouter(prefix=\"/auth\")`, `account_router` is `/accounts` and `data_router` is `/market/data`), so older documentation describing bare `/api` paths without the `/v1` segment is inaccurate.",
       "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L68-L69",
+          "version": "repo-lines-v1:sha256:4002f024b2c3960c541c373e6cd5465f54dcbe17e013b878b1a961cd0f9321db:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODk4M2ZmYTg2YmQzM2EwNGIyOGI3MWZkZDRkZDUxZWVjMTAzZmNhMDkzNWU0NGZhMzlkMGUyM2JlYzk2MmNlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZmYmQyYzg5OTE5MDgyZWU3ZWYyNmZhMzYxNDE3ZTM0NzZiN2FmZDFiZmQwZTc0MzMxZmVjYzQyODk0YzAzMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZjMWNlZTdlZjBiOTEwNzViMDcyYmUxZmUxZDQwZTI4ZGNiOGI1NDU3NjRmOTUxNTA0ZTQ0Nzg2MzcyNTNjNiJ9"
+        },
         {
           "resource": "repo://src/auth/router.py#L51-L51",
           "version": "repo-lines-v1:sha256:e45d5ddaf37bcb06656ecc0f3dd6458f40ad01dd06c0e2b49aff2692728acd7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjVkN2NkMjc4Y2U3Njc1ZjE3OGJiZmI3OWEyMzUyZDZhMWUxMDY1ODA1ZWY3ODJkMzlkNzE0NWFjMGY2OGRjYiJ9"
         },
         {
-          "resource": "repo://src/main.py#L167-L178",
-          "version": "repo-lines-v1:sha256:89630a787886fd7fe30a47a630106db902e2f91c20e9d58aa8726c2f637401f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwYWJjZDRmNzg5ZGFkODZiOGVkN2U1OTJlNmQ5ZTdkNjhjNTM4MTI4YmJlOTEwMGZkNWY5MTE2NjE0NjFkZTAifQ"
+          "resource": "repo://src/main.py#L174-L185",
+          "version": "repo-lines-v1:sha256:696365c50264d6be7d62e899a4f825b43515c7c8b60b3128dea2c99578f1c035:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L92-L92",
+          "version": "repo-lines-v1:sha256:8277b522ea3b8f23d7af0ab994475aeee1ca5d208ec1d95a118d49bc9fd2c03e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkwYzRkZmI5ZDc5YjFmNDk5NTYxNThjMmQ3OTgwNDEwYjRkNWRlYWZkODk3ZDdlZTM0YzNlOTZmNzdmMTM0NiJ9"
         }
       ]
     },
@@ -87,7 +95,7 @@
       "statement": "Apart from `/api/v1`, the app's top-level routes are the WebSocket endpoint `/api/ws`, the ad-hoc `/api/ping`, `/health/live` and `/health/ready` defined in `src/main.py`, and the Huey worker dashboard mounted at prefix `/worker/api` (task routes under `/worker/api/tasks` and a dashboard WebSocket at `/worker/api/updates`).",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L175-L225",
+          "resource": "repo://src/main.py#L183-L233",
           "version": "repo-lines-v1:sha256:e7d3e4bea873cf7c83e89bfb19482d415446d091148537f4c90145ecc087686f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MGVmZTA2OTlhYTliOGYyMGJjOWUyNDMwOTdiZTkwOTZlNjhkYzRmNDhiMmE2MWExYWRiMjU0N2ZkNGZlOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDg1MzI5MTBjZmNlZmU1ODcwM2Q0MzQ0NWE5YzIwMmIxMjQ4NzcyZjE2ZWY1YTE2MzBlNjJmMjVkZjAyNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlNDQ4Njk3YzRjNzQxMTBiYzdiNzU5ZWUzOWRmZTBiNmI4Y2U4MmI0ZmZmYjMxMzU3OTljYzFjODQ2ZThjN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkY2Y3Y2IxMjE3NDgyNDI5Yjk2ZjIxYzA0ODA3Yzg3MmQ5MGU1ZDY3MjMwNDgzOWE1YmVhMzRiNjhkYmFmY2MifQ"
         },
         {
@@ -109,7 +117,7 @@
           "version": "repo-lines-v1:sha256:07122a1f38a42067aeb1fe95b539eae6b5d6b77330dc5c8742382c3bc30a6470:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxZGI0ZTg3NWViOWE2YWYxNDU1NjMwNTg2MTk2Zjc0MjIyMzEyOGIzNjI1ODAwOTg0OWE2OGY4MDJjY2Y5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjJmNDA0Yjk5NDYzNDFkMjAwMWViNGQ0ZThhNGEzNjg0ODg3NzVkZmQ4ZjZmMjJiNWEyNDJjNDQzZTAzZThmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjI0Nzc5ZjI4MDhiNzgxY2JhOTBlY2Q0NGEzNTg2ZWY5ZWZkZDdlYzRhNWFhNDRmMWQyNjA1NGQ0NzQ1YzVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZkYTk1YWNjMzNhOWI0NzdlMjFjNjkyODFjYjA5MTQzZTcxMmEzNzFmODEzYTU0OTA3NTY0MTUyZDRlM2VmNyJ9"
         },
         {
-          "resource": "repo://src/main.py#L180-L206",
+          "resource": "repo://src/main.py#L188-L214",
           "version": "repo-lines-v1:sha256:4383df14bf8cfd1508c36be97a95e4995a5d12ded3c728492f6198d7dc7a7a64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjJmNzcxNDkwOWJjNTBiMTUzYjgzNjA5ODhiODA0YWY1MmNjNzA2NTBlMmJmMTVlNjhjMGYwOGU5ZTljM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNTkwMDhkODliOWNjYTQ2ZjJhNGQ3Y2I0YTg5M2VjODcwZTY2YTY4ODZlNGU3MWNjMTAyYjI0YTM2ZmQzNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
         },
         {
@@ -123,7 +131,7 @@
       "statement": "`/api/ping` resolves an `AsyncSession`, runs `select(1)`, and returns `{\"ping\": \"pong\", \"database\": \"ok\"|\"error\"}`, reporting database failure in the response body instead of failing the request.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L209-L225",
+          "resource": "repo://src/main.py#L217-L233",
           "version": "repo-lines-v1:sha256:82ee4f2191685b54496370e4cb00449691f1fdee2db8ac65ab9477b25d9e7b48:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3M2M3MTEyYWIyY2YwYTA0Yjg4NTAxNTFlMGYwNTA4N2ZhMGFkOGRiZTRhMWI5ZmFjZTI3MGE0NGZiNzAwOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDg1MzI5MTBjZmNlZmU1ODcwM2Q0MzQ0NWE5YzIwMmIxMjQ4NzcyZjE2ZWY1YTE2MzBlNjJmMjVkZjAyNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkY2Y3Y2IxMjE3NDgyNDI5Yjk2ZjIxYzA0ODA3Yzg3MmQ5MGU1ZDY3MjMwNDgzOWE1YmVhMzRiNjhkYmFmY2MifQ"
         },
         {
@@ -141,7 +149,7 @@
           "version": "repo-lines-v1:sha256:3bad78af9269e5f7c8c6e4824f7883892567045175db20a14426bc36766edf08:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmYjJmOGY5ZWRhMTAwZmZlYTI2OGEzYTk5Yjg2Mjk5NzZkYjE1MGE5ZjllMmZlMDI3YTllZmFlZTE1NmE4YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3Mjc2ZDUyN2MzZDkwNmFkYzlhNWVkNWJjMjE4ZjZhMDVjN2E5ZjgxMDk4MDA4ZjU1Y2FmY2MzZmZiMDRmYzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiZDY5NjEyYjhhMThlOGI4Njg4ZjA5YTQ1MTlkNzVkYzVjNjc3ZjcxZmY4NjI1Mzc3MjViYzBlYTA1ZWMwMGIifQ"
         },
         {
-          "resource": "repo://src/main.py#L99-L161",
+          "resource": "repo://src/main.py#L106-L168",
           "version": "repo-lines-v1:sha256:8614b8f32a557a031ac42cb4fbc712a6ef5d53aca4340a4f4d6d098dd862b821:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NWNiMGRiYWJhMTFhYzViNDgyZjExYjVmNzg5ZTYwOTM3NTlmNmM2MThjY2YwMDdhNDljNWZmYWYwNjVkYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZjdhM2JhZTMzODk5Y2I4NGY5N2ZjNDM2NzI4ZDA2ZWRmZTliMjA4ODg2OGY4MGQ3YThlMjgwMmQ1NDJhODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhNDIzOWFjYTc1NmJmNDJiOGU1YThmODI5ZmU5M2U5NzhmY2RiNGFmMjE4YmYxMjc2OWM0MjAxNTg5ZDVmNGYifQ"
         }
       ]
@@ -169,7 +177,7 @@
           "version": "repo-lines-v1:sha256:e8a3502661ff9353745e7df42261f3214e3c5975db6fbbb4e307df802fe99668:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYWJjYWVlY2VkOGM5ZWU3NzhmNWFhMDJmNDc1NjMxOTNmYjUxNjYzYTUwZWRkOGJkMjAxMWZkZjY4Y2Q0YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MTM1N2UwMDQ3NWMxN2ViNjYzY2I1YTljMDAwYzQ2ZTk2MzcxYTBkZDZhOWNlNzM3NmJmMWRmZTJjNTNkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/main.py#L100-L103",
+          "resource": "repo://src/main.py#L107-L110",
           "version": "repo-lines-v1:sha256:f182ad29b7d53ea107f4865ab39008ea1b3ccf580059d2208f395c49e96e3d08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2YzYjQ1YmNkMmNiMGM5OGU0ZGRkMjI1YzkyZGQwOWY3ZjYxNjM5MzMwYjA1MmRiODcxYmRlYjU5NDMzNjk3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU3NjM1M2QwZjVjMTI1NThjMDRiY2M4NzAxNWE1ZWUzMGJlZmI5YjM5ZTYyNWFkYTI0MTRmNjI0ZWRiZDkxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY0MmM1MDE2MTk3MGYyYWJlZTVjNTAyM2RiYjdhZGE4ODI4MGM1ODY3MTg4ZDNkNjYxMmRiMjM1YmU5ZThhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTI5MGIyZmI3MWUyOGEwYTIwYzU4ZWRlZTE1ZjZmNzVjNzI1NzMyMTgwMTBiNGNiYWEwYTg5MTE1Mjk5OWU5OCJ9"
         }
       ]
@@ -179,7 +187,7 @@
       "statement": "`cors_exception_middleware` catches exceptions that escape the normal FastAPI handlers and returns a `500` JSON response while re-injecting CORS headers for allowed origins; `CORSMiddleware` is configured from comma-split `cors_allow_origins`/`cors_allow_methods`/`cors_allow_headers` and, outside `prod`, additionally allows `allow_origin_regex=r\"https?://.*\"`.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L113-L161",
+          "resource": "repo://src/main.py#L120-L168",
           "version": "repo-lines-v1:sha256:aadaea82bb3a8c3ce0797aecb95d83b8892a9fd547b65b5561899171cb7ef24e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YzBhNzhiYjZlMzQzNDljN2Y1NjlhNDRiYzk5NmFlNWIzZTQxOGNmNTIyNDNmNTllYTg3NTFhZDNmMjhiYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1ZDkzNGRmNjU4NGU3NGZhOTMxYmFhMjQ4OGQxOGExNGE5N2U1ZmUyYjlkMDEwMDg4MDIwMzBjNDMwOTMxNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhNDIzOWFjYTc1NmJmNDJiOGU1YThmODI5ZmU5M2U5NzhmY2RiNGFmMjE4YmYxMjc2OWM0MjAxNTg5ZDVmNGYifQ"
         },
         {
@@ -193,11 +201,11 @@
       "statement": "`src/main.py` registers global exception handlers that map `EntityNotFoundError` and `AuthorizationError` to `404` with an `{\"error\": ...}` body (deliberately hiding existence from unauthorized callers), `RateLimitExceeded` to slowapi's handler, and any other `Exception` to `500`, where the error detail is the exception string outside `prod` and the literal `\"Internal Error\"` in `prod`.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L102-L102",
+          "resource": "repo://src/main.py#L109-L109",
           "version": "repo-lines-v1:sha256:8ab7e1ab076eb4fe9a90e56efedb563d0fdb6b3eb9aad1c5d40d3a727f957b2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFiN2UxYWIwNzZlYjRmZTlhOTBlNTZlZmVkYjU2M2QwZmRiNmIzZWI5YWFkMWM1ZDQwZDNhNzI3Zjk1N2IyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFiN2UxYWIwNzZlYjRmZTlhOTBlNTZlZmVkYjU2M2QwZmRiNmIzZWI5YWFkMWM1ZDQwZDNhNzI3Zjk1N2IyYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjhkMDBhYjFmMTgxZDk3YzcxZDhjYzFhMzA3YWU1N2UyYmI5MGViNzJhYWI2MzQ5ZWM3Njk2NWNjMDMyNTIwNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQ1OGQ4MGFkMzJiZWEwOTUyMGViYzU5NzVlMDZkMzhjYjhmNzVmYTlkMzJhMTYwMGVlYjMyYTM0MzI5YTA5NyJ9"
         },
         {
-          "resource": "repo://src/main.py#L228-L261",
+          "resource": "repo://src/main.py#L236-L269",
           "version": "repo-lines-v1:sha256:1332f838d383214195395d6ee1c449e76287a7616ee6edfdf6e5d93c3cb8512e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZTIzZjJkMjYwNGQ2NGZmNWQwZjZkZTk0NDIxYzI5YjBmZGFmODRlNDAwNmNlYTllMDc2YzFjODdiN2JmYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -215,7 +223,7 @@
           "version": "repo-lines-v1:sha256:6fd115100fdd701665a71cd80ac86e199e1f25a6a2e2bb72dbdf3e20f168a3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmYTcwZmZhYzdhYTk1YWRmOGIxNTFjMjlmZGZhZTExZDIzYzFiOThjODQwMWVlYmJkOTdkZmQ0NWQ4YTA3ZGEifQ"
         },
         {
-          "resource": "repo://src/main.py#L57-L59",
+          "resource": "repo://src/main.py#L59-L61",
           "version": "repo-lines-v1:sha256:81326cfdb11654b12994f1f7c2f69696600e839d6b67b08a0e6bcb477139d0e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJiMDg2MjQwZTMxNzUxM2IxODExZWI5OTI0YzdhOTJhYTMzODFiOWNiMWVmNjBlODkxY2QwNzU5NjcxMGQ0NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2M1NWRkMTEyODg0NTNjZmM2Y2VkMjFiOWYwOTFhNDk0OTczNzc3ZDVhYzViYzU2MjYxYTU1NzNhZTMxMjgzMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZlNWUwNDM2YzZkZGEzMjYzYTMwNjhhZjRhYjBiMGRjMThkNjZlYTljZDE4MTgyMWQxMDhjN2MwZjc1ZTFiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTJmMDlhYThmMjBjMmFiODVkZDYwYTNlM2QyMDYyMDFhZTdiYjljM2ZmYjc2MmU5ODhlYjZlYTVmNWE0YzBmNSJ9"
         },
         {
@@ -226,19 +234,19 @@
     },
     {
       "id": "claim_7a54c324235b4542a0add0a9cc8923a2",
-      "statement": "Each backend domain owns its registrations in a `register_*_services(registry)` function (`src/core/registry.py`, `src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`, `src/market/__init__.py`), so a new repository, service or domain API must be added there to be resolvable.",
+      "statement": "Each backend domain owns its registrations in a `register_*_services(registry)` function (`src/core/registry.py`, `src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`, `src/market/__init__.py`), so a new repository, service or domain API must be added there to be resolvable; the market domain's `register_market_services` and `register_market_stub_services` both bind the legacy `MarketGateway` key (EODHD) and the `DataPlaneMarketGateway` key (the composed FMP/Polygon gateway), so `settings.stub_external_api` swaps providers without changing the key layout.",
       "evidence": [
-        {
-          "resource": "repo://src/account/registry.py#L46-L64",
-          "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
         {
           "resource": "repo://src/config/services.py#L4-L10",
           "version": "repo-lines-v1:sha256:646940937b107abfe40c858c9562ec9bab5b5f81116960f504cd661de245247a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmJlYzExYWQ5YTM4YzE2YWFjZjE2ZGI4OTExODQzOTZmZjIxOWM2MzE5OGViZDZkMjY5YjFkYjc1NjY4ODZlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVkNjA5Y2IwNTU3OTVhMzlkMTgxOTJjZTEzYWMxZjRkOWU5NGRkYjE3NmUxZDYyMjFlNTU5ZjM1YTM3Y2RmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ5NmIyMWQwZjg4ZmExZDUxNDZmZTA0NDlmMjYxNjhkNjNjMzEzNjlkY2Y0ZWM4YTE4MWI2NjhhMjM1YzYzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDBjYjgxZDVjM2FiYjQwOGNjYjVkNGI4MjhmYTBlOGNhMDQwYWM1ZmQyM2JhYTlkMGMzYWI3ZGVhMjY0ZDZiMiJ9"
         },
         {
-          "resource": "repo://src/market/__init__.py#L60-L97",
-          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/core/registry.py#L6-L7",
+          "version": "repo-lines-v1:sha256:395178cc7fc50cd4dc4ce2b1a96a4029fb063be3feb1df9f9f543eab17d73a1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRjYmI1NWJiYmRjMGE0OWU3NDViZWIzMDU4YWRjMzM5NWMxNWNhOGVjM2U1ZDg1MDAxNmM4OWRiNzVmMzMzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJiMDM5MTcxMzM3NWMzODViOWZiYWRlYWJmY2ZhNzFlZGFkNmRlNTliNDQwMmFlY2JlOThlNGE1MmNjNmUwZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDBjYTEwZWJkYzQ5ZmUzZDg1ZmE5ZDkyYWE0ZjQ2ZjkxMzgwNWI1YjU1Yzg0N2RjZjI1ZmExMTFhYThlZmY1MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L68-L109",
+          "version": "repo-lines-v1:sha256:5f9090748a716f0143a044d50cc0353faafaeed37ddbc46756ef9e17fada2e0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -351,18 +359,18 @@
           "version": "repo-lines-v1:sha256:340c089a0017544354500c4c140e38eb538547166dddb767388ffba096ea8669:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTU1NTdjNGMxM2E3N2ZmNjA0YmIwZWZjNjI0OWM1NWNiMmU2MjYwYWViNTMwNDFjYjAzOWU0Y2FhNzYxYzRkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODg3ZWZkZTFmNDFhMWVhNzExZjY0ZGUxMWNjYjE4NjVlYjVjZGI1YzkyZmJhOTc1YWIwYzAyYTljMWYyYjUyMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTUzZTQyOTUwODNiYTRkMmRmOTRmYmQ4NzkzYmY4ZjY4ZDMyMGRmNTYwNjNhZTBhYzIwZmM0OTI5NDU4OWQ4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmQ3MDM4ZmFkOTUyNTQ2NTAxMjEyNTYxZTgyNjM0YWFiZjZkMTlhZjgxZDQyYzBkMWM0NTI3MWE4YTFmYjUzZiJ9"
         },
         {
-          "resource": "repo://src/account/router.py#L70-L79",
+          "resource": "repo://src/account/router.py#L72-L81",
           "version": "repo-lines-v1:sha256:0ec192462d38a752fde4e685414c0283345e85fe8098c55ca3562ae2b4d2e369:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZGFhNTM5NDZkODhiNDMzMjA1NjlkYTA0OTYxZDE1OTQ5YTY4OGIwYzdiZDU3YjMxZGE2MWJhMmJiOWJjOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MzJjNDI0MzkxNGNlZGViNmI4YjMyZTUxM2Y3N2YwY2ExYTlmMTJjZGYxYmRmMTVlNTFhNDFkMjUyYWM1MjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyYzY0ZWE3NWJmMTRkYmVmNzFkZDAyMGRlNjYyMjQ1ZWM0YTJkYzQ0YWUwZDQ4MTQ5MmIzNTI4ZWYzMzBiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjZDVlNDhmMDYxZTQxNTBlMTVhMzJhNjdkNTU1M2FiZTc3YWQ4ZGJkYjZhMmI1NzkzZThhYjk5OWJiYTRkYWEifQ"
         }
       ]
     },
     {
       "id": "claim_25e7e91504374acda4de93acf696a9af",
-      "statement": "`docker-compose.prod.yml` is not a drop-in copy of the dev stack: it builds the images (`build: .` for backend and worker, `build: ./frontend`), pins ports (`8000:8000`, `80:3000`, `8085:8080`), drops the debug ports, declares no `mailcrab` service, and runs the worker as `huey_consumer src.worker.huey -w 2 --worker-type thread` without `--periodic`, so Huey's periodic schedules only fire under the dev Compose file.",
+      "statement": "`docker-compose.prod.yml` is not a drop-in copy of the dev stack: it builds the images (`build: .` for backend and worker, `build: ./frontend`), pins ports (`8000:8000` for the backend, `80:3000` for the frontend), drops the debug ports, declares no `mailcrab` service, runs the worker as `huey_consumer src.worker.huey -w 2 --worker-type thread` without `--periodic` (so Huey's periodic schedules only fire under the dev Compose file), and publishes no host port for either Go service while requiring `MARKET_DATA_SERVICE_TOKEN` for the mcp-gateway.",
       "evidence": [
         {
-          "resource": "repo://docker-compose.prod.yml#L1-L62",
-          "version": "repo-lines-v1:sha256:9ee9d0fd5ef185bb092749540bbfe39f825acc6880310d71497b88c9556eb3d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2OWMwNGY4MGU4MzhlZDA4YWFjZmU4ZjdmZGFjODhiZjRhZWFmZTE2MjEwY2U0ODRlZTdhNmNiOGI0ZTc5NTgifQ"
+          "resource": "repo://docker-compose.prod.yml#L1-L84",
+          "version": "repo-lines-v1:sha256:da0e2fb52a64c59d93e4dfa28082973160aba5bde6e47cc8d5aef737a1261b0c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1ZTUxMDAzMWIzZDVjZmY4NjhiOTlhMjc1ZGQyNGQ3MmU0NWNiNTA2YjNjNGY1ODljZDA4ZGQ4MGU5ZmIyZWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4NTFlNzA4MjkyNjFjOWNkYmRmMWM3YTBiZGViOTM1NzBmZjljNmY1MmU4YmFmMGMxZDA4OWMxNDExOWYzMTYifQ"
         },
         {
           "resource": "repo://docker-compose.yml#L40-L66",
@@ -379,7 +387,7 @@
           "version": "repo-lines-v1:sha256:c05dfdb84dda95c1d05f45404ff52e3e5d7a730f5895775b081c75618b764717:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkMGE2NTg2YjY1YTNhOWU3MWYyOTU2NjMwMTRmMzhkYTIyMTRhNzZkYjY2YTg3Njg3MmU4MmU5MmVhNWE4OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYjdjOTI0YTE4YzM5ZTkzMjgwZjBjOGUwZWI1NTRjNzllYzcyOTFkMTJhNzNjMDI1ZDVlYzg2MDdhYWViMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyZDY5MjkwZGExNmU3NDlkYzYwMmJmNDliZmRjYmEyYTBjNmIwMTFiNTQ2MWI4MDJlZjE4MWI4NGRhN2MxNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/main.py#L50-L54",
+          "resource": "repo://src/main.py#L52-L56",
           "version": "repo-lines-v1:sha256:8c7e192ac801876227e1124ea24f25a438a1d5e2d51430061db78f76d3b76e6f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODdjZmYzZjE3ODQyZGVjNmU3ZTkxYzNlM2I4ZmNlMGE4MjJmYzMxMTI3MzgxYjAwZjQ0YTlmMTMzMzMwM2EyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJjNjY4OWE4OWUzN2QxM2MwYWFlZjlkNDM0YjBhNzNjNmM2OTYxNmExYTM0YzkzMjM1YTkyMzY0ZWU4NTBjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYxYjc3MTExM2I1Njk5MTExZTM4YmUzODU5YzBhOGVlNTU1MmNkZTZlNWUzYTYxMDJmNTU2MjFkYTkzZmFlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDRkMWZjNDU0NTYyNzAyNWJjZTRkZWI5YzA0MmY4ODBmMTk4NDMyZjFjMTczNWFiYzAxZDRiYTQ2NjJlZGVhNyJ9"
         }
       ]
@@ -400,15 +408,19 @@
     },
     {
       "id": "claim_b0f37ed3a23f440e86d539928b220789",
-      "statement": "Verification of any change follows global constraints: development commands run inside the containers (`docker compose exec <backend|frontend> <command>`) rather than on the host; `./scripts/agent-test` (shorthand `just test`) is the primary test entrypoint with Gate 0 (lint + type check, halting before tests), Gate 1 (a path argument, fail-fast) and Gate 2 (full regression); and no test may depend on external services — Redis, HTTP APIs, SMTP and DNS are mocked, with the ephemeral testcontainers PostgreSQL as the only allowed infrastructure dependency and all frontend API clients mocked.",
+      "statement": "Verification of any change follows global constraints: backend and frontend development commands run inside the containers (`docker compose exec <backend|frontend> <command>`) rather than on the host, while Go microservice checks run via the host Go toolchain (`gofmt`, `staticcheck`, `go vet ./...`, `go test ./...`) or `just lint-go`; `./scripts/agent-test` (shorthand `just test`) is the primary test entrypoint with Gate 0 (lint + type check, halting before tests), Gate 1 (a path argument, fail-fast) and Gate 2 (full regression), with `just test-all` running backend, frontend and both Go modules in parallel; and no test may depend on external services — Redis, HTTP APIs, SMTP and DNS are mocked, with the ephemeral testcontainers PostgreSQL as the only allowed infrastructure dependency and all frontend API clients mocked.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L17-L35",
-          "version": "repo-lines-v1:sha256:b0e4960f19f53a217d7ea27000fdaa19c9f4c634507cc16358237999ec78aaca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMzJkMDA1NTg5YjQxNjdkZDBjYTU2MzhjM2I0NTM3Nzk2YmQwNmIxYzkxYTRkNTBmYjk1ZDllNDQ0NDhlODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NGY3ODBiYzA1ODVjZjM4MzEwNTUyMzUxZDEyYTNkYWIwMDIwOGQ1MDViOWJlN2NiYWU3NjRlZTQ5ODYxNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
+          "resource": "repo://AGENTS.md#L34-L54",
+          "version": "repo-lines-v1:sha256:0247d5ebda9dd2561964e7f9c92019216ffc14af171e4764db5385f5fb96d22b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMzJkMDA1NTg5YjQxNjdkZDBjYTU2MzhjM2I0NTM3Nzk2YmQwNmIxYzkxYTRkNTBmYjk1ZDllNDQ0NDhlODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NGY3ODBiYzA1ODVjZjM4MzEwNTUyMzUxZDEyYTNkYWIwMDIwOGQ1MDViOWJlN2NiYWU3NjRlZTQ5ODYxNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
           "resource": "repo://frontend/AGENTS.md#L35-L59",
           "version": "repo-lines-v1:sha256:31b9f4bd4831c307eafbee590dfcffbca4edd487472e392bf478c39519a9798e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMmMxODM4ZThhNDRiMDg3N2M1MmExZmEzZDE2Y2I2MWFiNDM5YWE3ZTkyMDhhMjg0YjQxYWMyNjU4MjQ1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
+        },
+        {
+          "resource": "repo://justfile#L30-L45",
+          "version": "repo-lines-v1:sha256:8c9d757c55d778dc87df28b1e223df82e86240e24360345efb2678e996f51781:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YTJmOTMzZThkYWFmMTU0MTU0NzdhZjNlM2RjMWE0MWI4MGFhMzNmOWUyM2JhNGJlMDllZmJjNzQ3NjE3NmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMWY2YWZiYTcyMTFiYjZjNmYzNjFiMDY1MGZiNzYzOWUwM2MyNWY3NmFkNThjZDc5MjRiNzM2MmE0MmUwNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3ODA1ZmZhYzg2MzE1OWE2MjgwMDRmN2MzMjY1NTEzYTk5ZDZhZWZmMWY1ZDBmNTAyNzg4ZDU5NjQyYmZmZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NWEzMWNhYTUzMmEzYTA2MjIwZTM4ZmYwOTI5ZGNhYTZmYTAxMjNjNGUyYTgzMGYxYzlmNGU0NWRhNzNlZDEifQ"
         },
         {
           "resource": "repo://src/AGENTS.md#L25-L49",
@@ -418,11 +430,11 @@
     },
     {
       "id": "claim_b5d67f743d1946cb8bb9e248ff430c38",
-      "statement": "CI (`.github/workflows/ci.yml`) runs three independent jobs — backend (`uv run ty check`, `uv run ruff check` and `uv run ruff format --check`, `uv run pytest`), frontend (`npm run check`, `npm run lint`, `npm run test:run` with `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS` and `JWT_SECRET` set but no backend running) and indicator-service (`go vet ./...`, `go build ./...`, `go test ./...`).",
+      "statement": "CI (`.github/workflows/ci.yml`) runs four independent jobs — backend (`uv run ty check`, `uv run ruff check` and `uv run ruff format --check`, `uv run pytest`), frontend (`npm run check`, `npm run lint`, `npm run test:run` with `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS` and `JWT_SECRET` set but no backend running, plus `node --test scripts/opencode-go-session-fetch.test.mjs`), and one Go job per module (`indicator-service` and `mcp-gateway` each run `go vet ./...`, a `gofmt -l` check, staticcheck, govulncheck, `go build ./...` and `go test ./...`).",
       "evidence": [
         {
-          "resource": "repo://.github/workflows/ci.yml#L12-L108",
-          "version": "repo-lines-v1:sha256:7aaeb66cc0b9582126900fc50c8c7d28e2e255e464650135969dd584cb4009d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://.github/workflows/ci.yml#L12-L211",
+          "version": "repo-lines-v1:sha256:6e39c3c7d1e333368db95da7c593922bf0eb0e770062dd84406a0ac1aeb16499:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlOWQ4MDE1NGVkNDJmYzVjNzc5YjEzMzE1NzhiNThiODljODAxZWFjZTc0ZjI0Y2Q0OGViNGEyMzU3OTQwYTk1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2OTA2MmM1MWRkZjQ1MzZkZWMzYjFmZDIyNWIwNWFhZWY5NmU0NzJiYTBiOTg5NjI0ZWE3OTcwNWFmMGUyYTg3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NjgxMTkxMDkyNDY2ZTFlNmZhZTIyMDE3MmU2MDgxMzdlNTg0ZmMyZWVkZDliZDc3OGRmMTA3YTIwNDI5NDhkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
     },
@@ -445,15 +457,15 @@
           "version": "repo-lines-v1:sha256:cc50eb96070d387a165f8ba04874134f6756e097b630fe6e592a982aab632bd6:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRhZDBjOTI1Mzg4ZTVjOGYyYjQ0ZGM1YzllMGI4OTQ3MTMzNjA1ZWNlZDlhMDdkNTc5NTIwODYxOTE1YjJiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ2OWZkODIyNjRjMTVmMTQ5NTUxODljMjQyNzg5NmE1NGZlNmIwM2U4Mjk4OWZmY2MwOWY4NDgzYjk4NjYzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YyNTE4YWViYzY5Nzg1OGQ1Zjc2NDg1ZWJiOGZlMjViNzU5ZGQyNWQ4OGY3MWE0OTEyOTgxYmU5YzdkMWNmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFmYzhkMzBmM2EwZjk2MWFlOWE1MTk2ZTg4MmM2YTIzNTlmNTI1MzUwOTc5MDFhMTBkMjFmZjU3YjIxMmFkZiJ9"
         },
         {
-          "resource": "repo://src/account/router.py#L166-L175",
+          "resource": "repo://src/account/router.py#L168-L177",
           "version": "repo-lines-v1:sha256:76f73647bb608f46080ff243823e9557df403df3df9d5541c359ca152e70322c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ZmZlYzEzNGY0MmY1YzBhOTc4ZmIzM2E2NjAyNGI2OWYyNDUwNDZhM2NiOTM3MDBiN2JlMWJiY2VlMTMzYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNTkzOGU0ZDU2NjdiYmYwNTdhZDViMmM1ZDI5ZGRkMzg1NDg3YTFhNWU4NmMyYTg3YjQ5ODE4M2Q1YTYxYWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZjk4ZDQwNGFjNzU3NGU1MTAxMTYyYmY1NmRlMDdjZjkwOTE5YmEzYTljZmJlYzRlYmViMzhjMTUwYTk5ZTgifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L1109-L1150",
+          "resource": "repo://src/market/router.py#L1254-L1295",
           "version": "repo-lines-v1:sha256:a847b5220592929d9bf1e98988bc771364f7c0e52080dd74070108d350e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L723-L753",
+          "resource": "repo://src/market/router.py#L868-L898",
           "version": "repo-lines-v1:sha256:f1e186d855c95ce9ea4065b2efc323ff88a8c4abb8be62abafc049e48c690c71:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MjQ0YTgyODA5NzBkYWQ2ZjM5NWNiZWQxZTg5ZGJmNTAyYWYyNjZlYTQwMzM4MDVmZDlkZGU3NmI4MDQxNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMDJiZmVkMTlhZDA0ZGVkY2E3ODkwZTA3NjIzNTRkNDA0MjE0YmNjYjA0NTQ4M2E5NjYxNWZhMzYxMzRkMTYifQ"
         }
       ]
@@ -463,11 +475,11 @@
       "statement": "The Go indicator sidecar has exactly one caller: the backend builds `IndicatorServiceClient` from `settings.indicator_service_url` (default `http://localhost:8080`, `http://indicator-service:8080` in Compose) and the market compute route resolves it through the `svcs` container; no frontend code holds the sidecar's URL, so its published host port exists only for manual inspection.",
       "evidence": [
         {
-          "resource": "repo://src/config/settings.py#L38-L39",
+          "resource": "repo://src/config/settings.py#L44-L45",
           "version": "repo-lines-v1:sha256:ea492e3accb9eac619c3732b03ef8e80c36f56ccf6ad7859e2b773f44e5e44e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmZiMzUxZWNmMTEwZTEwMmU2YTViZTQ5NDJjNDI4ZGM4OTdiZDMxYmQyZjJkN2I2NTNlOGE3M2RiYzA4MDIwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFjN2MxNDczNzQzMTI5NmExODJlMzNiNWRkYzUyMjA0ZmI3ZTE2YjMzMWFjNmZiZjBiZjVjOTQ1ZWEwNGQ3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzg1YzNmZGQzYjRiMWFmZjFmNGUyYWZjMjcxMDY4ZTE5MGE4OTBmMjM3ZmZmNGU3OTkwZTViZTdmY2JhMTc2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY1YTEwOGY5MjBmODM0ZThkYjYxOTI2NTg2NTJmZGZhMDg1NzhhNDRlMDdiMzgyNzhiYzVmY2NhMTYxZTRiZCJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L1005-L1015",
+          "resource": "repo://src/market/router.py#L1150-L1160",
           "version": "repo-lines-v1:sha256:df1beeab2c1e517c946bb390b4dc27ef6531bbb182bd535b05987793c49d0a81:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjN2ZmOTlkOTEyNjEyYTllNGM4YWEzNGNkYWZjYzNiNGFiZTAzMDg2MDJjZDQyYWNmZDM0NDI4MzNlMzZkNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYTQyZjc1MmM4OTMwYzNiNjBjMGFkZDNlZjczYzNlZDc2YTc3NmRhMDkyNmI4OGQ0ZjdlNGY4YzFmZGQyMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4YjA2NDVkODFhZTFiMmUwOTg5NWJkYWU1YzIxMjkxNjIzYzYxZWNkZGI0OGY3NzM4ZjkxMjVjZGZjNzRjMjYifQ"
         },
         {
@@ -485,7 +497,7 @@
           "version": "repo-lines-v1:sha256:8feac7b7fd7fd1919bf6b54038474a8700a305b004c476b6f81dd4b3d78b0903:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZWJjNWMxZmFhNGRkMDcwNDM5MGUzZTJlYjIxMzc1MDNlY2VjMjViMzdmZDI5M2U1NDAwNDc4OTdkNjdhNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGMzMDBkMmM4MDhiNDgzYjg3MDM1ZjdiOTA4ZTkzODY2NjBlZGE5YmQzZjljMmE3ZmRhYjg1ZGRmNGQ2NDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYzFjZmE4N2MzNGE3MTEyNTQ3MDdlNmFjYzkwNTRhMzhjNzgzMmViYWRhZTRhYWRiN2E4MzA4YmRhYmI3ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkODk3MjkxNzY5NzU5ODJmZmEyZWUzYjZlMjI4YzdhMTAyODUxNTliMjkzODg4MDMyMjYzMzMxOGJhZWJiYzQifQ"
         },
         {
-          "resource": "repo://src/main.py#L168-L173",
+          "resource": "repo://src/main.py#L175-L180",
           "version": "repo-lines-v1:sha256:863e2abb01cc2961f478eb2f37fe906e35d90f06602b56e6676df22f942b9aeb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWNjMjA0NjY5NDc3YmYyNjFiNTQ1YmYxNWYxZDYwZmE5M2MxOTEyZGQ2Njc0NWIzZDQ0MzRlOTRkYThlY2MwNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBhNzVmZDFjYjRiMTQyZDk3NDU5OGE0NDExOWU2ZjMxZTExYjk0ODcwMDJkOTBjNmNlZDc0OWYzZGY3OGQwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDJhMjMwZTBkMjVlNTczNWY5MGM2NDQxYWMyMjZlZDQ1NDU5NTI4NzFkYjYzZjZjNjZiYzU1MWJlZTZiMTM0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzhhYmI3OTQ0ODVmYWE1ZTcyZmUwYzQ1ZmUxMjJiNDQ4Mjc1NjBhZGUzZDE2ODg1Mzk4ZjZkY2I3YjI2NWYxNiJ9"
         }
       ]
@@ -495,19 +507,19 @@
       "statement": "Router ownership is split across modules by domain: `src/account/router.py` defines both `account_router` (`/accounts`) and `portfolio_router` (`/portfolios`), and `src/market/router.py` defines the single `market_router` (`/market`) that carries market reads, watchlists with manual ordering, alerts, notes, documents, chart snapshots, security-valuation reads/writes at `/securities/valuation/batch` and `/securities/{security_id}/valuation`, indicator compute and the AI endpoints.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L66-L67",
+          "resource": "repo://src/account/router.py#L68-L69",
           "version": "repo-lines-v1:sha256:4002f024b2c3960c541c373e6cd5465f54dcbe17e013b878b1a961cd0f9321db:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODk4M2ZmYTg2YmQzM2EwNGIyOGI3MWZkZDRkZDUxZWVjMTAzZmNhMDkzNWU0NGZhMzlkMGUyM2JlYzk2MmNlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZmYmQyYzg5OTE5MDgyZWU3ZWYyNmZhMzYxNDE3ZTM0NzZiN2FmZDFiZmQwZTc0MzMxZmVjYzQyODk0YzAzMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZjMWNlZTdlZjBiOTEwNzViMDcyYmUxZmUxZDQwZTI4ZGNiOGI1NDU3NjRmOTUxNTA0ZTQ0Nzg2MzcyNTNjNiJ9"
         },
         {
-          "resource": "repo://src/main.py#L167-L173",
+          "resource": "repo://src/main.py#L174-L180",
           "version": "repo-lines-v1:sha256:a3dbf7872ef38e67107a695a48a9fbcd626e366988e2e58bab83232fca042c7f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDljYTQ4MjQ5OWZiOGI3YmZhZTNmMGVhOTUzYWIwN2YzMDQyM2VhNWVjYjlkNDJiOGQ0YjU0Mzk4NTQ0ZGFlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBhNzVmZDFjYjRiMTQyZDk3NDU5OGE0NDExOWU2ZjMxZTExYjk0ODcwMDJkOTBjNmNlZDc0OWYzZGY3OGQwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzQwY2Y0ODU1NjJhOWY3ZWEwN2Y5M2I1OWZkNTllZDM2OTFmNDYxNmFjYTYxZjgyYTAzZTA0Mzk1YTVmZDJlNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzhhYmI3OTQ0ODVmYWE1ZTcyZmUwYzQ1ZmUxMjJiNDQ4Mjc1NjBhZGUzZDE2ODg1Mzk4ZjZkY2I3YjI2NWYxNiJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L1109-L1150",
+          "resource": "repo://src/market/router.py#L1254-L1295",
           "version": "repo-lines-v1:sha256:a847b5220592929d9bf1e98988bc771364f7c0e52080dd74070108d350e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L96-L96",
+          "resource": "repo://src/market/router.py#L106-L106",
           "version": "repo-lines-v1:sha256:18d2f7c958d30109d67f26f128178c65d227b79837b559a1b9f230e5c37bd515:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMThkMmY3Yzk1OGQzMDEwOWQ2N2YyNmYxMjgxNzhjNjVkMjI3Yjc5ODM3YjU1OWExYjlmMjMwZTVjMzdiZDUxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMThkMmY3Yzk1OGQzMDEwOWQ2N2YyNmYxMjgxNzhjNjVkMjI3Yjc5ODM3YjU1OWExYjlmMjMwZTVjMzdiZDUxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTc0ZDMxMjI4ODUxZTg4NTFkOTgyMGZjYTkzYjg0YjczNTAyNGY0OWMwYjdmZmFlMDBkMzU5ZmUxOWY2ZGY5YyJ9"
         }
       ]
@@ -521,18 +533,140 @@
           "version": "repo-lines-v1:sha256:14971e84851894d1a14673f60f2328717b8a9faa4aaafd5cf3ad1a3b959ebdd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YzMwNGU4YzkwNjE5OGFiZGM5MTAzMjdiZDE1NjJiNWNhY2VlMTM4N2E1YjM4YmM2MGY4ZmU4MjI5NzBhZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwM2ViZWEwYjEwMGYxOGI4YzI2NDQ0NWJhMjE5YzNkOTU1MGY5ODM4ZWQxNWU5NjEwOTRhZWU5YzQ0Y2U0M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOGE0Mjg4YTJmYmNiOGUwMDMwOGQ3ZWE2MzE1YmE0Y2U5MzU0MGViMDlkMGMwZjFmMTQ2ZWE0Njk2MWNmMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhNjU0YmRlZjI2YmFkNzYxZjA2MWJlN2FiNzA5YjFlMmIzZWE2YTY3MWMwM2FjZTJmMTI3YjhlZjQyZDk4MzMifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L352-L355",
+          "resource": "repo://src/market/router.py#L497-L500",
           "version": "repo-lines-v1:sha256:8bb2f18ef9cc481081e985a6e2259e3ff4634ca02ab1129df2c5951ebc398ea3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgyZGZhMWQ5MTE4YmUyMzQzNjUxMGYxNjg1NTYxYzYxYjZiYzVkNGIzZjE0MGM5MTJlMTAzMWVlNTU4Y2Y0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTE5MTdkYjQzMTFkYjlhNjRiNzVhZGNlMjc0OGU2ZjM3ODNkMjlmNjQ3MWU5MWYxYzMzOWQ5NDk3ZmNiYmMwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWUwNzJiNWJkNjMyMThhZWE2ZmQ4M2ViMzczNzY5ZjE0M2I1NjAxZGFjZTBiOWZlMDdmZDgwYzI0ZTQxMjE3YyJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L469-L474",
+          "resource": "repo://src/market/router.py#L614-L619",
           "version": "repo-lines-v1:sha256:176695d4bfec363b9b1ce52852f33350ddcd98cd9cb4124acd214eb9f404eb3f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VkYjYxODRiYTkxNDljOWMyZWYzNDU2MWM5ZGE1YzJiZjAyN2ZiMDc0NDcxZjA0YTFjY2FlMDI3MjNlOGQxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRiNGEyZDRkOWM0ZjQwMGJlOTczZmUxY2EyMDA1MmQyZmY3YjQwM2ZiOWNjZDYzZDYyNjljMjc0ZWQyM2E3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDY5OTQyMWNjMTUwYzgzZWYwZDM1NWE2NTUxNzRhMjZkNDNkMjkyZTMxOTQyZjlkMWU3ZTJkYjM2MzMwZjZlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_71354a25faea4f07bb747861bf43afb0",
+      "statement": "Before serving traffic the lifespan resolves `DataPlaneMarketGateway` through a throwaway `async with svcs.Container(registry)` block so that a missing provider key or a broken registration fails at boot rather than on the first data-plane request; serving requests resolve the same key separately through each request's `DepContainer`.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L136-L137",
+          "version": "repo-lines-v1:sha256:621ca4a927b78256f1895fcaacca860ffb21730c2093d44dac94f28579187e86:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM0MTkwZWM3NjhkMDVmNTExYWVkYjc3NjIxMzYyNDk3NjgzODhlZmFkMGVlOWI0N2QzZjhmM2JmYjcxYThkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk5MWI3NWY5NjM0ZmUwZDRlMzBhYWNiM2E1OTQwYjQ4NzllMjhlODBlOWMyNTMxOTNlODU4YmU4MDY1ZDg5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L63-L66",
+          "version": "repo-lines-v1:sha256:df97bb9d575874379a74aff71e2f49089edad297479a1571372b1f3d1dd3208a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGY3NDdkMTg5OGM0YWNjNTQ2ZDg4YTE1ZGExMmQ3MDIyYmFkNDhiMWU0ZTM0NWI3YzY0MTY0ZmE2MDE0NDFiNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjFjZjNiYWEzMGE4OWM2MTUwMGEwMDBmNWFjZGVlNWQ4MTUyM2MyNTJkZTY3OWFhZGY0NTg5ZGJkMTgwM2UyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGNkMTI4NTZlMjE5ZDA5YjljYTQ3ZDg1NzA2N2UzMDY2ZDYxNjBkNWZlNzYzYWI4YmY4NmZhNTM1YTIyYjRlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTJmMDlhYThmMjBjMmFiODVkZDYwYTNlM2QyMDYyMDFhZTdiYjljM2ZmYjc2MmU5ODhlYjZlYTVmNWE0YzBmNSJ9"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L231-L244",
+          "version": "repo-lines-v1:sha256:3386aa28fdef1ff29b1abc58aaf0a9e5ceae732579d4710eb35c727b9b6e8e29:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNzkzMTg2YTIxYzY0NTgzZTFiZTlmZjZmYTYxMTk2YjcxMmE4MTU4ZmU5MjIwMGZjNTg1NTU0ZGI1MzkzN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjN2I1ZDIxNmY3MWUyNGZmZDg1NTRmM2QyZGE2NGUzMjkzYWZhNzE4NmY5ZmJlNTZlZmNiMmRkNWFmYzFkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9be3afebc4e5448695e6bd838a40b050",
+      "statement": "The Go `mcp-gateway` is an MCP server over the streamable HTTP transport that is a thin transport and client layer: it holds no provider credentials, calls no provider directly, and talks exclusively to the backend's service-to-service data plane; its `/mcp` listener is unauthenticated (the shared-secret boundary is the backend data plane) and rejects cross-origin browser requests with `403` via `http.NewCrossOriginProtection`, while `GET /health` returns a fixed `200 {\"status\":\"ok\"}` that does not depend on backend reachability.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L1-L31",
+          "version": "repo-lines-v1:sha256:849c62d2c28ec3d48dd8601bcd445480d0a31f78da7920ba3faba19696e7eca3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlMmIyY2UxNTkyNjhhMTRjMDMzNGVjYzNjYzM4YmQ0M2JjMGE2ZDA5ZGVjMzY2ODk3MDlmZTNkYTA1NjIwY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTAwYjMxNzRkZDRhYzRmMjZkZjNkYTQ3Y2U0OWZmNmFjMDc5MmU1ZjA3OTU1MjBjNDcyYjlhNjc0NWIxMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3ZDdhZjM4MGMwZDZlNjhiN2Y0YTlhZWM1YzMwOTNkMzE3OWFkNjNkZGQzYmQyYmExNTNiZTZhMDEwZTYyNjMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/router.go#L12-L45",
+          "version": "repo-lines-v1:sha256:1ab6e177ac95b320ee129bfe4b02f3e1066bec561a13a5f7626996edb4088067:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlODJjMjczOGIzZWJhMWM0YmZhY2E0M2Q5NDBkMGM2ZDE0ODhlZTgzODQ2Njg2MjkzNGQyNTU2NDFmNmVkMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkODMzMzNhMDIzZWM2YjBhOWQwOThmMTNkZDNlMjJjZDA4MjE4ZTk3NWY3YmQ4OGI3MDcxYmM0N2Q2NmU1ZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMjAwMGM0ODM4MTIzMmU4OGYwMTk0M2NiMmVjNmEwMTNkMjhkYzAwYzNiNTExNDZiYjIyYzgxNjJhZDAwZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b514e8a91c54a25b0357aa71e5a2777",
+      "statement": "`src/market/data_router.py` defines `data_router = APIRouter(prefix=\"/market/data\")`, which `src/main.py` includes in the `/api/v1` router, giving eight read-only service-to-service routes under `/api/v1/market/data` (prices, quote, indicators, symbols/search, options expirations, options chain, fundamentals, statements); each route declares `Depends(require_service_token)` and resolves `DataPlaneMarketGateway` plus `EndpointResponseCache` from the request container.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L174-L185",
+          "version": "repo-lines-v1:sha256:696365c50264d6be7d62e899a4f825b43515c7c8b60b3128dea2c99578f1c035:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L1-L40",
+          "version": "repo-lines-v1:sha256:3cc648e0106a7e50e9090a67cb7aa7bdfbba51a91e60b200998a3829620d210d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMmM3MjIxZDE0OTNkOTE2ZmU2MmFmNGNmZDVkZTQ3NTkyMzBlMzU2OTQ0NDAyY2U5NTU4YjE2NTBjM2U5ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L135-L223",
+          "version": "repo-lines-v1:sha256:32b8f65e72564957353bb10a429815bfbe566cb480fff3b3ec31d1dc94234cb4:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZWU2M2ZmZDU2ZTU2MDE5ZTRmNDNlYWU3ZjM2ZTg5OWI0NDc5OWJhMTgwODM1N2YzNzNkYWI2YTc5NGI3MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDg1MzI5MTBjZmNlZmU1ODcwM2Q0MzQ0NWE5YzIwMmIxMjQ4NzcyZjE2ZWY1YTE2MzBlNjJmMjVkZjAyNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMzc2Mjc1MzBlNWU3Y2Y3MjllMmY5ODMzZDM5MzAxYzA3NjA4OTc3ZjlmN2Y0YjBmMDNmOTI5ZjAwMmUzYTcifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L92-L92",
+          "version": "repo-lines-v1:sha256:8277b522ea3b8f23d7af0ab994475aeee1ca5d208ec1d95a118d49bc9fd2c03e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkwYzRkZmI5ZDc5YjFmNDk5NTYxNThjMmQ3OTgwNDEwYjRkNWRlYWZkODk3ZDdlZTM0YzNlOTZmNzdmMTM0NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b3b0b5777e94680942f308e9ba7e680",
+      "statement": "`require_service_token` (`src/auth/api.py`) authenticates the data plane independently of user JWT auth: it reads only the `X-Service-Token` header, compares it in constant time against `settings.market_data_service_token`, has no cookie fallback, and raises `401 \"Service token invalid\"` on a missing or mismatching value.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L308-L326",
+          "version": "repo-lines-v1:sha256:0f7b715e4b98265227b8267f2ea5c175f1af8fd3f025b77afb8042833c8a055b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YzE1ZjdjNWU2ZGRhZTQyZDA4ZGZkNDVlNDBiY2YxMDg0NGU0MzRjZDkxOGZhZmI0MTc2NzgwODU5YmRjN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZmJjY2ZjODVhMGEyZmM4Njc5NDU2MDBlMDAwYjkwODcwYTQ4YTRjOTIyODhjNjYwNDZlNDlkYTRmY2IxYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzQ4ZmZiOTY5ZWEzNDEwOTIxNTRkNzc0NDNmZDhmM2VlZmQ3ZTdjYjE2NTVhNTRkY2FkOTdiYjczYzg5ZjcifQ"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L47-L48",
+          "version": "repo-lines-v1:sha256:f2b9b57e0702c29e2b3d4461b7af5b6941713dbdf8bb539acf749288f2d77574:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWIyOTgxNDNmYjMxOWYzMmVkYzdlZWJhY2Y4NjJhOWZkOWMyNDFjZTQ1ZDA3ZDIxYTI4YzFhNWI0YWY3ZjM1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzY3NGZmMTI2NWNjMWU4YzdkNzVhMTU5MDcxNzE1YTVlNzhiZDg3ZDEwMzA0MjkzZGVjMjJkZTc2ZmRhYmRmMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmVhNGU1ZjFlYzY4MjA0MjQ5MTRmYzE2NDZmMzUxYTA2YTVmNGNmZTEzODJjMWRkMGM1MThiOGMzM2RhOGE4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY1YTEwOGY5MjBmODM0ZThkYjYxOTI2NTg2NTJmZGZhMDg1NzhhNDRlMDdiMzgyNzhiYzVmY2NhMTYxZTRiZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_693732e18f3540e78a0977cceb872950",
+      "statement": "In dev Compose both Go services publish host ports bound to loopback only (`127.0.0.1:${INDICATOR_SERVICE_PORT:-8004}:8080` for the indicator calculator and `127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080` for the MCP gateway), whereas `docker-compose.prod.yml` publishes no host port for either service, fixes the gateway's `BACKEND_BASE_URL` to `http://backend:8000`, and passes it `MARKET_DATA_SERVICE_TOKEN` and `DATA_PLANE_PATH` from the root `.env`.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L50-L82",
+          "version": "repo-lines-v1:sha256:712b92877929c32a38a457ff8d98445de6ed89aee18638db55c0f9a9f2fba36f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmZmU5NGZkZDQzYjRlZTQ3NWUxYzcwMTQ4YjI2MDExNjI4MWQ2YzYxYTAwZWEyOTNkNjE5NmJmMzc4N2Q3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L111-L143",
+          "version": "repo-lines-v1:sha256:2e78b9016615f950d7e004db1dc20a311781712c58a1e544689278e7d814b79a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWQ4M2M0YjRmMGI4MWY5MGFlZTI0OWU0NjBhNjQ3ZWY4YTZjODM4OTgwNWZiZDNhZjBhMjVmYjk2NjkxZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcbbc8ea22144bc695a94b4218640869",
+      "statement": "The data plane's output contract is provider-agnostic: every price-bearing response carries a required top-level `currency`, failures map to structured `404`/`502`/`503` bodies that never name a provider, and `MarketDataNotFoundError` is deliberately not an `EntityNotFoundError` so the app's global 404 handler does not claim it and each route decides the mapping.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L1-L14",
+          "version": "repo-lines-v1:sha256:dbb3ddf24120c3d806a09f2b915e6b1c7075105a8cf7bcce34b91345b2695670:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMmM3MjIxZDE0OTNkOTE2ZmU2MmFmNGNmZDVkZTQ3NTkyMzBlMzU2OTQ0NDAyY2U5NTU4YjE2NTBjM2U5ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZGNlNGY4OGNkNDljMjNlODBkZjJjNDAxZjk5ODcyMDZmNzAzMTJiMTc0MzdlYmJmNjQ2ZWQxNTBhODNhNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwMWI1ZDFiNjc5MmE5NjVmMDQ1NDc1MmJjMWFlZmU4NWU5MTEwMzFhODBiY2E3ZjIxYjBjMGE3OWM4OTQwYjcifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L97-L111",
+          "version": "repo-lines-v1:sha256:d9204ecd1f3839f3311aad5fe6efa9c2c4a7e10fd50a0ed7b4796b03129d2330:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZDkyODIyMTYzZDgwNzA0MDZiZTE2MzBlMTQ5MDU5ZDVhYmYzYTJmNTA4MTMwNzQ1OWNhOGE1NDA4NzAyNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NDY4Yjc4OTQ3ODNkNjY4ZjI3YjY0MWIzNTJmZmRmN2VmODQ1MDQ5YjFlYWY5NjdlZGZjZjUwMDkyZjY5YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxM2JjMDhkNjdlZmVhNWRkOGE5MDdmZmNkM2VkOThmMWQxNjQxZDc5MTE0MzYzZmYxYzY3MThkZGU0YTEwNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyMGZkOGE1NTQ3NjhjZWZmNmQxNjFmNDUzNzA5OWI1ZTcyY2IyM2EyNTI3ODdlMTA3YjBkODQyZTcxNWQyMWYifQ"
+        },
+        {
+          "resource": "repo://src/market/exception.py#L51-L57",
+          "version": "repo-lines-v1:sha256:71e21328f6096d51dfa13c45dfae57babaee8dca6406a3d7d7285dc23157ac5f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU1YWY0MGQ2YmU1ZDc5NzU3MTExOTZiNDMyYjZhYWUwOTIyOTEyZmRiMDFiOGYxNTdlMTQ2Nzc1ZWE0ZmNlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZhNzE1MjU3MmVlODRmMTA5MDZjNzRiOWYyYTkyNDM0ZGRhYjBlM2M0MjgxM2IwNGU1OTdlZmNlYzk1MWIyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzkxYjFhNTE5MjUzOTMxNmJhNGVkZWEzODJlODk2MzQyOTA0MjU0ZjUwM2NlZDc1ZmNkYjgxNTVjNWE2MGJkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2MxMzNlYmFmNjAxOWFhODI4ZjcxZDZmYjgxZWMzM2EzNzRlOWUzNzA4ODk1ZDNjZGRlOTFkODZhNWIwZmJmMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f5a6b3be74e4a8fa4ad0fd5d89c984c",
+      "statement": "Go microservices follow repository-wide conventions defined in `services/README.md`: each service is an independent Go module with a `cmd/<service>/` entrypoint and `internal/` packages, configuration is parsed by an injected `getenv` function with fail-fast validation naming the offending variable, logging uses `log/slog`, HTTP servers shut down gracefully on `SIGINT`/`SIGTERM` with a bounded deadline, and a shared Go module was deliberately rejected in favour of documentation-level conventions.",
+      "evidence": [
+        {
+          "resource": "repo://services/README.md#L29-L48",
+          "version": "repo-lines-v1:sha256:bcd585f69d719425df0106cc704a87dd337b4fee15f4c08ed0dac582395a567f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjOTNjZDhkZGY1NDYzYmE0MjcwYTI0MDdlODdiNWNmYWYwNjcyNDhiZjg5YmJjYTBlNjQ1MTA0NDcxODkxMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyYmZmYjUyYTM1MjhiZmM0MmJjZDc5MDQyODc4NWFjMGE2MTU4NTNhOWU0Yzc2NWJjMWQ2YTUyNDVhOGU4YmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZjcyM2Q5NWFiY2VhNzJiNGI3OWMxNjc4NDdjZmEyMWM4MDU4MGMzZGJmZGQ3OTc4MzE1YjVmNzU3MjU1MjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2ZTI5NDQ0OWZiYmU1MDA0Y2U5Y2M2MzFhNDJkY2FmOTJkYWU4ODg2Y2YzN2Y4YTU0Y2M5N2FiZmUwZDA2ZDQifQ"
+        },
+        {
+          "resource": "repo://services/README.md#L6-L27",
+          "version": "repo-lines-v1:sha256:2d39a807080a7f84bfa80ecd10123a7ee83219ded74b6f2c27872d5466033f23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3ZTFhOWQyOTM5YTBjMTQzNzM2NDY2ZmFjYzlmOWZhNzljZDUzMTNjMWNmOTRhNjE1Yjk0ZjcxZmRkMTA3ZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiYzM4ZmRkODQ3Mjg3NDU4YzhlNGZkZTM3Yzc2MGFkYWExMzk2N2ZjOTcyMzkxYmQ0OTc3NWVlYWVlZTZkMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMzMxMDg5OGM0YWJkYjAwZjczZWRhZmM0NTBjOWY3YTUzNGU0MTVmNWI2MGYyMmNlNTFkNTdiMDllNDA2NDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwN2RhOTY4NWQ3MDU0MTM0YWE4NmYyZGVlYmE1NTJhMjI4N2YzMzgzZTA5MjFhNjIwNTVlMjlkZDk4NDEyODUifQ"
+        },
+        {
+          "resource": "repo://services/README.md#L80-L96",
+          "version": "repo-lines-v1:sha256:0703f3665b2f78c30a160fb3fb93bfe4eb4005da9ef510684b94973b210869c1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0Mzk2YThjZGU4ZDg2MTU3ZTAxYmJhMjJlNDAxYWMyZDM1ZjgwZmNjNGU2OGQ4OTEwZGZiZjkxYmY5NTU3MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlYzk2ZjU4NjJkMTQ0MDgzOTUxY2YwYzVmODZhODJkZGZkYjkwZWZiYmM5N2I1Y2QyZGJmZjNjYzQ1ZDJkYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyOTU3NDc1YmNmYzAzZjA3ZGQzYzgzNzNhMTQzOGFmODQ0MzA5YTM1ZmFhMmU5NTc0NDVlMWNmY2ZhYWEwYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZDRlYmZkODkyZDYyMWYyYTM2NDcxZmQxMGZmZjYxZDliOTkzMGMzZGM4NzE1NWJiMjRlMDJmYTk5NGM2ZWIifQ"
+        },
+        {
+          "resource": "repo://services/README.md#L98-L103",
+          "version": "repo-lines-v1:sha256:92d562a482271b1df65346f8316516c51498780d28e1e68ddbbb6ab57b8499ff:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmVhMjM2YmFkMjczYzE1NzAwNjA1MzkxOGY5Yzg3ZjhiNDdhYjJmM2FkMGJhMmRlZmUwMDljMTgzMjFhMTcwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzBlNWYyZmMxZGNjOWNjZTU1OTgzYjM2ZGYyNmJhNjk3MDk4Mzc1YmZhNmI4NWEzNTA0NDg1NGRmYWY5NjY4YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM3ODZjOGVmOTU5OGI4ZDc2NGU0Y2QzMDE0ZTI3OWZiMjVkMzBhMDcxNWM5MDM2NTA4MjVlNWIyYzUwYzUwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

@@ -1,18 +1,22 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:57b6a87f12650ce170bcc4f1a6d6bd01a9b86c21ca49d5341e1fbf56ac525c67",
+  "pageVersion": "sha256:8dd181dce7b3a41056616f232d499c47c3437bf4e7be271c9c2f0d9c86212770",
   "claims": [
     {
       "id": "claim_ceb913d68ca541f89ee4b6829bd092a2",
-      "statement": "The auth domain is wired through svcs factories in `register_auth_services` (UserRepository, VerificationTokenRepository, TotpRepository, RecoveryCodeRepository, PasskeyRepository, EmailVerificationService, TotpService, PasskeyService, AuthorizationApi, UserApi), and `auth_router` is mounted under the `/api/v1` prefix while the WebSocket router is mounted separately at `/api/ws`.",
+      "statement": "The auth domain is wired through svcs factories in `register_auth_services` (UserRepository, VerificationTokenRepository, TotpRepository, RecoveryCodeRepository, PasskeyRepository, EmailVerificationService, TotpService, PasskeyService, AuthorizationApi, UserApi), and `auth_router` (prefix `/auth`, so `/api/v1/auth/...`) is mounted on the `/api/v1` router while the WebSocket router is mounted separately on the app at `/api/ws`.",
       "evidence": [
         {
           "resource": "repo://src/auth/__init__.py#L33-L49",
           "version": "repo-lines-v1:sha256:eb0a801dfd3ea0746836997f367ecf19e0ed6f3ef42963bff6f4f988e235bdd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0Mzk5NzNhNzVhYjFlNGRjNWM3MGI2MDY4ODRiZWZlMzM3MmRlYmRhNTdhY2RjNWNmMTM1OGM0YThiNDZkNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNjdkYzI4ZTcwNTNkMjQwYTc1NWZkNWVlY2I0ODI5NWFlMmUzMmJkNGM0MmQ2MmZiNzYyNmMzMDMxNGM5MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/main.py#L167-L177",
-          "version": "repo-lines-v1:sha256:b66ab3c7c9677095729c27f4c6b1e651b2f0c6fc24ad24ac21753223cf11dc88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+          "resource": "repo://src/auth/router.py#L51-L51",
+          "version": "repo-lines-v1:sha256:e45d5ddaf37bcb06656ecc0f3dd6458f40ad01dd06c0e2b49aff2692728acd7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjVkN2NkMjc4Y2U3Njc1ZjE3OGJiZmI3OWEyMzUyZDZhMWUxMDY1ODA1ZWY3ODJkMzlkNzE0NWFjMGY2OGRjYiJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L174-L185",
+          "version": "repo-lines-v1:sha256:696365c50264d6be7d62e899a4f825b43515c7c8b60b3128dea2c99578f1c035:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
         }
       ]
     },
@@ -21,11 +25,11 @@
       "statement": "Access tokens are HS256 JWTs signed with `settings.secret_key` carrying `sub` = email, `user_id`, `exp` (24 hours), `scope=\"access\"`, and a random `jti`; they are minted by `UserApi.create_access_token`.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L38-L41",
+          "resource": "repo://src/auth/api.py#L39-L42",
           "version": "repo-lines-v1:sha256:b99108e14ab10751a73f57a63a2ccc4d1983ec3d88828813ba9284bf32093d9a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODYwM2ViNGU0OWUwMmM2NTM4YWEwYzkyMWVkMGY4NGM4YzViZjVlYjA2OWEzM2RiY2I5MGIwNmJmM2FkMDA0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMxMTZlMGJjNmYzMzg5NGExYWU4NzdlZmMxY2M3NjRkMzVkZDZkODc2ZTliYTM1Y2QxNTNjODJkMmQzMmYxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM0N2ZkYzMzYjQ1N2UxNjQxYzE1NmRkOGY5MDU5NDRlNGRmZTgwYjBhZjU4NDBiNjY2ODE4M2M4NzIxOGY1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTkwOGJjYzFiNDZjMmFhMGJlZmJkMzZiMmIyMDZjN2E1OGEyMmRlYjc2ZGE4YWMzYWFkYTA5ZWIzMzczY2MyYSJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L87-L111",
+          "resource": "repo://src/auth/api.py#L88-L112",
           "version": "repo-lines-v1:sha256:47fd096814a9d46f7683a59cdd03c2bfa14d923809e4db9b909d2d8f9da7376e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZjEzYjI2NTY3MmJlMWJkOGU3YzZkZThlODBhODcwZmFhMjljZTE2Yzk4ZGNiZTFkMGE4MTEyZWMxZTlmMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYWYyOWM4YmMyMjA0NWNhNjY4Njg3M2M4ZTc2YmNmYzVkMWJkMTI0ZmFlN2ViOTI1ZmFjYWZjNWNjMzFmNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NDk3MWYzNWI4OWEwZDdlZWYwZTAyMDFkMzIzMDlmYjY3N2I5YWM3YWU4NDgyNWE4MjdiNzllYzU2ZDAxZDEifQ"
         },
         {
@@ -39,7 +43,7 @@
       "statement": "MFA tokens are HS256 JWTs with a 5-minute expiry, `scope=\"mfa_pending\"` and no `jti`; `UserApi.verify_mfa_token` rejects any token whose scope is not `mfa_pending` with 401, so the scope assertion is bidirectional with the `access` check.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L113-L142",
+          "resource": "repo://src/auth/api.py#L114-L143",
           "version": "repo-lines-v1:sha256:7c83dfd4eb5bec80fc42e38052504086b2ba19a6314fb71bf2f8ee3e033214c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNjhmYzUwMDhkNjdhYjFmNDdmYTUwMmRiNGVkZmRmYTBjNDRjYzQ3MTI5ZmI4MDY0N2ExNmE3YjFlZjI1ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkMjA2M2RmMzAwNDBmMTJiNjRhMDA1NDMyNTkxNWExZjM2M2NhY2U2NzQyOTg3MDljNjlkOTJhOWRjMzM2NmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDYxODVmMWE5NTJkNTliNjE0NDA2MDExNzQ1ZjBkYTBkYzYwZDIyNzY4Njc4ZjY1N2EwMWIzMWRmY2JhMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNWYxYWU2OWQ5YzYwNzk5ODA1MDRlZGMzN2Y1ZjdiZjJlOTIxOTI4MDMzM2YwMGViZmIwODgwZTZiOGRlY2UifQ"
         }
       ]
@@ -49,11 +53,11 @@
       "statement": "`UserApi.get_current_user_from_token` rejects expired tokens (401 `Token expired`), non-`access` scopes (401 `Token invalid`), denylisted `jti`s (401 `Token revoked`), and emails with no user record, returning a `User` only when every check passes.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L245-L255",
+          "resource": "repo://src/auth/api.py#L255-L265",
           "version": "repo-lines-v1:sha256:8c15b832d43021d1bc49e791eb77999e7a52f5a03aaa289d1c3258829447e089:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTgzNTUyMmI0OTZkNTIxYmFmMGE2MGQzNDVkOGFkZjg5MDJiMzY5NWU0ZjdiODdiOTBiYWE1YWEwNWZlMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YzNjZTZjMGE0OTZjYmM5MTI5NjVhZWUyZDBkMjkyNDcyNTRlNDQ1Y2U3Yzg0MjkwOTk0N2U4ZTY3OTkyZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzODNiNDM3OTc0NzY1NmJiNTRhM2Y4YjM0NDc1Nzg0MjMzNjczMDQwYWJhNmZjMTViZTIyMzE4MjMzNDg5NTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlZjZkOGE5MDFhMmFmOTM5MTZhMjk4ODRlNjc4MWEzYzg0MzQzMzhhMmUzNzcwYTFhNTQzNDU3OGVhMTMwZWYifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
@@ -63,7 +67,7 @@
       "statement": "`UserApi.revoke_token` writes `token:deny:{jti}` to Redis with `setex` for the token's remaining lifetime so the denylist cannot outlive the token, and silently ignores malformed or already-expired tokens.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L225-L239",
+          "resource": "repo://src/auth/api.py#L235-L249",
           "version": "repo-lines-v1:sha256:0273b8426531f952944c20582278936b41083595bbb50cafb7d30c929a81cda0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5Yzc3ZmEwZjhjMjM1MTlmYmFkNjBkOTQxMTg5MzEwNDY0NDM1MTk0ZWY5YmEzY2UxYWIzNTk4MDZhYzU1NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZGZjZGI5ZjRiZjI2ZGJkNzhiNWRkYzQzNjhhNzA5OTU2ZmRhYTQwZDAzMjFiNTE0ZWE2OGI4MDc3ZDkxM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NmUwOWU4ZmUxNWM2MTRhYmI3M2RjZDIzMjcyYmU2Njc5YTE1MjQwMDE2NTA3MDE1NmNiMzM4NzVkMzNlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwODRmMzk1M2I1N2RhY2ZiYzM4Nzk5YWY1Njg4YzQ3Y2JkNGUwNGVkMTJiNWM0MjYyZTJkMDU2ZTQ5OGNhZTEifQ"
         }
       ]
@@ -73,11 +77,11 @@
       "statement": "The `get_token` dependency resolves the session from the `auth_token` cookie or an OAuth2 Bearer header and raises 401 `Not authenticated` when neither is present; `current_user` yields the `User` produced by `UserApi.get_current_user_from_token`.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L298-L313",
+          "resource": "repo://src/auth/api.py#L329-L344",
           "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L42-L42",
+          "resource": "repo://src/auth/api.py#L43-L43",
           "version": "repo-lines-v1:sha256:ec9e245e06f6e83643a6ef70e25f6ee05ee2bee9afca7f58ccaf692f4541c731:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDU2YzczMDliZTE3YjM4MGQyZWRiMTNhNWM1OGNkN2I1ZjkwNWU4ZDkzNTZmMTBiYTY1MjgwMTg4M2RiNDYxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk5Zjk1MTdlNGI1ZWJkYmEzYmU0YzcwZGU1MTllYWUzNjhkOWUzZDY1NzZjYmYyM2ViZGJlZjVlMmIzODlhYiJ9"
         }
       ]
@@ -87,7 +91,7 @@
       "statement": "`UserApi.login` returns 401 for unknown emails (after a dummy argon2 verify that equalizes timing) and for wrong passwords, raises the unverified-user branch as 403, and returns a 2FA challenge (`mfa_token`, no session) instead of an access token when a verified TOTP record exists.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L161-L194",
+          "resource": "repo://src/auth/api.py#L162-L195",
           "version": "repo-lines-v1:sha256:20821432e31d9ea26b69ff8b27ee155240bb64e9cbb79a6499e619b87aeab868:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1NmUzMTI2NmVhYzVjOWU2Nzk3ODhjMzNkNDdkYzlmY2E1NjIxNGVmZjkzNmYzMTUzZTU4OTMzYTc1ZjMwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YWQ5ODExODkxZTQwZjBlOTU1MTQzMjgyNzI4MGY4Y2MxMjhlN2QxYjdhNjY0MmUzNTFlZjg1OTA0NDFkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
         }
       ]
@@ -201,7 +205,7 @@
           "version": "repo-lines-v1:sha256:413f4f583399c805fdec1feffd80d3562dae2727b78c50064d8f49c360e4b703:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzYzJjNWU5ZTMwMWYxMTg1OGZhN2JlM2M3OGVhMTAwNjEzNTI1MzczYTY4Yjk3MTdiZTA5NjQ2ODNkNTE3OGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZDRiODUxMWQ0MzU2OTYyZjgxNjJhMzI5ZDViOWY2ZTc3YjNlMWUwNTBhMDVlYzZlOGI1OWU3ZjkxN2U3NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1MzQ2NDUzNzA2YWQzNmVlNTI5OTFkN2NkMmI5NzUxMDk5MTdkNGMyYjFhYTNmYjgzY2YyN2VmMjJlOWFiMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzMzI2OTU4NGY3OWE5YzIwNTBkM2IyYmNmYTFkNWI2NDcwMzI3YTA3NWIzYjc0MjU3OWEzODBmN2QwZTUxZTQifQ"
         },
         {
-          "resource": "repo://src/config/settings.py#L50-L52",
+          "resource": "repo://src/config/settings.py#L70-L72",
           "version": "repo-lines-v1:sha256:fe9f95cf3b5ce25caaef61fc548de17756744780ab0cc4b63b9a1a6ed6306257:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYwZjEyNDUxZDRlOGI5ZmRlNTg4MGFiODBiZjFkOGUzNDYxODI1YTNmNmE4NGNkNzE0NWM4OTU5YTFiYjBkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzcyNWFlOTE0YmExYzZkMWM3NjIwYzU4YjI1YjdhMGRjODU5MTI3ODQxMDRiNTVhZWM1ZmMxZDRmOWY3MjFmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGNmN2ZhNmI2ZDMzYmZjMjY1NTI5NzBjNGQ5ZTIxMDJlMDE3ZDNmZjM4YWE3MGFmYzUyZDdhYTc2YmMwNTdmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzgxMDlmODVhZGIzMjlmMDlhMTk0NzlmOTQxMThhOWE3YjkxOGZlNjAxZDU3YjYwYmY1ZGVhMjcwNGU2ODFkNCJ9"
         }
       ]
@@ -271,15 +275,15 @@
       "statement": "`AuthorizationApi.check_entity_owned_by_user` raises 404 `Entity does not exist` when the entity is `None` or owned by another user, account/portfolio/integration routers call it instead of comparing ids, and `src/main.py` maps `AuthorizationError` to 404 so existence is never confirmed with 403.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L110-L110",
+          "resource": "repo://src/account/router.py#L112-L112",
           "version": "repo-lines-v1:sha256:ef07bdee681d3156f3edff350ebfc35ffe4bbb340115102f4ad06d619d859a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWZlMDhhZjE3N2M4NzM0MWI5NzIyOWQxNWNlMTU1NThkMWQxZTQ3Zjk4Njc0MDc3NTIzN2MwMWJhOWFkZmRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDc0OGU5NzZiYTQ4NGQwNTZhZjkzNjM2YjFiZGE0NjMxY2M3NGUyNzhmNGQ4OWQ4MmYzOTBhOTg2YjkwM2FlZiJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L274-L287",
+          "resource": "repo://src/auth/api.py#L284-L297",
           "version": "repo-lines-v1:sha256:25daa0df6386103c79c8adee6ba24f0d544f997f0dfffc9ce65b59d20c2536fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjc3YjViMDIwZTQzMWJmMjI2MjlmOWZjN2U0YWQwZDY5ZTBjYTM4MjczYjljNjYzN2M2ODNlYWJhYzM2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDk2ZDM5NGQ2NTAyYzIyMWY5ZTljZDYwNjE2Mzk0YjdlOTBhOGE3NDA3MjM5ZjdkZWIzOGRkNDdlMDBkZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmQ0ZDMzNjQyNTY3MWI1ZDFjNzNhMjk0NmQzODI0M2ZmMDRlOTdiMjZkNmVhNDU4ZjA1NjFjZTczNzM0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Mzc5ZTQzMDMwMjNmZjA5Y2JkNzgyMWIyZmZhM2EyOWVmNDUxM2VhYTQ2NmFmNGY0MmVlZTNmNDgwOWYzZWYifQ"
         },
         {
-          "resource": "repo://src/main.py#L254-L261",
+          "resource": "repo://src/main.py#L262-L269",
           "version": "repo-lines-v1:sha256:d9490d83e019cd6126e13f9a5f7e5a118ee0ab298dcb48cd037a1a8b7ee406c8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ2YTE2NmU1Y2NkMmI1NDExZDg0ZTYwZTUyZTJjNDQyZTkyNDI3OWQxMmQ2ZTY3ZDg0ZTc4MGQwNmYyOTIzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAyNTY0MWE1MDIzNjJiMjQ3OTc4NWE5MTQ1ZTE0N2UzYjdlZDZmYzNhOWI5Y2I4NzMzNzgxMGI3NTE2ODE2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTJmM2QwOGMwOTM1OWFkN2YxNzRmZWExZWVhYjY3OTI3Y2ZmYjU3MDNhZjlkZmM3MDViYmMzNDRhMTg4NDhlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
@@ -405,16 +409,16 @@
       "statement": "Startup configuration rejects a `SECRET_KEY` that is empty or shorter than 32 characters outside `dev`/`test`, and `docker-compose.yml` passes the same value to the frontend service as `JWT_SECRET`, so one secret signs and verifies access tokens, MFA tokens, verification tokens, and WS tickets.",
       "evidence": [
         {
-          "resource": "repo://.env.example#L48-L50",
-          "version": "repo-lines-v1:sha256:4c504f9a32812c84cd0b1bf7615b998aec07a052139f4ebd204c98728adf8d93:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzllZTExYTQ5YTAzYzdhZTg4Yzk3MTlmYjI5Y2ZiNzY4YjBiMWQwNDMwMjcwZDA0NTBjYzVlNmI4Y2RmYWMxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5ZjBiMGE0OGM5ZWU4YzcxMDRkYTdiNWUxNzVjYzA0ZGUwM2ZmOTJhNjA1ZWJiODVkZmVjZDVlMWFmM2NmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZiYTRmMTQyYWY0ODMyNjU1NTAzNjVkNGQzMWEwY2JiNTY5MjBhZDU5OTdlYjVmNDljMWI0NzgxNWZmZGMxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDllMmMxZTc3YzRmNDM4MzhlZDM2NDFmMjgzYjY0MzRiYzViMGE0MWEzN2QzY2MyMjc0MDgwNjg0N2M5NjA2MSJ9"
+          "resource": "repo://.env.example#L4-L8",
+          "version": "repo-lines-v1:sha256:539d1c00db771ca0e477d6c20094500f29a7bc6540e70349fb50afdc2a8efa85:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzY1MGQyYzkxYTFlYzA3YzE1NWM2OTAwZWRjNzQ1ZmU0NGFlOTM5ODE3ZmNjMzMzOTRiOTk2M2U0ODA3YjcxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZmZTJhMzRiMmNlYzI3MmE2MjlkYjg2ZjdlNzUyNTEzNTQ2ZWE4ODkzYzQzZTIwZDBmMjI0OThkYTE2MDBkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmU5OTllNWEyNTNjNDgwNWI1MWMxMDIzZmNjZWFhOWEzNTQ2OWM1MDlhZDA5Y2RhMTMxZGViYmJjYTczOWRmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzYzMTU3YmE5YmEzZmRkNTNmODRkYmI5ZWE5YWY5M2QwNmY5NzJjZWIwODJkYTVkODU1NTgzZTFlZGI1MzgyNCJ9"
         },
         {
-          "resource": "repo://docker-compose.yml#L86-L86",
-          "version": "repo-lines-v1:sha256:6b6e0c4665e8e0fdd126939f7fb027ef4713e21f497590d87ff07251d19fd247:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGI0NjljNWMxNWNhNzZhMDUwODg2NDhmNmU0ZWVlNDMwZGI1MTI1YjQ3NTZlYWY0NjM3MzE0MmJkZWMzMzNhYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTEwYjYyYmVmZWIxNGM2NzlmMGRmMjNiOTBkN2EwODE3ZDNlNTJiZjA0ZmQ1ZjU3ZmMyNDM3NmZiZTA5YTlkNSJ9"
+          "resource": "repo://docker-compose.yml#L83-L86",
+          "version": "repo-lines-v1:sha256:971a6d9a95b01b9e9bd8f3af88484a1122aa81aae83a714617fe7a6a391120a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQ3Y2YwMGZlZmFhMzFhNDM4Y2FmY2IyNmE4NTNhNjYwOWMwZTljMzYyY2MyNWEwZWUzOGFiZjkzZGYxMWI5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjU2YmFiYjJmODM5NzkwOTk0MWVjNmVlMjRlZGE4NTlkNDllZjkyNjgzMmY5NjY3ZTBjMjViOTMzNjQ5MzI5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTEwYjYyYmVmZWIxNGM2NzlmMGRmMjNiOTBkN2EwODE3ZDNlNTJiZjA0ZmQ1ZjU3ZmMyNDM3NmZiZTA5YTlkNSJ9"
         },
         {
-          "resource": "repo://src/config/settings.py#L76-L88",
-          "version": "repo-lines-v1:sha256:6e7d2ee3553f028b1edf5ba2e3e5dc3cb419b0209ffeb12ac9705842b070fbac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNzM2ZjJiZWUwMGVkY2U5MGUyMjU3M2M3ZmIxNmRlNmZiZmZmYzQ0MThhMDBjNThmYTdjMWQ1MGE4Y2U5NTAifQ"
+          "resource": "repo://src/config/settings.py#L96-L108",
+          "version": "repo-lines-v1:sha256:6e7d2ee3553f028b1edf5ba2e3e5dc3cb419b0209ffeb12ac9705842b070fbac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2YzFjMjkyNjU2ZDQ2OThhYTg2Yjc3ZTA1YjQ5MmNhYzhkMDgxM2ViOTMwOTUxNTFiYTYwMDQ3N2FkNTdlZjkifQ"
         }
       ]
     },
@@ -485,7 +489,7 @@
           "version": "repo-lines-v1:sha256:5fd11596b1e865826efb4bd7bd512d12513ad5c3c523fc03ba41525a0a194ae9:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA3ZDdjODQ2ZWY2MzYxZTE5NjNhMTc5NGQ5MjJkZDA0NjU5YjM5YTBhZTBhMjAxNmMwYzE0Nzg2MTRmMzE1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWNjZmJlM2U4ZDA3MTIxZTAzYjkyNzA4OGY0Zjc5N2UxMjIwNWQzZDEyZGUwZmI0MDY4ZGY4NTZhZWUyZjQzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWMyYTNkNDkzZTY2MjMwNGQ3NzFhNWFiNWU2MjM1ZTExZTM4N2MxOWU3YzA0ODMzN2Y2Zjk3YWRlYzQ1YWZiYSJ9"
         },
         {
-          "resource": "repo://tests/fixtures/redis.py#L119-L143",
+          "resource": "repo://tests/fixtures/redis.py#L125-L149",
           "version": "repo-lines-v1:sha256:f96d6e08e2da82ea24f808ed5bb679127853be4a6fc120a08df8e63ad86ee9d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMDg2NmY0MDExZTU4NWZmYzA5MDkyZWRmMDgzMmUxN2I1MmY0YzkwYzRjYTBiNDJkY2ZhMDUwZmEzNzViNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMTNkYjM3MDJkYzljOGRmMGRmZTI1NGNiYTdjY2FiMjUyNzAwZDZlYTU1M2FlMzhjNjg0ZDRiZTk2ZjU1Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyNDhkY2Q3MzE3MTBjODBlMjgzYjVkMGNiNzVmY2Q5Mjk2NmJhM2EyYTkyOWM3ZjY5MjI5Y2EyMGRkNThjYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -565,15 +569,15 @@
       "statement": "Authenticated backend endpoints obtain their identity through a two-dependency chain in `src/auth/api.py`: `get_token` reads the `auth_token` cookie first and falls back to the OAuth2 Bearer header (`OAuth2PasswordBearer(tokenUrl=\"token\", auto_error=False)`, which is what makes a missing credential an explicit 401 `Not authenticated`), and `current_user` then yields the `User` produced by `UserApi.get_current_user_from_token`. The cookie-first order means a request carrying both a stale cookie and a fresh Bearer header is authenticated with the cookie's user.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L298-L313",
+          "resource": "repo://src/auth/api.py#L329-L344",
           "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L42-L42",
+          "resource": "repo://src/auth/api.py#L43-L43",
           "version": "repo-lines-v1:sha256:ec9e245e06f6e83643a6ef70e25f6ee05ee2bee9afca7f58ccaf692f4541c731:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDU2YzczMDliZTE3YjM4MGQyZWRiMTNhNWM1OGNkN2I1ZjkwNWU4ZDkzNTZmMTBiYTY1MjgwMTg4M2RiNDYxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk5Zjk1MTdlNGI1ZWJkYmEzYmU0YzcwZGU1MTllYWUzNjhkOWUzZDY1NzZjYmYyM2ViZGJlZjVlMmIzODlhYiJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
@@ -587,25 +591,25 @@
           "version": "repo-lines-v1:sha256:7d2aa940099cfe02da82e349e9e61592cafe76b7ed3b47a25cb36560018b8a9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViY2UxMWFjZDFhZmM5OGRhMjliOTVmNzdiMmYxMWJiZDJjZDUzYzZiOGYyMTcyZDViNmFmMzdjMjkwZmNhMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlZjU5NjViMDM1MjQzZTliNWY1YWUxNWQzNDUyOTkxMzMxYThjOGI5YWJhMmEzYzgxMzYxZjk0ZDkxMDkwN2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYmM0NmE2MzViNjVjYjZjOGNjYzA2MTQ4ZmEyNTFmMTVkMjU3YWRkMDE3MzkzMGJiNDYwNTUzNzY2OTE0ZmUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
     },
     {
       "id": "claim_7b19bf17ab244f86aa821d7147ed62a0",
-      "statement": "`src/main.py` keeps authorization failures indistinguishable from missing resources with two handlers: `AuthorizationError` (base class of domain exceptions such as `AccountsDoNotBelongToUserError`) returns 404 with `{\"error\": ...}`, and `EntityNotFoundError` also returns 404, matching the `HTTPException(404, ...)` that routers and the ownership helper raise directly.",
+      "statement": "`src/main.py` keeps authorization failures indistinguishable from missing resources with two handlers: `AuthorizationError` — the abstract base class declared in `src/core/exception.py` and inherited by domain exceptions such as `AccountsDoNotBelongToUserError` — returns 404 with `{\"error\": ...}`, and `EntityNotFoundError` also returns 404, matching the `HTTPException(404, ...)` that the ownership helper raises directly.",
       "evidence": [
         {
-          "resource": "repo://src/account/exception.py#L24-L24",
-          "version": "repo-lines-v1:sha256:31286cc0865398567ad0257d7f2372b7a015fdc63ac5fb2e9084feb0a3bdff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4YTQyODhhMmZiY2I4ZTAwMzA4ZDdlYTYzMTViYTRjZTkzNTQwZWIwOWQwYzBmMWYxNDZlYTQ2OTYxY2YwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzFhOTQzMDNiYmVhZTM0MzNiZGY4ZmVmMTU5ZGFjODgzYjY4ODljMTNmMzc0Nzg0YmNiNDYxODY1OGRjNTNlMCJ9"
+          "resource": "repo://src/account/exception.py#L24-L34",
+          "version": "repo-lines-v1:sha256:dd4162dd64eaf67d12ecb00af795f9213ff9de9a85e27ff9ae1a7c52f81fbdc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjg2Y2MwODY1Mzk4NTY3YWQwMjU3ZDdmMjM3MmI3YTAxNWZkYzYzYWM1ZmIyZTkwODRmZWIwYTNiZGZmODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3OTdkZDFhMjczNjAwNWU2NTVkYzhmYWVmMGRjMmMyZDI5OWQzOTNjNjAzNmQ1MzE2MzQyZWE5M2M0OTA2NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOGE0Mjg4YTJmYmNiOGUwMDMwOGQ3ZWE2MzE1YmE0Y2U5MzU0MGViMDlkMGMwZjFmMTQ2ZWE0Njk2MWNmMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0YjExMTA2MTMzZjlhNjczNjE0MjFiZjc4Y2FiYzliYTllOTRjOTMzYTM4MGUxMjM4NGUyOTQ1YjgzN2Y0NzgifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L274-L287",
-          "version": "repo-lines-v1:sha256:25daa0df6386103c79c8adee6ba24f0d544f997f0dfffc9ce65b59d20c2536fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjc3YjViMDIwZTQzMWJmMjI2MjlmOWZjN2U0YWQwZDY5ZTBjYTM4MjczYjljNjYzN2M2ODNlYWJhYzM2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDk2ZDM5NGQ2NTAyYzIyMWY5ZTljZDYwNjE2Mzk0YjdlOTBhOGE3NDA3MjM5ZjdkZWIzOGRkNDdlMDBkZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmQ0ZDMzNjQyNTY3MWI1ZDFjNzNhMjk0NmQzODI0M2ZmMDRlOTdiMjZkNmVhNDU4ZjA1NjFjZTczNzM0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Mzc5ZTQzMDMwMjNmZjA5Y2JkNzgyMWIyZmZhM2EyOWVmNDUxM2VhYTQ2NmFmNGY0MmVlZTNmNDgwOWYzZWYifQ"
+          "resource": "repo://src/core/exception.py#L5-L21",
+          "version": "repo-lines-v1:sha256:d46547619a0fe04354493ecbd07c26bb866c37cb9a030447a95f0ccc34c89dff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1NmNmNWY3MzFiNjVmOTFjYWU3YWY1ZmRjOTM5ZDNlY2U3NDhiOTczNzk1YTYxYmJmNjY4OGYxYWY3YTcyN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZGI2NjIzNzllNTI4ZGE5NjYxZGU0MTVlYmE3NzkwOTY0ODVkNGRiMDc5MDM1ZjhjOGMwZWEyNmExMGRmZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNmJhNGE1NmYzNWFjMTAzODczMTJmZjVkY2Q1NjA5ZDIzYTA1NWI1MzdkNWVhNjZkZWIzNjI2YzdiNDkxYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/main.py#L244-L261",
+          "resource": "repo://src/main.py#L252-L269",
           "version": "repo-lines-v1:sha256:747a393263e289c6ad37b985accad9eb56d4228dcb755fb40877c9efcf3f6436:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYmI5MDg3ZjQ2MTI3NmRhYjRjY2M4Mjc3NGY3NjVkZGQzNjgwYjQyMzAyZWQyY2E3Njg3ZjFlNThmODE4MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -615,7 +619,7 @@
       "statement": "`is_active` is enforced in only two places — `POST /auth/2fa/login-verify` and passkey authentication, both 401 for an inactive user — while neither `UserApi.login` (which gates on `is_verified`) nor `UserApi.get_current_user_from_token` consults it, so a deactivated account can still complete a single-factor password login and an existing session survives deactivation until token expiry or `jti` revocation.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L161-L194",
+          "resource": "repo://src/auth/api.py#L162-L195",
           "version": "repo-lines-v1:sha256:20821432e31d9ea26b69ff8b27ee155240bb64e9cbb79a6499e619b87aeab868:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1NmUzMTI2NmVhYzVjOWU2Nzk3ODhjMzNkNDdkYzlmY2E1NjIxNGVmZjkzNmYzMTUzZTU4OTMzYTc1ZjMwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YWQ5ODExODkxZTQwZjBlOTU1MTQzMjgyNzI4MGY4Y2MxMjhlN2QxYjdhNjY0MmUzNTFlZjg1OTA0NDFkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
         },
         {
@@ -633,7 +637,7 @@
       "statement": "Tokens minted by the dev command `src/auth/commands/create_test_token.py` (365-day expiry) carry no `jti`, because `AccessTokenData.jti` defaults to the empty string and that command never sets it; `UserApi.revoke_token` and `get_current_user_from_token` both skip the `token:deny:` denylist when `jti` is falsy, so such a token cannot be revoked and lives out its full lifetime.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L225-L239",
+          "resource": "repo://src/auth/api.py#L235-L249",
           "version": "repo-lines-v1:sha256:0273b8426531f952944c20582278936b41083595bbb50cafb7d30c929a81cda0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5Yzc3ZmEwZjhjMjM1MTlmYmFkNjBkOTQxMTg5MzEwNDY0NDM1MTk0ZWY5YmEzY2UxYWIzNTk4MDZhYzU1NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZGZjZGI5ZjRiZjI2ZGJkNzhiNWRkYzQzNjhhNzA5OTU2ZmRhYTQwZDAzMjFiNTE0ZWE2OGI4MDc3ZDkxM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NmUwOWU4ZmUxNWM2MTRhYmI3M2RjZDIzMjcyYmU2Njc5YTE1MjQwMDE2NTA3MDE1NmNiMzM4NzVkMzNlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwODRmMzk1M2I1N2RhY2ZiYzM4Nzk5YWY1Njg4YzQ3Y2JkNGUwNGVkMTJiNWM0MjYyZTJkMDU2ZTQ5OGNhZTEifQ"
         },
         {
@@ -645,10 +649,196 @@
           "version": "repo-lines-v1:sha256:91296b0448610e5725194555e9b30ccd2d88b4021a818cb04ed41fb5e9a13c43:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyZjlkN2RlMzc2MzQ4ZmM4MzY2OWMzNzk0ZjU1MzJmNTQxMjBkMTZlNWQ3ZGQ3ZTdhM2M3YjEyZGY4ODJmOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMWQ3MjRkOGE0ZGZiMzMxODM0YmVkMTdhMTM3NzhjYTA3ODc2ZjQyNTE5MTA4Yjk5ZGUyNTRhNDU2MDgxN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_5e587662d9c6457c8fcde4039fc6924a",
+      "statement": "`require_service_token` (`src/auth/api.py`) is a FastAPI dependency that reads only the `X-Service-Token` header — no cookie or Bearer fallback — and rejects a missing/blank header or any mismatch with `settings.market_data_service_token` by raising `HTTPException(401, \"Service token invalid\")`; the comparison is `secrets.compare_digest` over bytes (constant-time, and immune to the `TypeError` a non-ASCII `str` header would otherwise trigger -> 500), it consults neither `settings.secret_key` nor any user-session state, and a blank configured token can never authenticate a caller.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L308-L326",
+          "version": "repo-lines-v1:sha256:0f7b715e4b98265227b8267f2ea5c175f1af8fd3f025b77afb8042833c8a055b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YzE1ZjdjNWU2ZGRhZTQyZDA4ZGZkNDVlNDBiY2YxMDg0NGU0MzRjZDkxOGZhZmI0MTc2NzgwODU5YmRjN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZmJjY2ZjODVhMGEyZmM4Njc5NDU2MDBlMDAwYjkwODcwYTQ4YTRjOTIyODhjNjYwNDZlNDlkYTRmY2IxYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzQ4ZmZiOTY5ZWEzNDEwOTIxNTRkNzc0NDNmZDhmM2VlZmQ3ZTdjYjE2NTVhNTRkY2FkOTdiYjczYzg5ZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6cac627d841049799c2ef2fdcce80c56",
+      "statement": "Every data-plane route in `src/market/data_router.py` — prices, quote, indicators, symbols/search, options, options/expirations, fundamentals, and fundamentals/statements — declares the unused `_svc: Annotated[None, Depends(require_service_token)]` dependency, so the caller is rejected before the handler body runs and never reaches the data-plane gateway, endpoint cache, or a provider; the router is `APIRouter(prefix=\"/market/data\")`, included in the `/api/v1` app router in `src/main.py` next to the user-facing `market_router`.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L174-L185",
+          "version": "repo-lines-v1:sha256:696365c50264d6be7d62e899a4f825b43515c7c8b60b3128dea2c99578f1c035:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L135-L137",
+          "version": "repo-lines-v1:sha256:b389e6cd237919ed26c86460ccc61a5c9d84a482ebdd93ff0f1e8cce29ba1908:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlZTYzZmZkNTZlNTYwMTllNGY0M2VhZTdmMzZlODk5YjQ0Nzk5YmExODA4MzU3ZjM3M2RhYjZhNzk0YjcwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGUwMWI3ODQ3NmY1NDVmNGRhNTgyZmFiZWE0ODMzNDc2ODRhZGU4MjJmN2IwMDM4ZDUyMzU3ZmU5NGZhMGE2MyJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L719-L721",
+          "version": "repo-lines-v1:sha256:0884bac800a397e0333b94bbea2dcd9cb79f5308ddced93bc6822bdd177edd5c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjg5M2YzMmFjMzFlMTMwYmFhNzI0MzNkM2E1YmMyYTA0NWZkZmZhNDZkMDkyNThkN2M1ZWMxMzY2YjRhZTIxNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTllYzdlNzM0MzlkYzZhOGQ5N2I3ZDA3NDZjMjExY2I3MDliMjNhNzUyMmRmNWRiZWNiNmU4ZGQwY2ZlYTIyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODVlOWM2Nzg4NGM2N2VjZjUzMWQwNTNkN2RiZDNmOGU2YmU2ZGUzNWQxNTJmNGZkYTM0ODNkMDdlZjQzY2YzOCJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L92-L92",
+          "version": "repo-lines-v1:sha256:8277b522ea3b8f23d7af0ab994475aeee1ca5d208ec1d95a118d49bc9fd2c03e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkwYzRkZmI5ZDc5YjFmNDk5NTYxNThjMmQ3OTgwNDEwYjRkNWRlYWZkODk3ZDdlZTM0YzNlOTZmNzdmMTM0NiJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1062-L1088",
+          "version": "repo-lines-v1:sha256:353bc1b5463de573c96926e6bc325c628b08c06d6c0c00a2d59dc1994c4ed7c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3ZTNjYTk4MDA2ZjVjZGQxNzgyNTI5YjAyMzU2YzY2ODkyMDFiZGUwYTBmMWU2MWJlZGM1ZDViOTE1NTYxMTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2c1d427e1364215b5c5ff9275000eb4",
+      "statement": "Data-plane handlers receive no user identity: `require_service_token` yields `None`, the data-plane routes never depend on `current_user`, and the service token carries no `user_id` or scope — so a data-plane call cannot be attributed to a user and the shared secret must not be reused as a user credential, while the user-JWT path (`get_token`/`current_user`) never inspects the service-token header.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L329-L344",
+          "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1MTQ5ZGZkYWU0ZTk3NDI3OGFlOTkzMGNkMmM2ZjA0MWU3MTk2ZGIwZjIyMzM1MDM4ZGRjNzgyNDNlYTBhMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L1-L14",
+          "version": "repo-lines-v1:sha256:dbb3ddf24120c3d806a09f2b915e6b1c7075105a8cf7bcce34b91345b2695670:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMmM3MjIxZDE0OTNkOTE2ZmU2MmFmNGNmZDVkZTQ3NTkyMzBlMzU2OTQ0NDAyY2U5NTU4YjE2NTBjM2U5ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZGNlNGY4OGNkNDljMjNlODBkZjJjNDAxZjk5ODcyMDZmNzAzMTJiMTc0MzdlYmJmNjQ2ZWQxNTBhODNhNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwMWI1ZDFiNjc5MmE5NjVmMDQ1NDc1MmJjMWFlZmU4NWU5MTEwMzFhODBiY2E3ZjIxYjBjMGE3OWM4OTQwYjcifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L135-L144",
+          "version": "repo-lines-v1:sha256:1bf6c9ddd39e8cd3408707d0ca422ef2beeee9e55d322e0a29c6fba768aa685f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZWU2M2ZmZDU2ZTU2MDE5ZTRmNDNlYWU3ZjM2ZTg5OWI0NDc5OWJhMTgwODM1N2YzNzNkYWI2YTc5NGI3MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0ZTFmNWUzMzdhMmU5MTBiNDU4YzE2ZjEzMDdiNzRmMzhhMDg3NDQ2NWIxMDU1YjNmYWI2MzBmMzM4OTc5ODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3ZTlkMmExMjBiOTk4M2RmYzBkNjY3NjdmOGNkZmQ0NTZkM2VjMjg0MjA5NzIwZWZiMjE3NmQ1ZDgxMzgyMGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_62142035edff4cedb1d3200402be49d2",
+      "statement": "`settings.market_data_service_token` is populated from `MARKET_DATA_SERVICE_TOKEN`, and `validate_service_token` fails startup when that value is blank outside `dev`/`test`, mirroring the `SECRET_KEY` validator; `.env.example` ships the dev-only value `dev-market-data-token` and documents the variable as the shared secret for service-to-service data endpoints (MCP gateway -> backend).",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L29-L30",
+          "version": "repo-lines-v1:sha256:cf1837064ffcabe06500245439fdf668c4e8332322ec0b3bf59860087289d335:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDk4NmEzY2E3NzY2ZDgxN2FkNjJmZDc4NTFkYTBlZjg1Y2Q4OWYzY2MzNGI0MWFhOTM3NzVkYzIyNDRhZDgwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNhOGQ5MzkwNzUzMjAxNjdiODcyNTIzNzZjNzkwNjYwOTQwNWQ5OTVlOTZjMTczYzVkZjY4ODlmZDIxNTc4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzI1YmE5ZTcxNWI4NmNlNWVlN2E5NjYyOWVkMDU1NzkwOTYzNmYzMjk3ZDE5NTNjNmJiMmI0MTE4NmUzMTAzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmI4ZWZlM2EyOTM4NzE1M2JjM2NiYmU0NDYyNDJiMjRhODRmNzFlYjlmN2VkY2JmZmYxNzZkYzI3MDU3YzExMyJ9"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L110-L123",
+          "version": "repo-lines-v1:sha256:fb7fb9f9bde3f01414433eab124be818f514c1119a7cbdc0e55beb6c4a605823:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNmFjYTFmMGZhZWJlOWViYmQzNWRhNTdkNGY2NGY0ZGYwYWE1NGQ1NGQ2ZjkyMjFkNjc0YzMzMjg4NWI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMzM0YmNmMTMyMWQ0MGVmY2MwYzllNzA3OTgyOTA2ZGUwOGUxYjI3NTI3OTE3NjhiOGE5YzRiM2U3MTQwMDMifQ"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L47-L48",
+          "version": "repo-lines-v1:sha256:f2b9b57e0702c29e2b3d4461b7af5b6941713dbdf8bb539acf749288f2d77574:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWIyOTgxNDNmYjMxOWYzMmVkYzdlZWJhY2Y4NjJhOWZkOWMyNDFjZTQ1ZDA3ZDIxYTI4YzFhNWI0YWY3ZjM1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzY3NGZmMTI2NWNjMWU4YzdkNzVhMTU5MDcxNzE1YTVlNzhiZDg3ZDEwMzA0MjkzZGVjMjJkZTc2ZmRhYmRmMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmVhNGU1ZjFlYzY4MjA0MjQ5MTRmYzE2NDZmMzUxYTA2YTVmNGNmZTEzODJjMWRkMGM1MThiOGMzM2RhOGE4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY1YTEwOGY5MjBmODM0ZThkYjYxOTI2NTg2NTJmZGZhMDg1NzhhNDRlMDdiMzgyNzhiYzVmY2NhMTYxZTRiZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5e62bc2a1e3d40e68839c292d1d7f8d4",
+      "statement": "`docker-compose.yml` passes `MARKET_DATA_SERVICE_TOKEN` (dev default `dev-market-data-token`) to the `mcp-gateway` service together with `BACKEND_BASE_URL` and `DATA_PLANE_PATH`, while `docker-compose.prod.yml` requires the variable and publishes no host port for the gateway — so rotating the shared secret is a coordinated backend-and-gateway change that breaks every tool call until both sides match.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L64-L73",
+          "version": "repo-lines-v1:sha256:3c6bedb7ea20d5df17431fad64dc249e1494a5affcd0393431ccc4a0f666dffe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZGE0YmMwZDY1NTNkMjU1NjM2MWU2ZjFmZjE3OTFhOTYzZmQ0NDI4NWEyNDJmZjE2MDFiMTJhYTY3MTNjMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTNmZWQ2NTY2ZTgyNWIwMzY1ZTY5YTM1N2M4MzUxMmIzYTA1YTUyNzNlODljNGU0Y2E2M2IwYzZmNzkxMDQifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L125-L134",
+          "version": "repo-lines-v1:sha256:c9abdd22fbfbcbd2db51c25dd3940cb55d4d29530769f605662bad7066243f61:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZGE0YmMwZDY1NTNkMjU1NjM2MWU2ZjFmZjE3OTFhOTYzZmQ0NDI4NWEyNDJmZjE2MDFiMTJhYTY3MTNjMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTNmZWQ2NTY2ZTgyNWIwMzY1ZTY5YTM1N2M4MzUxMmIzYTA1YTUyNzNlODljNGU0Y2E2M2IwYzZmNzkxMDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_025780c9fec049c4a35b9ee6a154a2d0",
+      "statement": "The Go MCP gateway sends the shared secret as `X-Service-Token` on every data-plane call (`serviceTokenHeader` in `internal/backend/transport.go`, applied per domain `RouteGroup`) and classifies a backend 401/403 as `ErrConfiguration` — documented as an operator problem, not a user one — while the token value is never logged or surfaced to an agent.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L23-L34",
+          "version": "repo-lines-v1:sha256:ed3d2c6ead9d39c7c20f98dc629c6cb2165d07c0f8c1121172e466d0601858ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4MTFhNWNmNDE4MzU4ZWY1Mjk4NTAwYmMzODI4MjUwMTU3OWUzYjVlYTk3ZDQ5NGFhNWFhYTNiZWI0NGIzMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1YmIzOGQ2NDU4ZTEzNDI1YTNiZjllODRkZjQ4MGI0YjRiN2RhMGYyZTQ2ZmQ0MGM3YjhjNmUxNDQ2MWMxOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhOTU2Yjk1Zjg4NWY0M2E2NzczZDIzNGUzNDgwOWYxZTIzYzZlYjBmOTM0NTZhNjQ5NDc2M2FlMWY0YzQwZTIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L90-L100",
+          "version": "repo-lines-v1:sha256:a18553a54b91a801b65b8dc11b1135fe633b3a32558ed98eb211be4555c62184:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjAzZjI4NTEzNGU0YjEzMDA2YTJiMzY3NDcwYTc4NTM4ZWEwZGRmODU5ZTcyYjY5MWIxMWZhOTY1NmEwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYjVmNTc4NDM4YzhjOTc3MWVhNTViZDhmMmZlZWJmZDEwOTU1YjIwMWM3MjEzZWFiODBhNjk5ZTIwYjliNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYWNhNTFkOWJiNWViMDY2NWJlZmU5ZmUwNmRhNDE5NDM4YTViNmVjOGE4ZTc3Mjc1ZjNmNmU0NDY2OTc1MmQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L17-L19",
+          "version": "repo-lines-v1:sha256:a89923aa43c0dd1c9a5421607b3519a32d3325a460b25b3a37c2ed000ee41d8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTVlZTM0YTEwYmE0NzRhODU2MzVkOGQzYzQ0MzYzY2VlMWEzNmI2Y2RkZTgxNjQzZjQwZmYyOWZlMzQwZjc3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2MzY5YjljY2IwMDk2ZDA3OWYyOGZkNGQ1NGJjYjAwNDFhODA1NGRkMzRlMjY2MGFkZTkzMjYwMjRmNjliYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzllZGQ3MmJhNmI0MDA4M2NlOTUyNjlmYTU2ZmNmM2FjMWJkOTgyMjFhYTY2MjFhNjgzZjdkNTYzMmJiMjFkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjJiN2I3MmY0OWFkNzZmMGQxNmFjZGI4MTJlZWM2OTFmNDUzNjE4NjBiZTQzNjgxODNhZWE5NDFlMmJmNmY1OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_27a8484519f74c62b618809edb72d999",
+      "statement": "The MCP streamable HTTP listener is unauthenticated by design: the shared-secret trust boundary is the backend data plane rather than the MCP transport, cross-origin browser requests are rejected with 403 through Go's `http.NewCrossOriginProtection`, and the service is meant to run on the internal network only — `docker-compose.prod.yml` publishes no host port for it.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L64-L68",
+          "version": "repo-lines-v1:sha256:63d601926a8123273a8d1bb9757a721c0df4e8a62f2b04ad21c7254186845c1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdmMTZhYzU1NDRkMjhjNGNkMmIxYjY3NGJlYzU4ODdlOGE5ZGI0NmEzMmZiMTk3MDcwMGNkM2UwM2RiODgzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQ4ZDk5MzkzODNhNzdmZGVkMTYyMGVlMzkxYTMxMzk5ZTc1NDc2ZjljZjc3Mzk3NzdmYzlkMGE2MDJmZmUyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmRkNjFjZDFmMmIzZDMxYjBjMGMwM2ZhOTQwY2Y5NTg4NTE1OGNhYzkwMzljYTdlNDQ3NWExYjRkNTExM2I1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGUyYjY4OGFmYmVjYTM3ZWM5YTY0MThhNzZmNTk5NjVlYzQwZjFhMjkzMTVjODAwMWQ2YTUxYzdmYWQ5OGU2OCJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L21-L31",
+          "version": "repo-lines-v1:sha256:6e797e7ed789c49fdff42235e1241365e8078cf8071f831297a5c9a3258808e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhZmQxOWZjNjkyZDM4NzI0ZDI3YmZjZGM3OWViNTQ4M2FhOTE1ZDAxYTFmYjJiNDc0YmY3NTFjZDhiMTU0NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTAwYjMxNzRkZDRhYzRmMjZkZjNkYTQ3Y2U0OWZmNmFjMDc5MmU1ZjA3OTU1MjBjNDcyYjlhNjc0NWIxMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNzc1Y2M0ZTc4MTVjZDY2YmM1Y2JhMWJjY2NjMjA5MmY4NmMxNGY5OWNlNWViOWE3MjgxM2I3ZmRiYzg4NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3ZDdhZjM4MGMwZDZlNjhiN2Y0YTlhZWM1YzMwOTNkMzE3OWFkNjNkZGQzYmQyYmExNTNiZTZhMDEwZTYyNjMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/router.go#L18-L34",
+          "version": "repo-lines-v1:sha256:b0f2de31a20b2ce99488369e42f4996411066bbcfd0dd6eb3abeb7aa818d3ae6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwOWEyMzY4ZTU5MzM1OTlkNTI2ZjJlNjU0NjBjOGExMTRlYjgzOTExMmEzZmJmYmZjY2U3MWM3Y2Y1MWRlNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3ZWY5YjA4NjlmYWVhMTNmNzg3ZWNlZWFkODAxZWY4N2VmZmE1YTg4ZWVhNGRhYzJiZjI2NzUwZjdlN2VhOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNDhhMTQ2NjJjYWY3ZjU4OTNiYjc1YjNlMzRkMzdmZjgyYzM4YWM3NjIwZmY4NTBmYTQ3ZGY1M2RhNzk2MjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ccd77c78c7e6404ea448dac00a219e09",
+      "statement": "`tests/auth/test_service_token.py` exercises `require_service_token` through a throwaway FastAPI app, involving no svcs container, database, Redis, or JWT machinery: a matching header returns 200, while a missing, wrong, blank, or non-ASCII header, a request carrying only an `auth_token` cookie (which proves there is no cookie fallback), and a request made while the configured token is blank all return 401; the configured value is patched on the `settings` singleton so the root `.env` cannot pollute the result.",
+      "evidence": [
+        {
+          "resource": "repo://tests/auth/test_service_token.py#L27-L94",
+          "version": "repo-lines-v1:sha256:bb963590a117cbdc5945ad64d6d4d0e9631a96292586e79b5a96af048669f9e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyNzgwMjkxYTlmMjYyNWJhZjQwNGZiMGFiMWQxMTJmYmJkNDJkN2QzYjcwYjFmNzc1NmRmODllZDMwZDQxY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c05eb701ea3b44ae8e23dba11daecb46",
+      "statement": "`tests/market/test_data_router.py` runs the real `require_service_token` (no FastAPI dependency override) against a patched `settings.market_data_service_token`: `test_missing_token_returns_401` parametrizes six data-plane URLs and asserts no gateway method is called, and wrong-token and non-ASCII-token requests also get 401, while the gateway is a `MagicMock` and the endpoint cache runs over the in-memory Redis fake so nothing dials a provider.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1-L8",
+          "version": "repo-lines-v1:sha256:58f6e2b2c59d4d0b411e8eb8f234983c39cb7b9cf04f8ac8c183b9cdd181ac56:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMThhMWQ3YWYyMjZhOWEzNGQ0NTMwN2M4ZGE1NTI1YzY3MjI1Mjg5ZTllYzgyZDFmYjQ0MWY0NTJmZmJkNzIxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L106-L124",
+          "version": "repo-lines-v1:sha256:c1b261f7db9ddcd6cbecf89691372c3727a81dda4e414fb1cc06bd8c61994754:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhYzI1YWVmMjJmZTI3Nzc4ZDIyOGViZjg3ODQzMTM3ZTBhMDY1MjBlMGMwNDU1NTUwODBmMGI3MTA2Nzk5ODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5OWEzMjc3MTAxZDU0OTc3OTFiMWViOTY0ODZhYTAyNmQwYTJkNmU5ZGVhYTBhNGExOTBjNzFjZTk5ODBlZjcifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1062-L1108",
+          "version": "repo-lines-v1:sha256:5ffc83dae70c4a40fd1ab66e26493f5e690c0e5d428f79239a1e82fd9549977f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a5bb87c87fe43e08662ea544712e9c3",
+      "statement": "`tests/market/test_data_plane_contract.py` compares the live FastAPI data-plane schema byte-for-byte with the committed `tests/market/contracts/data_plane_openapi.json` (regenerable with `UPDATE_CONTRACTS=1` or `uv run python -m src.commands.export_data_plane_contract`), and that snapshot lists the optional `X-Service-Token` header parameter on each route — so changing a route path or dropping the dependency is a contract-visible change.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/export_data_plane_contract.py#L13-L49",
+          "version": "repo-lines-v1:sha256:62ba9a3cf5215c5fb56d0127134b8e8031080d8bb8750d79018d9fb37a190555:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MjcyM2M2NjIzOTQwZWM1OWM5Mjg3MTZmMDU2NWEyYTI5ZmE0ZTQ2MzhmOWQxN2Q2ZjYwNTYxMmIyOWZmMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYjRmOWE2NjYwODc2NDA3NzIzZTRhMmJjZDljZWNiMjdjZTMyYWM2MWM4MTllNjVjY2RiM2U5OTQxNWQyNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://tests/market/contracts/data_plane_openapi.json#L2069-L2084",
+          "version": "repo-lines-v1:sha256:f2c216857f3492d49fb7c35d18e62bf32e55a15e8c20fe2d6c9b625608af20e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmOGExOGE4ZmJlMjIyMzdlMTg1OGRkZWNiODc3NzI2NWYwYTgwYzlhN2RiYTY4Y2Y5Y2Q1NjMwMjZkMGM2OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4MDA1ZDU3MTA2YTM2MmViMDAwZGFmM2RhNDY3NGM4MmI1MThmZjVhMmUyZjY3ZWU4ZTc1N2EzMzNjMmFmNjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjYjRkNDE0ZDU0OTg0MDkzOGUxZGUyYmFiNmZkNzRmMTNiNmMwYTVhMTQwYzJhOGJmMTk2YmJmYTI0ZjBiNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkYjZkZDZhNzI2NTc4MThjMTJmMTViZjJhY2NjNmY2YWM3NTBmNGY0ZGE4NzAxMGJjMWYyYTEzMmQ5ZmM4ZTkifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L29-L63",
+          "version": "repo-lines-v1:sha256:0679ce82089424511409bb7da79a5649ce0f3d08986353df534893a0127b559f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNTJhNDJhYzUyYzliODBhNTdkMDA3ZTQ3MDBhMWE0MzJkYjZjN2E1NjFhNjE4YjViYzhmNjg3OTk3OTE1OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwYTJjNDFkNzU3MWJhYzk1ZjZiN2ViNzZlNmI4OGFjMDE4ZWVhZWVmOTk0NzM1YWRjZGZlODA2OTU0OWI1NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2MjMxOTk1YTg1YjI1YjJmNDNiM2E0ODFjY2ZjMzgxMGJmZTE1ZjdhYjM5N2QwOTc5NjdlYWVjNmMwODVhY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4d0f83d01ae47739400d38d57189746",
+      "statement": "`tests/fixtures/auth.py` supplies the shared auth harness: `test_user` and `other_user` insert active, verified users with argon2-hashed passwords so ownership tests can contrast two identities, and `auth_client` builds the repository/service stack on the test session, mints a real access token with `UserApi.create_access_token`, monkeypatches `EmailService.send_verification_email` to a no-op, patches `src.market.eodhd.eodhd_gateway_factory` to return `MockEodhdGateway`, and yields an httpx `AsyncClient` over the real ASGI app with a Bearer header; the unauthenticated `client` fixture repeats the SMTP and gateway patches without a token.",
+      "evidence": [
+        {
+          "resource": "repo://tests/fixtures/auth.py#L114-L166",
+          "version": "repo-lines-v1:sha256:f7eb6d6b5180ee3e1bd75927f734179f9915c591927fc67507e07704ee596535:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNjdiMzBlMGZjMGEwMjUwNzAzZWVkZmY2ZjcwNzM3NzE2ZjMxNzhlYjRjNmRjMDQ5M2I3OTZjZDEyYTkyMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZDIwMzRlZTM0YmUyZTBmMDVkZGQxNjEwMWJlMzUwOGY3ZGZiNmEwMzkzZTQ2MDk5YWEwMTRiYzhiZDlmMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+        },
+        {
+          "resource": "repo://tests/fixtures/auth.py#L169-L199",
+          "version": "repo-lines-v1:sha256:6f74742b430f24bcbb5a308eadecce3d7206f30d829394d1a69c68da563f6da0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2NjMzOWRjMDVmOWI1NmU3Y2JjNTlmYmYxMTgxYWM2Yzk0YzdiMzNmYmEzYmJiYjc1MWE4MTYzYTA3NjRiOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+        },
+        {
+          "resource": "repo://tests/fixtures/auth.py#L237-L261",
+          "version": "repo-lines-v1:sha256:098f4fb787b88fe0edd526410ce8b28cfaeda1cf1797483b05485463b8f10502:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNjdiMzBlMGZjMGEwMjUwNzAzZWVkZmY2ZjcwNzM3NzE2ZjMxNzhlYjRjNmRjMDQ5M2I3OTZjZDEyYTkyMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

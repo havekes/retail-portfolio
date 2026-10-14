@@ -1,11 +1,15 @@
 ---
 type: architecture
 title: "Charting: Chart Surface, Panes & Indicators"
-description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the indicator pipeline through the Go sidecar with its Redis result cache and out-of-order guard, chart settings, the price-alert primitive and the rewind-aware valuation band."
+description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the two indicator paths (in-process Python on market_router versus POST .../indicators/compute dispatching specs to the Go sidecar with a Redis result cache) and their out-of-order guard, chart settings, the price-alert primitive and the rewind-aware valuation band."
 tags: [charting, lightweight-charts, indicators, panes, price-alerts, valuation-band, chart-preferences, svelte]
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-0de44b0ffc1a61cf444c3338
+    resource: repo://frontend/src/lib/api/buildIndicatorEntry.test.ts
+  - id: openwiki-source-828ca202b10416efee3043c1
+    resource: repo://frontend/src/lib/api/buildIndicatorEntry.ts
   - id: openwiki-source-31c465e6b7d0d36afe3ffe00
     resource: repo://frontend/src/lib/api/indicatorsService.ts
   - id: openwiki-source-95a24be7f44e810285a4bb5e
@@ -24,6 +28,8 @@ sources:
     resource: repo://frontend/src/lib/chart/indicator-pane-layout.ts
   - id: openwiki-source-e1cb95ad60e9e5df185fb3aa
     resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte
+  - id: openwiki-source-bcb6d766cf53db696338da6d
+    resource: repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte
   - id: openwiki-source-6fefb7b02941c114f4550918
     resource: repo://frontend/src/lib/components/charts/chart-settings-modal.svelte
   - id: openwiki-source-e03b7d6203bf399f13c8a612
@@ -62,29 +68,49 @@ sources:
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts
   - id: openwiki-source-ddd6d556671e35d3baea7163
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts
-  - id: openwiki-source-95aa045141f9e53c82a0bc2b
-    resource: repo://services/indicator-service/handlers.go
+  - id: openwiki-source-8d6cfffd8e90c00a57c559d8
+    resource: repo://services/indicator-service/internal/httpapi/dto.go
+  - id: openwiki-source-1f20cd90eabc625721481d92
+    resource: repo://services/indicator-service/internal/httpapi/handlers_test.go
+  - id: openwiki-source-0989b05d6a997ac317b55a71
+    resource: repo://services/indicator-service/internal/httpapi/handlers.go
+  - id: openwiki-source-9e744972fabdd8b4cf6187c6
+    resource: repo://services/indicator-service/internal/httpapi/router.go
+  - id: openwiki-source-b85f2baf1cd2b53e92cc997a
+    resource: repo://services/indicator-service/internal/indicators/calculator.go
+  - id: openwiki-source-a1e108b68bb88454f20cde15
+    resource: repo://services/indicator-service/internal/indicators/timeframe.go
+  - id: openwiki-source-bb31048f50055fae118c40c1
+    resource: repo://services/indicator-service/internal/indicators/types.go
   - id: openwiki-source-692344b8dd5d47fcc6f9bfe0
     resource: repo://services/indicator-service/README.md
-  - id: openwiki-source-112661f7a5dd097320a9b5a8
-    resource: repo://services/indicator-service/timeframe.go
+  - id: openwiki-source-f557018d8db7e6eaa753b1e2
+    resource: repo://src/market/api_types.py
   - id: openwiki-source-8a10008d9bf8365255edbb33
     resource: repo://src/market/cache.py
+  - id: openwiki-source-d70f78b70446e1ce1912c7c5
+    resource: repo://src/market/data_router.py
+  - id: openwiki-source-0c10c697dbdc44cf86d9f909
+    resource: repo://src/market/indicators.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
     resource: repo://src/market/service.py
+  - id: openwiki-source-9d7ba9d51ce348ae0e86192e
+    resource: repo://tests/market/test_data_router.py
   - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-d5f24b3551e2c9a796e0c850
     resource: repo://tests/market/test_indicator_compute_api.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 This page covers the chart *surface*: the `lightweight-charts` wrapper, its data and pane lifecycle, chart preferences, the indicator pipeline, the price-alert primitive and the valuation band. Drawing tools, their series-primitive plugins, drawing persistence and the snapshot/rewind pipeline are documented on [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — this page only points at them. The fair-value range concept itself (model, routes, client, sidebar modal) lives on [Security Valuations](../concepts/security-valuation.md), the price/candle side of the indicator pipeline on [Market Data & Indicators](../workflows/market-data-and-indicators.md), and the sidecar as an outbound dependency on [External Services & Adapters](../integrations/external-services.md).
+
+Three indicator surfaces exist in the backend and only one of them belongs to this page. The chart's indicators come from `POST /api/v1/market/securities/{security_id}/indicators/compute`, which validates a spec list and dispatches it to the Go sidecar with a Redis result cache; a legacy `GET /api/v1/market/securities/{security_id}/indicators` still computes a fixed set of daily/weekly series in Python and is documented here only so it is not mistaken for the chart's path. `GET /api/v1/market/data/indicators/{symbol}` is neither: it is the service-token-only data plane for the MCP gateway, documented on [Market Data Plane](market-data-plane.md).
 
 | Layer | Location | Owns |
 |---|---|---|
@@ -92,7 +118,10 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 | Route orchestration | `frontend/src/routes/security/[security_id]/+page.svelte` + `page-data.svelte.ts` | data loading, timeframe/style preferences, indicator requests, pane-height and valuation-overlay persistence |
 | Pane math | `frontend/src/lib/chart/indicator-pane-layout.ts` | pure pane-height distribution and `scaleMargins` computation |
 | Indicator defaults | `frontend/src/lib/chart/indicator-defaults.ts` | the frozen default table and per-page copies |
-| Indicator API | `frontend/src/lib/api/indicatorsService.ts` → `src/market/router.py` → indicator sidecar | compute request/response contract, backend cache |
+| Indicator preference entries | `frontend/src/lib/api/buildIndicatorEntry.ts` | config/toggle preference entries and the `settings` promotion |
+| Indicator API (chart) | `frontend/src/lib/api/indicatorsService.ts` → `POST /api/v1/market/securities/{security_id}/indicators/compute` in `src/market/router.py` → Go indicator sidecar | compute request/response contract, backend cache |
+| Indicator API (legacy in-process) | `GET /api/v1/market/securities/{security_id}/indicators` in `src/market/router.py` (`src/market/indicators.py`) | fixed daily/weekly series computed in Python |
+| Indicator data plane | `GET /api/v1/market/data/indicators/{symbol}` in `src/market/data_router.py` | service-token series for the MCP gateway — see [Market Data Plane](market-data-plane.md) |
 | Chart settings | `frontend/src/lib/components/charts/chart-settings-modal.svelte` | hide-labels / auto-scale / log-scale, wave settings, fib level/width editing |
 | Price alerts | `frontend/src/lib/components/charts/plugins/user-price-alerts/` | alert lines, add/remove buttons, price-axis labels |
 | Valuation band | `frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts` | shaded lower/upper fair-value band on the main price scale |
@@ -102,7 +131,7 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 
 - **Commands run inside Docker.** Frontend work is executed in the `frontend` service (`docker compose exec frontend ...`); the agent harness wraps that (`./scripts/agent-test frontend/src/...`).
 - **Frontend tests must mock every API client and `lightweight-charts`.** CI has no backend and no real canvas, so an unmocked client or a real chart import is a broken test by definition (see `frontend/AGENTS.md`).
-- **A new indicator type belongs in the Go sidecar, not in Python.** The chart's compute route forwards specs to `services/indicator-service`; adding a type means a new case in its `ComputeIndicator` switch plus README documentation, not new Python math.
+- **A new indicator type belongs in the Go sidecar, not in Python.** The chart's compute route forwards specs to `services/indicator-service`; adding a type means a new case in its `Compute` switch (`internal/indicators/calculator.go`) plus README documentation, not new Python math and not a change to the legacy in-process route.
 - **Nothing in a test dials a real dependency.** Frontend tests mock every API client and `lightweight-charts`; backend indicator tests use `httpx.MockTransport` for the sidecar and patch the cache, so no test reaches the sidecar, Redis or EODHD for real.
 
 ## Entry points
@@ -118,6 +147,11 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 | Chart preference helpers | `frontend/src/lib/chart-preferences.ts` |
 | Time helpers | `frontend/src/lib/utils/date.ts`, `frontend/src/lib/utils/finance/candle.ts` |
 | Indicator API client | `frontend/src/lib/api/indicatorsService.ts` |
+| Indicator preference entries | `frontend/src/lib/api/buildIndicatorEntry.ts` |
+| Compute route (backend) | `POST /api/v1/market/securities/{security_id}/indicators/compute` (`src/market/router.py`) |
+| Indicator sidecar | `services/indicator-service` (`internal/httpapi`, `internal/indicators`) |
+| Legacy in-process series route | `GET /api/v1/market/securities/{security_id}/indicators` (`src/market/router.py`) |
+| Data-plane series route | `GET /api/v1/market/data/indicators/{symbol}` (`src/market/data_router.py`) |
 | Chart settings modal | `frontend/src/lib/components/charts/chart-settings-modal.svelte` |
 | Price-alert primitive | `frontend/src/lib/components/charts/plugins/user-price-alerts/` |
 | Valuation band primitive | `frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts` |
@@ -158,7 +192,7 @@ Prop→primitive syncing happens in guarded `$effect`s that compare the primitiv
 `onMount` creates the chart with `CrosshairMode.Normal`, a transparent background, `formatLocalTime` as the time formatter, `formatLocalTickMark` as the tick-mark formatter, `ignoreWhitespaceIndices: false`, a hidden left price scale and a right price scale with `minimumWidth` 75 (`DEFAULT_PRICE_SCALE_MIN_WIDTH`), `autoScale` and `mode` taken from the `autoScale`/`logScale` props. It then:
 
 1. Subscribes `timeScale().subscribeVisibleLogicalRangeChange` for two duties: pagination and future-whitespace expansion.
-2. Adds the main `CandlestickSeries` (`#26a69a` up / `#ef5350` down, borders and border colors set, wicks colored).
+2. Adds the main `CandlestickSeries` (`#26a69a` up / `#ef5350` down, borders hidden, wicks colored).
 3. Creates the `ValuationBandPrimitive` from the `valuation`/`showValuationBand` props and attaches it to that series, then calls `updatePanes()`.
 4. Attaches six more primitives to the same series: `UserPriceAlerts` (with `setSymbolName('Price')`), `ElliottWavesPrimitive`, `FibonacciPrimitive`, `MeasurePrimitive`, `HorizontalLinePrimitive`, `FreeFormLinePrimitive`.
 5. Subscribes each primitive's delegates and re-emits them as page callbacks — `alertAdded`/`alertRemoved`, `wavePointsChanged`, `drawingModeChanged`, `degreeChanged`, `waveTypeChanged`, `selectionChanged`, `doubleClicked`, `toolChanged`, `drawingsChanged`, `dragStarted`/`dragEnded`.
@@ -298,9 +332,43 @@ The toolbar offers five intervals — `1h`, `4h`, `1d`, `1w`, `1m` — and two c
 
 ## Indicators
 
+### The three indicator surfaces
+
+Indicator values reach a client through three architecturally distinct surfaces. Only the first one is the chart's.
+
+**Chart compute path (user JWT) — what this page is about.** The security page's `refreshActiveIndicators` POSTs to `POST /api/v1/market/securities/{security_id}/indicators/compute`. That route builds the candle series server-side from the daily/weekly/monthly or intraday repositories (or takes the caller's candles while rewound), converts to Heikin-Ashi when asked, and dispatches the specs to the Go sidecar through `IndicatorServiceClient.compute`, caching the result in Redis under a digest of the canonical specs when no caller candles were sent. Adding an indicator means adding it to the sidecar.
+
+**In-process path (user JWT) — legacy, not on the page's write path.** `GET /api/v1/market/securities/{security_id}/indicators` computes a fixed set of series in Python (`src/market/indicators.py`): only `ma_50_day`, `ma_200_day`, `ma_50_week`, `ma_200_week`, `macd` and `rsi` are answered, the weekly series are built by grouping daily closes (`calculate_weekly_closes`) rather than by honouring an interval, there is no intraday or timeframe scaling, and results are cached in the same `IndicatorCache` under a key of security, requested type list and price count. The frontend still ships `IndicatorsService.getIndicatorData` / `getAllIndicatorData` against it, but nothing on the security page calls them — only `indicatorsService.test.ts` covers the pair, and `refreshActiveIndicators` goes through `computeIndicators` exclusively.
+
+**Data-plane path (service token) — a different actor, not this page's.** `GET /api/v1/market/data/indicators/{symbol}` in `src/market/data_router.py` exists for the Go MCP gateway. Its authentication is the shared-secret `require_service_token` dependency instead of a user JWT, it takes exactly one `indicator` from the `SupportedIndicator` literal (`sma`, `ema`, `rsi`, `macd`, `bollinger`), resolves its own date window (`resolve_price_range`) and listing currency (`resolve_listing_currency` over `DataPlaneMarketGateway`), fetches a warm-up window (three times the indicator's longest lookback, converted to calendar days), calls the same `IndicatorServiceClient` with `interval="1d"`, trims the returned points back to the requested range and serves the whole response through the data plane's `EndpointResponseCache`. It shares the sidecar with the chart route but not the route, the auth, the cache or the caller — do not describe it here; see [Market Data Plane](market-data-plane.md) and [Authentication](authentication.md).
+
+```mermaid
+flowchart TD
+    subgraph CHART["Chart compute path - user JWT"]
+        PAGE["Security page refreshActiveIndicators"] --> COMPUTE["POST /api/v1/market/securities/{security_id}/indicators/compute"]
+        COMPUTE --> BUILD["market_router builds candles from the price repositories or uses the caller candles"]
+        BUILD --> CLIENT["IndicatorServiceClient.compute"]
+        CLIENT --> SIDECAR["Go indicator-service POST /compute"]
+        COMPUTE --> REDIS["IndicatorCache Redis entries, read and written only when no caller candles"]
+    end
+    subgraph LEGACY["In-process path - user JWT"]
+        LEGACY_GET["GET /api/v1/market/securities/{security_id}/indicators"] --> PYMATH["src/market/indicators.py Python math over daily and weekly series"]
+        PYMATH --> LEGACY_CACHE["IndicatorCache keyed by security, requested types and price count"]
+    end
+    subgraph PLANE["Data plane - service token for the MCP gateway"]
+        GATEWAY["MCP gateway"] --> DATA_IND["GET /api/v1/market/data/indicators/{symbol}"]
+        DATA_IND --> PLANE_CLIENT["IndicatorServiceClient.compute with interval 1d"]
+        DATA_IND --> EPCACHE["EndpointResponseCache"]
+    end
+```
+
+The three indicator surfaces: the chart's compute path, the legacy in-process Python path and the service-token data plane for the MCP gateway.
+
 ### Defaults
 
 `INDICATOR_DEFAULTS` is the single source of truth: ids `volume`, `avgPrice`, `ma50`, `ma200`, `ma50w`, `ma200w`, `bb`, `macd`, `rsi`, `obv`, in sidebar render order (do not reorder), deep-frozen so accidental mutation throws. Only `avgPrice` is enabled by default. `createIndicatorConfigs()` returns a fully independent copy (including nested `settings`) for the page to mutate; the page keeps it in `indicatorConfigs` state.
+
+Persistence of those entries is owned by the sidebar, not the chart: `frontend/src/lib/api/buildIndicatorEntry.ts` builds the `{ enabled, color, settings }` entry — `buildIndicatorEntry` promotes the flat numeric fields (`period`, `stdDev`, `fast`, `slow`, `signal`) the config modal emits into the `settings` bag while preserving previously stored settings, and `buildToggleEntry` inverts the enabled flag against the persisted preference, falling back to the live config's colour. `indicator-group.svelte` then PATCHes the whole `indicators` map through `userPreferencesService.patchPreferences`, treats the persisted preference as the source of truth for `enabled` (the page's `indicatorConfigs[id].enabled` is stale after a sidebar toggle), and calls back into the page's `onIndicatorConfigChange`, which merges the new config into `indicatorConfigs` and re-runs `onIndicatorToggle(id, true)` for an already-enabled indicator so the chart re-renders.
 
 ### Series composition
 
@@ -335,7 +403,7 @@ interface IndicatorComputeResponse {
 }
 ```
 
-The backend `IndicatorComputeRequest` defaults `interval` to `1d` and `chart_style` to `candlestick`, and `IndicatorSpecSchema` mirrors the spec (`stdDev` is aliased to `std_dev`). The response map is keyed by spec id/type — the page reads `res.indicators[id] ?? res.indicators[spec.type] ?? []`. `buildIndicatorSpec` copies only the positive numeric fields (`period`, `fast`, `slow`, `signal`, `stdDev`) plus `settings` from the indicator config.
+The backend `IndicatorComputeRequest` defaults `interval` to `1d` and `chart_style` to `candlestick`, and `IndicatorSpecSchema` mirrors the spec (`stdDev` is aliased to `std_dev`). The response map is keyed by spec id/type — the page reads `res.indicators[id] ?? res.indicators[spec.type] ?? []`. `buildIndicatorSpec` copies the spec `id`/`type` and `settings` plus only the positive numeric fields (`period`, `fast`, `slow`, `signal`, `stdDev`) from the indicator config, and `refreshActiveIndicators` returns before issuing any request when no indicator other than the local `volume` / `avgPrice` pair is enabled.
 
 The route validates the window (`from_date > to_date` → 422, after normalizing date/datetime unions to plain dates), then:
 
@@ -344,11 +412,15 @@ The route validates the window (`from_date > to_date` → 422, after normalizing
 - calls the external indicator service through `IndicatorServiceClient.compute`, which POSTs `{ interval, candles, indicators }` to `<indicator_service_url>/compute` (timeouts become 504 `Indicator service timed out`, connection errors and 5xx become 503 `Indicator service unavailable`, a sidecar 400 is surfaced as 400 with the sidecar's `error` text);
 - **consults and populates `IndicatorCache` only when `request.candles` is absent**. That is the point of the caller-supplied path: the rewind payload (`getRewoundCandlesPayload()`, which slices `rawCandles` at the timeline position) must never be served from, or written to, the cache, because the cache key is `indicators:<security>:<interval>:<chart_style>:<sha256 digest>` — the digest covering the canonicalized specs plus the normalized date window — and cannot describe the caller's candle set. Entries are written with `setex` and the cache's default TTL (3600 s / 1 hour).
 
-The chart's own defaults to `ma*` indicators are period-scaled in the sidecar: `ma50`/`ma200` (day unit) multiply by `7` on `1h`, `2` on `4h`, stay put on `1d` and divide by 5 / 21 on `1w` / `1m`; the `ma*w` variants use `35`, `10`, `5`, `1` and `round(period * 12 / 52)`. The page's `IndicatorsService` still exposes the older `getIndicatorData` / `getAllIndicatorData` GET methods backed by the in-Python `GET /securities/{security_id}/indicators` route, but the security route computes through `computeIndicators` only.
+The chart's own defaults to `ma*` indicators are period-scaled in the sidecar by `ScalePeriod` (`internal/indicators/timeframe.go`): `ma50`/`ma200` (day unit) multiply by `7` on `1h`, `2` on `4h`, stay put on `1d` and divide by 5 / 21 (rounded, minimum 1) on `1w` / `1m`; the `ma*w` variants use `35`, `10`, `5`, `1` and `round(period * 12 / 52)`. Intervals are matched case-insensitively, unknown intervals come back unscaled, and `ScalePeriod` returns `0` for a non-positive period, which yields an empty series rather than an error. The page's `IndicatorsService` also still exposes the older `getIndicatorData` / `getAllIndicatorData` GET methods, but no page code calls them and the security route computes through `computeIndicators` only.
 
 ### The sidecar contract (`services/indicator-service`)
 
-The Go sidecar is a stateless calculator: `POST /compute` takes `{ interval, candles, indicators }`, where `interval` **defaults to `"1d"`** when omitted or empty (the backend always sends the resolved enum), and answers `{ "indicators": { ... } }` with one series per spec keyed by `ResultKey()` — the spec `id` when set, otherwise `type`. `type` is matched case-insensitively after trimming, the `ma*` aliases are accepted (`ma_50`, `ma_50_day`, `50ma`, …), parameter resolution is top-level field (`> 0`) → `settings` map entry → built-in default, and output points drop `NaN`/`Inf`. When there are too few candles to compute an indicator (or the period scales to `0`), that spec's series is an **empty array, not an error** — the circuit returns 200, which is why a newly enabled indicator can legitimately render nothing. Errors are limited to 400 (`invalid json body: ...` or `unsupported indicator type: <type>`), a 405 for any method other than POST, and the 10 MB body cap (`http.MaxBytesReader`).
+The Go sidecar is a stateless calculator with no authentication and no rate limiting (internal Docker network only). `NewRouter` (`internal/httpapi/router.go`) registers exactly two routes: `GET /health` and `POST /compute`. Only `POST /compute` computes; every other method on it answers 405 with `Allow: POST`, and the body is capped at 10 MB by `http.MaxBytesReader`.
+
+`POST /compute` takes `{ interval, candles, indicators }`, where `interval` **defaults to `"1d"`** when omitted or empty (the backend always sends the resolved enum), and answers `{ "indicators": { ... } }` with one series per spec keyed by `ResultKey()` — the spec `id` when set, otherwise `type`. `type` is matched case-insensitively after trimming; the accepted types are `sma`, `ema`, `bb` (`bollinger`, `bollinger_bands`), `macd`, `rsi`, `obv`, and the `ma*` convenience aliases with their variants (`ma50`/`ma_50`/`ma_50_day`/`50ma`, `ma200`/…, `ma50w`/`ma_50w`/`ma_50_week`/`50wma`, `ma200w`/…). Parameter resolution for every field is top-level field (`> 0`) → `settings` map entry → built-in default, and output points drop `NaN`/`Inf`. When there are too few candles to compute an indicator (or the period scales to `0`), that spec's series is an **empty array, not an error** — the circuit returns 200, which is why a newly enabled indicator can legitimately render nothing. Errors are limited to 400 (`invalid json body: ...`, `unsupported indicator type: <type>`, or a request that breaks the bounds below) and the 405 above.
+
+Requests are bounds-checked before any computation (`validateComputeRequest` in `internal/httpapi/dto.go` plus `IndicatorSpec.Validate` in `internal/indicators/types.go`): at most 32 indicators, at most 50,000 candles, resolved `period`/`fast`/`slow`/`signal` inside `[1, 1000]` and `stdDev` inside `(0, 10]`; a violation is a 400 naming the offending parameter and the spec's result key. `GET /health` is the liveness probe used by both compose files: it answers 200 with `{"status":"ok","service":"indicator-service"}` and 405 with `Allow: GET` for any other method.
 
 ### Round trip and the out-of-order guard
 
@@ -456,11 +528,11 @@ Chart tests are colocated with their subject and follow the repository rules in 
 - Canvas targets are faked: `useBitmapCoordinateSpace` invokes its callback with a fake `BitmapCoordinatesRenderingScope` (recording 2D context, media/bitmap sizes, `horizontalPixelRatio` / `verticalPixelRatio`), so renderer draw calls can be asserted — see `plugins/fibonacci/fibonacci.test.ts` and `plugins/valuation-band/valuation-band.test.ts`.
 - Every API client a subject calls is mocked: the page suite `vi.mock`s `marketService`, `userPreferencesService`, `alertsService`, `notesService`, `documentsService`, `accountService`, `valuationClient`, `snapshotsService`, `indicatorsService` (keeping the real types via `importOriginal`) and the chart component itself, capturing its props so page→chart wiring can be asserted.
 - `security-chart.test.ts` covers the surface directly: infinite scroll / logical-range behaviour, oscillator panes and custom price scales, `hideLabels`, the price-scale wheel zoom (linear and logarithmic, plus the "does not intercept wheel events over the canvas" case), the price-scale drag reporting `onAutoScaleChange(false)`, the drawing pan-lock and its restore rules, future whitespace, resizable indicator panes (legacy default margins, handle rendering per adjacent pair, drag bounds, restore via `setPaneHeights`, dropping a removed oscillator's height, and the reset affordance), overlay autoscale exclusion and the valuation band attachment.
-- `indicator-pane-layout.test.ts` pins the pure math: the legacy margins for 0/1/2/3 oscillators and the volume variants, custom-height normalization, min/max clamping, and the water-filling allocator. `indicator-defaults.test.ts` pins the frozen table, key order and copy independence. `valuation-band.test.ts` pins the renderer's fill/dash behaviour and its no-draw cases.
+- `indicator-pane-layout.test.ts` pins the pure math: the legacy margins for 0/1/2/3 oscillators and the volume variants, custom-height normalization, min/max clamping, and the water-filling allocator. `indicator-defaults.test.ts` pins the frozen table, key order and copy independence. `buildIndicatorEntry.test.ts` pins the preference-entry builders, including the promotion of flat numeric fields into `settings`, the preservation of unoverridden settings keys and the toggling of `enabled`. `valuation-band.test.ts` pins the renderer's fill/dash behaviour and its no-draw cases.
 - Page-level suites live in `routes/security/[security_id]/page.svelte.test.ts` (`Security Page - Asynchronous Indicator Integration`, `Security Page - Indicator Pane Heights`, `Security Page - Instant Shell with Async Chart Data`, `Security Page - Top Toolbar`, `Security Page - Viewport Containment & Scrolling Layout`, …), and `page.server.test.ts` asserts the load returns only `security_id` and never calls the market service.
-- The backend side of the pipeline never dials a real sidecar or Redis in tests either: `tests/market/test_indicator_client.py` drives `IndicatorServiceClient` through `httpx.MockTransport` handlers (asserting the `/compute` path and the 504/503/400 mappings), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` and `IndicatorCache.get`/`set` to cover the date-window 422, the cache hit/miss and read-write window symmetry, and the caller-supplied-candle path.
-
-Run the chart suites with `./scripts/agent-test frontend/src/lib/components/charts/...` while iterating and `./scripts/agent-test frontend` before finishing.
+- The backend side of the pipeline never dials a real sidecar or Redis in tests either: `tests/market/test_indicator_client.py` drives `IndicatorServiceClient` through `httpx.MockTransport` handlers (asserting the `/compute` path and the 504/503/400 mappings), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` and `IndicatorCache.get`/`set` to cover the date-window 422, the cache hit/miss and read-write window symmetry, the caller-supplied-candle path and the split-adjusted candle construction. The data plane's indicator route is tested apart from all of this in `tests/market/test_data_router.py` (warm-up window trimming, spec mapping and defaults) — it is a different surface with a different caller.
+- The Go sidecar has its own unit suite (`cd services/indicator-service && go test ./...`): `internal/httpapi/handlers_test.go` covers health, the 405 answers, invalid JSON, an unknown indicator type, empty candles, the bounds validation and the at-limit case, while `internal/indicators/calculator_test.go` and `internal/indicators/timeframe_test.go` cover the math and the interval scaling.
+- Run the chart suites with `./scripts/agent-test frontend/src/lib/components/charts/...` while iterating and `./scripts/agent-test frontend` before finishing.
 
 ## Invariants and safe-change notes
 
@@ -471,7 +543,8 @@ Run the chart suites with `./scripts/agent-test frontend/src/lib/components/char
 - **Any manual price-scale interaction disables auto-scale.** Wheel zoom and price-scale drag both call `onAutoScaleChange(false)`, which is persisted as `chart_auto_scale`; a new scale-manipulating affordance must report the same way or the chart will fight the user on the next data update.
 - **Stale-response guards are per indicator.** New indicator work must thread `sequenceCounter` / `indicatorSeq` (bulk) or the per-id sequence (single toggle), or a slow response can overwrite newer data or re-enable a disabled indicator.
 - **Caller-supplied candles bypass the backend cache.** The cache key cannot describe a client-side candle set, so any new caller-candle path must keep the `if not request.candles` guard on both the read and the write.
-- **A new indicator type is a sidecar change.** Add the type in `services/indicator-service` (`ComputeIndicator` plus the README table) and expose it through `INDICATOR_DEFAULTS`; do not add Python math for the compute path. Remember that too-few candles legitimately returns an empty series, so the UI must treat "no points yet" as normal rather than an error.
+- **A new indicator type is a sidecar change.** Add the type in `services/indicator-service` (a case in `Compute` in `internal/indicators/calculator.go` plus the README type table) and expose it through `INDICATOR_DEFAULTS`; do not add Python math for the compute path. Remember that too-few candles legitimately returns an empty series, so the UI must treat "no points yet" as normal rather than an error.
+- **The chart never uses the legacy or data-plane indicator routes.** `GET /securities/{security_id}/indicators` (Python, daily/weekly only) and `GET /api/v1/market/data/indicators/{symbol}` (service token, MCP gateway) are separate surfaces with separate callers, caches and auth; chart work goes through `computeIndicators` and the sidecar.
 - **Chart code is browser-only.** The component is dynamically imported after navigation; anything that assumes `window`, `ResizeObserver` or a DOM container must stay inside that import (and inside `onMount`) so SSR never executes it.
 - **Frontend tests never touch a real API or a real chart.** Mock every client module a subject calls and mock `lightweight-charts`; a `fetch` or canvas that actually runs is a broken test.
 - **Preferences are additive.** New chart preferences belong in `UserPreferences` and must be persisted with a partial `patchPreferences` call; keep the key inventory authoritative on [User Preferences](../concepts/user-preferences.md).
