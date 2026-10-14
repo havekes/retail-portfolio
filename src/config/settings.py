@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     endpoint_ttl_negative_seconds: int = 300  # 5 minutes
 
     # Observability / Metrics
-    worker_metrics_port: int = 8004
+    worker_metrics_port: int = 8006
     enable_metrics: bool = True
 
     # 2FA / TOTP

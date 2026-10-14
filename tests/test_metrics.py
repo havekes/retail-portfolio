@@ -114,7 +114,7 @@ def test_worker_starts_server_when_enabled_outside_test(monkeypatch):
 
     monkeypatch.setattr(settings, "environment", "dev")
     monkeypatch.setattr(settings, "enable_metrics", True)
-    monkeypatch.setattr(settings, "worker_metrics_port", 8004)
+    monkeypatch.setattr(settings, "worker_metrics_port", 8006)
 
     with (
         patch("prometheus_client.start_http_server") as mock_start_http,
@@ -122,7 +122,7 @@ def test_worker_starts_server_when_enabled_outside_test(monkeypatch):
     ):
         setup_worker_services()
         mock_start_http.assert_called_once_with(
-            port=8004,
+            port=8006,
             addr="0.0.0.0",
             registry=REGISTRY,
         )

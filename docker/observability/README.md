@@ -316,7 +316,7 @@ connection — see `hyperdx/README.md`):
 - **Sync error rate** — `portfolio.sync.failed` against `portfolio.sync.completed`, plus the
   `http.request` `status = 500` count.
 - **Queue depth** — not a wide event: it is the Prometheus `queue_depth` gauge (scraped from
-  `worker:8004/metrics`, §4) and the Huey dashboard at `/worker/api`. The panel is a signpost so
+  `worker:8006/metrics`, §4) and the Huey dashboard at `/worker/api`. The panel is a signpost so
   the dashboard does not pretend the signal is queryable in ClickHouse.
 
 ### 8.4 Error-inbox triage
