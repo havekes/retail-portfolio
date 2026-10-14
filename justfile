@@ -23,9 +23,13 @@ test-indicator-service:
 test-mcp-gateway:
     @cd services/mcp-gateway && go test ./...
 
+# Node script regression.
+test-scripts:
+    @node --test scripts/opencode-go-session-fetch.test.mjs
+
 # Full regression across all ecosystems (parallel).
 [parallel]
-test-all: test-backend test-frontend test-indicator-service test-mcp-gateway
+test-all: test-backend test-frontend test-indicator-service test-mcp-gateway test-scripts
 
 # Go format and static analysis gate for indicator-service and mcp-gateway.
 lint-go:

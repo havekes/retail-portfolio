@@ -24,6 +24,9 @@ jobs:
       - name: Install OpenWiki
         run: npm install --global openwiki
 
+      - name: Test OpenCode session fetch shim
+        run: node --test scripts/opencode-go-session-fetch.test.mjs
+
       - name: Run OpenWiki
         # OpenCode Go requires an x-opencode-session header on every request.
         # OpenWiki's openai-compatible provider cannot send custom headers, so the
