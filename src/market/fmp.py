@@ -47,12 +47,14 @@ from src.market.exception import (
     MarketDataProviderError,
 )
 from src.market.gateway import MarketGateway
+from src.stubs.fmp import _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://financialmodelingprep.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 _INTRADAY_NOT_SUPPORTED = "capability not supported by this provider"
+_HTTP_PAYMENT_REQUIRED = 402
 
 # Internal exchange code -> FMP ticker suffix. FMP appends a market suffix for
 # non-US listings (``RY.TO``, ``VOD.L``); US/primary venues use the bare ticker.
@@ -275,6 +277,25 @@ def _to_bool(value: object) -> bool | None:
     if text in {"false", "0", "no"}:
         return False
     return None
+
+
+def _is_payment_required_error(exc: BaseException) -> bool:
+    """Return True if the exception represents an HTTP 402 Payment Required."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        return (
+            exc.response is not None
+            and exc.response.status_code == _HTTP_PAYMENT_REQUIRED
+        )
+    if isinstance(exc, MarketDataProviderError):
+        cause = exc.__cause__
+        if isinstance(cause, httpx.HTTPStatusError):
+            return (
+                cause.response is not None
+                and cause.response.status_code == _HTTP_PAYMENT_REQUIRED
+            )
+        if getattr(cause, "status_code", None) == _HTTP_PAYMENT_REQUIRED:
+            return True
+    return getattr(exc, "status_code", None) == _HTTP_PAYMENT_REQUIRED
 
 
 def _pick(row: dict[str, object], *keys: str) -> object:
@@ -1148,7 +1169,30 @@ class FmpGateway(MarketGateway):
         *,
         exchange: str | None = None,
     ) -> InstitutionalOwnershipResponse:
-        payload = self._fetch_institutional_ownership(symbol, exchange)
+        try:
+            payload = self._fetch_institutional_ownership(symbol, exchange)
+        except (MarketDataProviderError, httpx.HTTPStatusError) as exc:
+            if _is_payment_required_error(exc):
+                fixture = _FUNDAMENTAL_INSTITUTIONAL_OWNERSHIP.get(symbol.upper())
+                if fixture is not None:
+                    logger.warning(
+                        "FMP institutional ownership endpoint is restricted "
+                        "(HTTP 402); using stub fixture for %s for UI testing",
+                        symbol,
+                    )
+                    return InstitutionalOwnershipResponse(
+                        symbol=symbol,
+                        current_ownership_percent=fixture["current_ownership_percent"],
+                        investors_count=fixture["investors_count"],
+                        total_invested=fixture["total_invested"],
+                        history=[
+                            InstitutionalOwnershipPoint(**p)
+                            for p in fixture.get("history", [])
+                        ],
+                    )
+            if isinstance(exc, httpx.HTTPStatusError):
+                raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc
+            raise
         return self._parse_institutional_ownership(payload, symbol, exchange or "")
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917

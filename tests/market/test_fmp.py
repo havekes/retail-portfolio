@@ -8,6 +8,7 @@ Everything is offline: outbound HTTP is driven through an injected
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from decimal import Decimal
+import logging
 from typing import Any, get_args
 from uuid import uuid4
 
@@ -1611,6 +1612,40 @@ def test_get_institutional_ownership_http_error():
         gateway.get_institutional_ownership("AAPL")
 
 
+def test_get_institutional_ownership_http_402_fallback_to_stub(
+    caplog: pytest.LogCaptureFixture,
+):
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(402, text="Payment Required")
+
+    gateway = _gateway(handler)
+    with caplog.at_level(logging.WARNING, logger="src.market.fmp"):
+        result = gateway.get_institutional_ownership("OSCR")
+
+    assert isinstance(result, InstitutionalOwnershipResponse)
+    assert result.symbol == "OSCR"
+    assert result.current_ownership_percent == Decimal("68.45")
+    assert result.investors_count == 312
+    assert result.total_invested == Decimal(2450000000)
+    assert len(result.history) == 4
+    assert result.history[0].date == date(2024, 6, 30)
+    assert result.history[0].ownership_percent == Decimal("68.45")
+    assert any(
+        "FMP institutional ownership endpoint is restricted (HTTP 402); using stub fixture for OSCR for UI testing"
+        in record.message
+        for record in caplog.records
+    )
+
+
+def test_get_institutional_ownership_http_402_unknown_symbol_raises():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(402, text="Payment Required")
+
+    gateway = _gateway(handler)
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_institutional_ownership("UNKNOWN")
+
+
 def test_stub_fmp_gateway_institutional_ownership():
     gateway = StubFmpGateway(api_key="stub")
 
@@ -1624,6 +1659,18 @@ def test_stub_fmp_gateway_institutional_ownership():
     assert msft.symbol == "MSFT"
     assert msft.current_ownership_percent == Decimal("72.45")
     assert msft.investors_count == 6120
+
+    oscr = gateway.get_institutional_ownership("OSCR")
+    assert oscr.symbol == "OSCR"
+    assert oscr.current_ownership_percent == Decimal("68.45")
+    assert oscr.investors_count == 312
+    assert len(oscr.history) == 4
+
+    zeta = gateway.get_institutional_ownership("ZETA")
+    assert zeta.symbol == "ZETA"
+    assert zeta.current_ownership_percent == Decimal("72.30")
+    assert zeta.investors_count == 420
+    assert len(zeta.history) == 4
 
     shop = gateway.get_institutional_ownership("SHOP")
     assert shop.symbol == "SHOP"
