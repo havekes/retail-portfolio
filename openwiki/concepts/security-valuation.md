@@ -1,8 +1,11 @@
 ---
 type: concept
 title: Security Valuations (Fair-Value Ranges)
-description: The per-user fair-value range feature end to end — the market_security_valuations and market_security_valuation_history tables and their constraints, the router-only SecurityValuationRepository contract (single read, upsert with history append, history read, batch read), the four market routes, ValuationClient versus MarketService batch reads, the fundamentals sidebar group and its modal validation, the chart valuation band and its rewind snapshot interaction, and the holdings/watchlist valuation columns.
-tags: [valuation, fair-value, market-domain, repository, api-contract, audit-history, svelte, charting, user-preferences, lightweight-charts]
+description: The per-user fair-value range feature end to end — the market_security_valuations and market_security_valuation_history tables and their constraints, the router-only SecurityValuationRepository contract, the four market valuation routes, ValuationClient versus MarketService batch reads, the fundamentals sidebar group with its valuation modal and its sibling institutional-ownership block, the Redis-cached institutional-ownership read, the chart valuation band and its rewind snapshot interaction, and the holdings/watchlist valuation columns.
+tags: [valuation, fair-value, market-domain, repository, api-contract, audit-history, svelte, charting, institutional-ownership, user-preferences, lightweight-charts]
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 sources:
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
@@ -16,6 +19,10 @@ sources:
     resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte
   - id: openwiki-source-cafc01f3c5ed6e466c825af4
     resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts
+  - id: openwiki-source-f104b83ca1a0a5bdd2dfbce0
+    resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/institutional-ownership-modal.svelte
+  - id: openwiki-source-0b15f668fd6bde499b6138c5
+    resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/institutional-ownership-modal.test.ts
   - id: openwiki-source-39463577704fd7f2250f702d
     resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/valuation-modal.svelte
   - id: openwiki-source-459ee5e4e6e39e736e8eb876
@@ -66,10 +73,7 @@ sources:
     resource: repo://tests/market/test_security_valuation_repository.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 ---
 
 # Security Valuations (Fair-Value Ranges)
@@ -84,7 +88,9 @@ The concept lives entirely inside the market domain. Its storage is two tables �
 current-value table plus an append-only revision log — its API is four routes that call
 a router-only repository (there is no valuation service), and its frontend surface is a
 sidebar group with a modal on the security detail page, a shaded band on that page's
-chart, and bulk read columns on the holdings and watchlist tables. The chart band's
+chart, and bulk read columns on the holdings and watchlist tables. That same sidebar
+group also carries the unrelated **institutional-ownership** summary, a shared market
+read documented below as a sibling of the valuation routes. The chart band's
 *rendering* mechanics are documented on [Charting](../architecture/charting.md); the
 preference key that gates it is inventoried on [User Preferences](./user-preferences.md);
 the tables' place in the market model catalog is on
@@ -320,30 +326,97 @@ which is exactly where it happens, differently in each:
   `MarketService.getValuationsBatch(securityIds, token?)` is the same POST with the same
   empty-list short-circuit; only its return type differs.
 
-## Sidebar surface: fundamentals group and modal
+## Sidebar surface: fundamentals group, valuation modal, institutional ownership
 
 `FundamentalsGroup`
 (`frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte`)
-is the editing surface. It receives `securityId`, `currency` and the two-way
-`valuation` / `showOverlay` bindings from the security page, plus an `onSaved` callback,
-and:
+is the editing surface, and it hosts **two independent blocks** that share nothing but
+the group shell: the user-authored fair-value range (through `valuationClient`) and a
+read-only institutional-ownership summary (through `marketService`). The security page
+mounts it as
 
-- Fetches on an untracked `$effect` whenever it is `expanded` and `securityId` is set,
-  assigning `valuation = await valuationClient.getValuation(securityId)`. A genuine
-  failure sets the local `error` ("Failed to load valuation") and renders a
-  `SidebarError` with a retry bound to `fetchValuation`; a `404`/`null` is not an error.
-- Renders a skeleton while loading, "Fair value range not set." plus a **Set Valuation
-  Range** button when `valuation` is `null`, and otherwise the two bounds formatted with
-  `Intl.NumberFormat('en-US', { style: 'currency', currency })` joined by an en dash, an
-  **Edit** affordance, the "Show on chart" checkbox, and — when `updated_at` or
-  `created_at` is present — a short `formatDate` line in the
-  `data-testid="valuation-updated-at"` slot.
-- Puts the `Plus` / `Pencil` icon on the group title depending on whether a range
-  exists, and opens `ValuationModal` through a `ModalState` carrying `securityId` and the
+```svelte
+<FundamentalsGroup
+	securityId={security.id}
+	currency={security.currency}
+	bind:valuation
+	bind:showOverlay={showValuationOverlay}
+	onSaved={handleValuationSaved}
+/>
+```
+
+so its props are `securityId`, `currency` (default `'USD'`), `symbol`, the two-way
+`valuation` / `showOverlay` bindings, `expanded` (bindable, default `true`) and the
+`onSaved` callback. The route does not pass `expanded`, so the group starts expanded and
+its fetch effect fires on mount.
+
+The component's own state is `isLoading`, `error`, `institutionalOwnership`,
+`isOwnershipLoading`, the derived
+`hasOwnershipData = institutionalOwnership != null && institutionalOwnership.current_ownership_percent != null`,
+and **two** `ModalState` instances (`$lib/utils/modal-state.svelte`):
+
+- `valuationModalState = new ModalState<{ securityId: string; valuation?: SecurityValuationRead | null }>()`,
+  opened by `handleOpenModal` — which returns early without a `securityId` — carrying the
   current range.
-- Handles the modal's `onSaved` by assigning the returned row straight into the bound
-  `valuation` and forwarding it to its own `onSaved` prop, so the page state (and
-  therefore the chart) updates without a refetch.
+- `institutionalOwnershipModalState = new ModalState<InstitutionalOwnershipModalData>()`,
+  opened by `handleOpenOwnershipModal`, which refuses to open unless `securityId` **and**
+  `hasOwnershipData` hold, and passes
+  `{ securityId, symbol: symbol || institutionalOwnership?.symbol, data: institutionalOwnership }`.
+
+Both modals are rendered at the top level of the component, outside the collapsible
+`Sidebar.Group`, so their open state is independent of the group's collapse state.
+
+**One untracked `$effect`, gated on `expanded && securityId`, runs both fetches** —
+`fetchValuation()` and `fetchOwnership()` are called back to back inside a single
+`untrack(...)`, so expanding the group loads the range and the ownership metric
+together:
+
+- `fetchValuation` assigns `valuation = await valuationClient.getValuation(securityId)`;
+  a genuine failure logs and sets `error = 'Failed to load valuation'`, while a `404`
+  (mapped to `null` by the client) is not an error.
+- `fetchOwnership` assigns
+  `institutionalOwnership = await marketService.getInstitutionalOwnership(securityId)`;
+  any rejection logs and sets `institutionalOwnership = null`. **The ownership block has
+  no error surface** — a transport failure renders the same disabled `N/A` card as a
+  payload with no filings.
+
+The valuation block renders, in order, a skeleton while `isLoading`, a `SidebarError`
+with its retry bound to `fetchValuation` when `error` is set, "Fair value range not
+set." plus a **Set Valuation Range** button when `valuation` is `null`, and otherwise the
+range card: the two bounds formatted with
+`Intl.NumberFormat('en-US', { style: 'currency', currency })` joined by an en dash, an
+**Edit** affordance, the "Show on chart" checkbox, and — when `updated_at` or
+`created_at` is present — a short `formatDate` line in the
+`data-testid="valuation-updated-at"` slot. The group title's action icon is `Pencil`
+when a range exists and `Plus` otherwise (titled "Edit valuation" / "Add valuation"),
+and both open `valuationModalState`. The modal's `onSaved` assigns the returned row
+straight into the bound `valuation` and forwards it to the group's own `onSaved` prop,
+so the page state (and therefore the chart) updates without a refetch.
+
+The **institutional-ownership card** (`data-testid="institutional-ownership-card"`) is
+rendered unconditionally inside `Sidebar.GroupContent`, after the valuation block and in
+*every* valuation state — including while the range is still loading or failed:
+
+- Its header shows a `View` link (`data-testid="open-ownership-modal"`) only when
+  `hasOwnershipData`; the metric row below shows a skeleton while `isOwnershipLoading`, a
+  clickable `data-testid="ownership-metric-trigger"` button rendering
+  `institutionalOwnership?.current_ownership_percent?.toFixed(2)` with a `%` when
+  `hasOwnershipData`, and a **disabled** `N/A` button otherwise. Both the `View` link and
+  the metric button call `handleOpenOwnershipModal`, which is why the modal cannot be
+  opened for a security with no reported ownership.
+
+`InstitutionalOwnershipModal` (`institutional-ownership-modal.svelte`) is a pure
+read-only view over `modalState.data`: it derives `ownership`, `ticker`
+(`data.symbol || ownership?.symbol || 'Security'`) and `history` (`ownership?.history ?? []`),
+titles the dialog `{ticker} Institutional Ownership` (`data-testid="modal-title"`) and
+renders three metric cards (Ownership / Investors / Total Invested) plus a scrollable
+quarterly-history table with Filing Date, Ownership %, Investors and Total Invested
+columns; an empty history renders "No historical ownership filings available." instead.
+Its three formatters are exported from the component's `<script module>` so they are
+unit-testable: `formatOwnershipPercent` (`N/A` for `null`/`NaN`, else two decimals plus
+`%`), `formatInvestorCount` (`en-US` grouping) and `formatTotalInvested` (compact
+`$X.XXT` / `$X.XXB` / `$X.XXM` above `1e12` / `1e9` / `1e6`, else whole-dollar
+currency, `N/A` for `null`/`NaN`).
 
 `ValuationModal` (`valuation-modal.svelte`) owns the only validation in the feature, and
 it rounds before it validates:
@@ -380,6 +453,76 @@ Concretely, the modal:
 Because rounding happens before validation, a sub-cent entry such as `0.004` rounds to
 `0` and is rejected as non-positive. Server-side validation of the ordering does not
 exist, so this modal is the only guard — a direct API call can store an inverted range.
+
+### The sibling read: institutional ownership
+
+The ownership card is fed by one shared market read, declared in `src/market/router.py`
+immediately above the watchlist routes. The full market read surface (prices, search,
+indicators, alerts) is mapped on
+[Market Data & Indicators](../workflows/market-data-and-indicators.md); this endpoint's
+behaviour is worth stating here because the sidebar block depends on its degradation
+semantics.
+
+`GET /market/securities/{security_id}/institutional-ownership`
+(`market_get_institutional_ownership`) depends on `current_user` like its neighbours,
+but the payload is **not** user-scoped — it is the same market data for every caller.
+Its control flow:
+
+```mermaid
+sequenceDiagram
+    participant Group as FundamentalsGroup
+    participant Client as marketService
+    participant API as Market router
+    participant Cache as Redis
+    participant Repo as SecurityRepository
+    participant GW as DataPlaneMarketGateway
+
+    Group->>Client: getInstitutionalOwnership security id
+    Client->>API: GET institutional-ownership
+    API->>Cache: get market:institutional_ownership:{id}
+    alt cache hit
+        Cache-->>API: cached JSON
+    else cache miss
+        API->>Repo: get_by_id_or_fail
+        API->>GW: get_institutional_ownership symbol, exchange
+        alt provider returns data
+            GW-->>API: metrics and quarterly history
+        else not found or provider error
+            GW-->>API: raises
+            API->>API: nulled payload (provider error is not cacheable)
+        end
+        API->>Cache: setex 86400 when cacheable
+    end
+    API-->>Group: InstitutionalOwnershipResponse
+```
+
+1. **Cache first.** The key is `market:institutional_ownership:{security_id}` and a hit
+   returns `InstitutionalOwnershipResponse.model_validate_json(cached)` without touching
+   the provider. Any Redis exception on read logs a warning and falls through, so the
+   cache is never a hard dependency.
+2. **Resolve the security**, then call
+   `DataPlaneMarketGateway.get_institutional_ownership(symbol, exchange=security.exchange)`
+   through `asyncio.to_thread`. An unknown `security_id` is a `404` from
+   `get_by_id_or_fail` before any provider call.
+3. **Both provider failure families degrade to a nulled payload** —
+   `InstitutionalOwnershipResponse(symbol=..., current_ownership_percent=None,
+   investors_count=None, total_invested=None, history=[])` — rather than an error status.
+   `MarketDataNotFoundError` is treated as a legitimate "no filings" answer and **is
+   cached**; `MarketDataProviderError` (for example a restricted upstream endpoint) sets
+   `should_cache = False`, so a provider outage is not frozen for the full TTL.
+4. **Write-back** uses `setex` with `_INSTITUTIONAL_OWNERSHIP_CACHE_TTL = 86_400`
+   seconds (24 hours) over `data.model_dump_json()`; a cache-write failure logs and is
+   ignored. The route therefore never fails because of Redis.
+
+The schemas live in `src/market/api_types.py`: `InstitutionalOwnershipResponse`
+(`symbol`, nullable `current_ownership_percent` / `investors_count` / `total_invested`,
+`history: list[InstitutionalOwnershipPoint]`) and `InstitutionalOwnershipPoint`
+(`date`, nullable `ownership_percent` / `investors_count` / `total_invested`), with
+`Decimal` for the money and percentage fields. The frontend mirror is
+`MarketService.getInstitutionalOwnership(securityId, token?)` — a plain `GET` whose
+declared return type is `InstitutionalOwnershipResponse | null` and which is an ordinary
+throwing call, so a transport failure rejects and the group's `catch` collapses it into
+the same disabled `N/A` state as an empty payload.
 
 ## The presentation gate: `show_valuation_band`
 
@@ -485,7 +628,10 @@ Two non-chart surfaces read ranges in bulk, both through
   constraint to catch it.
 - **Scope by `user_id` in the repository, not in the router.** The router only supplies
   `user.id`; every statement in `SqlAlchemySecurityValuationRepository` already filters
-  on it, so a new read method must do the same or it will leak across users.
+  on it, so a new read method must do the same or it will leak across users. The
+  institutional-ownership read is the counter-example by design: it carries no
+  `user_id` because it is shared market data, so do not copy its shape into a
+  user-authored table.
 - **A missing range is `404` on the single route and `null` on the client.** Do not
   make the route return an empty object; `getValuation`'s two 404 branches and the
   fundamentals group's "not set" state both depend on the distinction between
@@ -496,6 +642,11 @@ Two non-chart surfaces read ranges in bulk, both through
 - **`lower_bound <= upper_bound` is a frontend-only rule.** A new server-side caller
   cannot assume stored ranges are ordered; add a validator to `SecurityValuationWrite`
   if that ever needs to change.
+- **The ownership read degrades, it does not fail.** A provider outage and a security
+  with no filings both surface as a nulled payload with `history: []`, and the sidebar
+  turns either into a disabled `N/A` card. Preserve the `should_cache = False` on the
+  provider-error branch: caching that payload for 24 hours would turn a transient
+  outage into a day-long empty state.
 - **A model change ships its Alembic revision in the same change** and the file is
   named `<hash>_<description>.py` under `migrations/versions/`.
 
@@ -504,10 +655,11 @@ Two non-chart surfaces read ranges in bulk, both through
 | Test | Covers |
 | --- | --- |
 | `tests/market/test_security_valuation_repository.py` | `get_by_security_and_user` returning `None`; upsert create returning id + timestamps; upsert-update preserving the row id; batch read across two securities with a second user's row excluded; empty id list returning `[]`; `test_upsert_appends_to_history_and_get_history` (empty history before any write, two revisions for the twice-written pair with non-decreasing `created_at`, other users' and other securities' revisions excluded) |
-| `tests/routers/test_market.py` | `test_get_valuation_not_found` (404 before any write), `test_put_and_get_valuation` (PUT then GET returns the same `id` and bounds), `test_batch_valuations_endpoint` (both GET-with-query-params and POST-with-body forms), `test_chart_snapshot_with_valuation_in_drawings` (a snapshot round-trips `drawings.valuation`) |
+| `tests/routers/test_market.py` | `test_get_valuation_not_found` (404 before any write), `test_put_and_get_valuation` (PUT then GET returns the same `id` and bounds), `test_batch_valuations_endpoint` (both GET-with-query-params and POST-with-body forms), `test_chart_snapshot_with_valuation_in_drawings` (a snapshot round-trips `drawings.valuation`); for the sibling read, `test_get_institutional_ownership_success`, `..._cached_repeat` (identical JSON on the second call), `..._empty_data` (null percent and empty history still cached) and `..._provider_error_not_cached` (nulled payload returned, cache left empty) |
 | `frontend/src/lib/api/valuationClient.test.ts` | success read, 404 → `null`, PUT method/body/path, batch POST |
 | `frontend/src/lib/api/marketService.test.ts` | `getValuationsBatch` returning `[]` without a fetch for an empty list, and otherwise POSTing `security_ids` with the bearer token and returning the parsed (string-bounded) valuations |
-| `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` | "Fair value range not set." empty state, currency-formatted range with the checkbox, `patchPreferences({ show_valuation_band: false })` on toggle, short date of last update |
+| `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` | valuation side: "Fair value range not set." empty state, currency-formatted range with the checkbox positioned beside it, `patchPreferences({ show_valuation_band: false })` on toggle, short date of last update. Ownership side (with `valuationClient`, `marketService` and `userPreferencesService` all mocked): the `60.12%` metric from a mocked `getInstitutionalOwnership`, opening the modal from the metric trigger, and the disabled `N/A` trigger for a `null` payload |
+| `frontend/src/lib/components/actions-sidebar/fundamentals/institutional-ownership-modal.test.ts` | dialog title from the symbol, the three metric cards, quarterly-history rows, the empty-history message, the close button flipping `modalState.isOpen`, and the exported formatters (`N/A` for null/`NaN`, `$1.98T` / `$2.50B` / `$15.00M` compaction) |
 | `frontend/src/lib/components/actions-sidebar/fundamentals/valuation-modal.test.ts` | prefilled bounds, `lower > upper` rejected without calling the client, successful save calling `setValuation` and `onSaved` and closing, `step="0.01"` with prefill rounded to two decimals, user input rounded on save |
 | `frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.test.ts` | attach/`requestUpdate`, `zOrder === 'bottom'`, fill + dashed stroke draw calls, no draw when hidden or bounds are `null`, clean detach |
 | `frontend/src/lib/components/charts/security-chart.test.ts` | the primitive is attached with the passed range and survives a rerender with new bounds |
@@ -526,6 +678,6 @@ services — the repository test uses the ephemeral Postgres session fixture, no
 or Redis. Frontend checks run in the frontend service (`npm run lint`, `npm run check`,
 `npm run test:run`) or `./scripts/agent-test frontend/src/...`, and every frontend test
 must mock the API clients it exercises: the fundamentals group mocks
-`valuationClient` and `userPreferencesService`, the security page suite mocks
-`valuationClient` (keeping `getValuationClient` alongside the singleton) plus its other
-clients, and `security-chart.test.ts` mocks `lightweight-charts`.
+`valuationClient`, `marketService` and `userPreferencesService`, the security page suite
+mocks `valuationClient` (keeping `getValuationClient` alongside the singleton) plus its
+other clients, and `security-chart.test.ts` mocks `lightweight-charts`.

@@ -1,12 +1,11 @@
 ---
 type: workflow
 title: Portfolios & Holdings Filters
-description: The portfolio system end to end — the `portfolios` / `portfolio_accounts` models and their Alembic revision, PortfolioService and its ownership validation, the `/portfolios` list/create/rename/delete plus account-membership sync router surface, the server-loaded `/portfolios` page and the accounts-UI create modal, and the `/holdings?portfolio_id=` filter seam that resolves a portfolio into a set of account ids.
+description: The portfolio system end to end — the `portfolios` / `portfolio_accounts` models and their Alembic revision, PortfolioService and its ownership validation, the `/portfolios` list/create/rename/delete plus account-membership sync router surface, the server-loaded `/portfolios` page with its per-currency card totals and the accounts-UI create modal, and the `/holdings?portfolio_id=` filter seam that resolves a portfolio into a set of account ids (including how an unknown or empty portfolio degrades).
 tags: [portfolios, accounts, holdings, filter, fastapi, sqlalchemy, sveltekit, ownership, many-to-many]
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
 sources:
+  - id: openwiki-source-2163c40f6e8490dcf5aa468a
+    resource: repo://frontend/src/lib/api/accountClient.ts
   - id: openwiki-source-53654e48cd0a63ec34c470c6
     resource: repo://frontend/src/lib/api/portfolioClient.test.ts
   - id: openwiki-source-2250228a23044224ffab61aa
@@ -21,10 +20,14 @@ sources:
     resource: repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts
   - id: openwiki-source-ace4d3ae059aafe8ca111214
     resource: repo://frontend/src/lib/types/portfolio.ts
+  - id: openwiki-source-00f293a6b51308d75816a1b3
+    resource: repo://frontend/src/lib/utils/finance/account-totals.ts
   - id: openwiki-source-899c8715bbba1ad86cff7b6b
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-17695a0429275bdf8c6b0e99
     resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-8609a03f095ca0ae9b6d35bd
+    resource: repo://frontend/src/routes/holdings/page.svelte.test.ts
   - id: openwiki-source-a3e043cd646e68c425bd541e
     resource: repo://frontend/src/routes/portfolios/%2Bpage.server.ts
   - id: openwiki-source-c62194180fe1461fdf76c5b3
@@ -61,7 +64,10 @@ sources:
     resource: repo://tests/fixtures/account.py
   - id: openwiki-source-c1b12ffcef0472853aa7e77e
     resource: repo://tests/routers/test_portfolios.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 # Portfolios & Holdings Filters
@@ -83,7 +89,7 @@ The page owns the whole cross-system chain:
 | Repository | `src/account/repository.py`, `src/account/repository_sqlalchemy.py` | the `PortfolioRepository` interface and its SQLAlchemy implementation |
 | Service | `src/account/service/portfolio.py` | `PortfolioService` — membership validation and CRUD |
 | Router | `src/account/router.py` | `portfolio_router`, prefix `/portfolios` |
-| Frontend list | `frontend/src/routes/portfolios/+page.server.ts`, `+page.svelte` | SSR list plus local rename/delete overlay |
+| Frontend list | `frontend/src/routes/portfolios/+page.server.ts`, `+page.svelte`, `portfolio-list-item.svelte` | SSR list, local rename/delete overlay, per-card per-currency totals |
 | Frontend create | `frontend/src/lib/components/accounts/create-portfolio-modal.svelte` | creation from the accounts dashboard |
 | Filter seam | `frontend/src/routes/holdings/+page.svelte`, `holdingsService.svelte.ts` | `?portfolio_id=` → account ids → `filterByPortfolio` |
 
@@ -320,20 +326,73 @@ const portfolios = $derived(localPortfolios ?? data.portfolios ?? []);
 
 Both wrap the call in `try/catch` that only `console.error`s and leaves the overlay
 untouched, so a failed mutation keeps showing the server-provided list — the load data
-stays the source of truth. `PortfolioListItem` renders the name through
-`EditableTitle`, which `href`s the title to
-`/holdings?portfolio_id={portfolio.id}` — the entry point of the filter seam below —
-and puts **Rename** (flipping `EditableTitle`'s `isEditing`) and **Delete portfolio**
-(a `ConfirmationModal` with an explicit "this action cannot be undone" description)
-behind an ellipsis dropdown. The row also shows the account count and
-`Created {formatDate(created_at)}`.
+stays the source of truth.
 
-`page.svelte.test.ts` drives exactly these two paths plus rendering: names, account
-counts, formatted dates, the empty state (`data-testid="empty-state"`), the
+### The portfolio card
+
+`PortfolioListItem` renders `portfolio.name` through `EditableTitle` with
+`showEditButton={false}` and `href={'/holdings?portfolio_id=' + portfolio.id}`, so the
+title is the entry point of the filter seam below; the edit affordance lives in an
+ellipsis dropdown (`aria-label="Portfolio actions"`) holding **Rename** (sets the bound
+`isEditing`, which flips `EditableTitle` into its input) and **Delete portfolio**
+(`variant="destructive"`, opening a `ConfirmationModal` whose description quotes the
+name and states "This action cannot be undone."). The row's meta line shows the member
+count (`{n} account` / `{n} accounts`) and `Created {formatDate(created_at)}` when
+`created_at` is present, and the row itself is addressable as
+`data-testid="portfolio-item-{id}"`.
+
+Each card also shows the portfolio's aggregate value and P/L, bucketed per currency:
+
+```ts
+async function loadTotals(): Promise<CurrencyTotalsBucket[]> {
+	const accounts = portfolio.accounts ?? [];
+	const results = await Promise.allSettled(
+		accounts.map(async (account) => ({
+			accountId: account.id,
+			currency: account.currency,
+			totals: await accountClient.getAccountTotals(account.id)
+		}))
+	);
+
+	const inputs = results
+		.filter(
+			(result): result is PromiseFulfilledResult<AccountTotalsInput> =>
+				result.status === 'fulfilled'
+		)
+		.map((result) => result.value);
+
+	return aggregateAccountTotals(inputs);
+}
+```
+
+The wave has three properties worth knowing:
+
+- **Rejections are per-account, not per-card.** A failed
+  `GET /accounts/{id}/totals` drops that account from the aggregate (the same
+  degradation the holdings header uses) instead of failing the row.
+- **It is browser-only and post-hydration.** The trigger is
+  `$derived.by(() => browser ? loadTotals() : new Promise<CurrencyTotalsBucket[]>(() => {}))`,
+  so during SSR the promise never settles and the server renders the `Skeleton`
+  placeholder instead of issuing a request — the awaited load covers the list only, and
+  totals arrive after navigation.
+- **It is currency-safe and cookie-authenticated.** `aggregateAccountTotals` returns one
+  bucket per currency and never sums across currencies, and each bucket is rendered by
+  `TotalProfitLossButtons` with `testIdPrefix={`portfolio-${portfolio.id}-${total.currency}`}`.
+  The call goes through the browser-side `accountClient` singleton with no token, so it
+  relies on the httpOnly cookie like the other client-side calls. Totals come from the
+  accounts embedded in each `PortfolioRead`, not from holdings rows, so a portfolio with
+  no members issues no totals requests at all.
+
+`page.svelte.test.ts` drives exactly these paths plus rendering: names, account counts,
+formatted dates, the empty state (`data-testid="empty-state"`), the
 `/holdings?portfolio_id=port-N` hrefs, an inline rename that asserts
 `portfolioClient.updatePortfolio('port-1', { name: 'Tech Growth 2026' })` and the
-updated text, and a delete that asserts `deletePortfolio('port-1')` and the row's
-removal — including a cancel path that asserts the client was *not* called.
+updated text, a delete that asserts `deletePortfolio('port-1')` and the row's
+removal — including a cancel path that asserts the client was *not* called — and a
+mixed-currency card that mocks `accountClient.getAccountTotals` per account id and
+asserts the CAD and USD buckets stay separate
+(`portfolio-port-mixed-CAD-total-value` / `portfolio-port-mixed-USD-total-value` and
+their P/L siblings).
 
 ## Creation: the accounts-UI modal
 
@@ -453,17 +512,39 @@ if (data.portfolio_id) {
 (`frontend/src/lib/components/holdings/holdingsService.svelte.ts`) stores the
 `{ type: 'portfolio', portfolioId, accountIds }` variant, and the `rows` getter keeps
 only rows whose `account_id` is in `accountIds`. So **a portfolio becomes a holdings
-filter by expansion into account ids that travel as route data** — no extra request,
-no server-side join, and an unknown `portfolio_id` degrades to an empty
-`accountIds` list (an empty table) rather than an error.
+filter by expansion into account ids that travel as route data** — no extra request
+and no server-side join.
 
 Interactions inside the page mirror the URL: `handleSelectFilter('portfolio', id)`
 does the same `find` + `map` and `goto`s `/holdings?portfolio_id={id}` with
 `replaceState: true, noScroll: true, keepFocus: true`, so a shared or reloaded link
-restores the view without polluting history. The page also derives its subtitle
-("Holdings in {name}") and the "no holdings match the selected filter" message from
-the active filter. The read path, the paging loop and the grouping math stay on
+restores the view without polluting history. The read path, the paging loop and the
+grouping math stay on
 [Accounts & Holdings Views](accounts-and-holdings-views.md).
+
+### Filter semantics: what `?portfolio_id=` means on each side
+
+The two pages own opposite halves of the seam. `/portfolios` never reads the parameter:
+it only *produces* it, as the card title's
+`href={'/holdings?portfolio_id=' + portfolio.id}`. `/holdings` never validates it: the
+server load returns `portfolio_id` verbatim as route data and the first `$effect`
+resolves it client-side, so the parameter is a **hint, not a contract** — an
+unresolvable value is never a 404, a redirect or a thrown error.
+
+| Situation | `accountIds` | Rows | Breadcrumb | Header totals |
+| --- | --- | --- | --- | --- |
+| Known portfolio with members | member account ids | rows for those accounts | portfolio name, with a dropdown to switch | buckets over the members' server totals |
+| Known portfolio with **no** members | `[]` | none | portfolio name | none — `loadAccountTotals([])` returns immediately |
+| **Unknown** id (stale link, deleted portfolio) | `[]` | none | omitted entirely: the portfolio block is gated on `activePortfolio`, so only the `Holdings` breadcrumb button renders | none |
+| `data.portfolios` empty because that read failed in the load | `[]` | none | as above | none |
+
+An empty result set still distinguishes its two messages: `emptyMessage` is
+`'No holdings match the selected filter.'` when the filter is active, `allRows` is
+non-empty and `rows` is empty, and the generic
+`'No holdings yet. Import an account to see your holdings here.'` otherwise — so an
+unknown or empty portfolio over a user who *does* have holdings reads as "no match",
+not as "no data". The same filter state also drives `filteredAccounts` (the portfolio's
+members, `[]` for an unknown id), whose totals feed the per-currency header buckets.
 
 ```mermaid
 sequenceDiagram
@@ -492,6 +573,8 @@ sequenceDiagram
   User->>PortfoliosPage: open /portfolios
   PortfoliosPage->>Router: GET /portfolios/
   Router-->>PortfoliosPage: list of PortfolioRead
+  PortfoliosPage->>Router: GET account totals per member account
+  Router-->>PortfoliosPage: per-currency totals bucket
   User->>HoldingsPage: click portfolio title link
   HoldingsPage->>Router: GET holdings for user
   Router-->>HoldingsPage: all rows
@@ -500,7 +583,7 @@ sequenceDiagram
   HS-->>User: rows narrowed to the portfolio accounts
 ```
 
-The diagram shows the create → membership → filter flow: a portfolio is written with its membership rows, and reading it back into `/holdings` expands that membership into the account ids the client-side filter tests against.
+The diagram shows the create → membership → filter flow plus the per-card totals wave: a portfolio is written with its membership rows, read back with its embedded accounts (which drive the card aggregates through `GET /accounts/{id}/totals`), and expanded into the account ids the client-side holdings filter tests against.
 
 ```mermaid
 flowchart TD
@@ -526,13 +609,16 @@ The diagram shows the validation order that guards a membership write: existence
 | `tests/routers/test_portfolios.py` | Empty and populated `GET /portfolios/`; create with one and several accounts; 422 on missing `name` / `accounts`; membership sync that adds, removes, keeps and empties (`accounts: []`); 404 for unknown and foreign portfolios on sync, rename and delete; rename visible in the subsequent list; 422 for empty or missing rename name; `DELETE` → 204 and disappearance from the list |
 | `tests/fixtures/account.py` | `test_portfolios`, `test_portfolio_with_accounts` (membership rows for the first two accounts) and `other_user_portfolio` — the fixture that makes the not-owned 404 cases possible |
 | `frontend/src/routes/portfolios/page.server.test.ts` | The load's success / 401-redirect / non-401 `ApiError` / unknown-error branches, with `$lib/api/portfolioClient` and `$lib/server/auth-cookie` mocked |
-| `frontend/src/routes/portfolios/page.svelte.test.ts` | Rendering (names, account counts, dates, empty state), the `/holdings?portfolio_id=…` hrefs, inline rename through the dropdown, and the delete confirm/cancel pair |
+| `frontend/src/routes/portfolios/page.svelte.test.ts` | Rendering (names, account counts, dates, empty state), the `/holdings?portfolio_id=…` hrefs, inline rename through the dropdown, the delete confirm/cancel pair, and the per-currency card totals from mocked member-account totals |
 | `frontend/src/lib/components/accounts/create-portfolio-modal.test.ts` | Pre-filled default name, the exact `createPortfolio` payload, and the error path that keeps the modal open without calling `onCreated` |
 | `frontend/src/lib/api/portfolioClient.test.ts` | The four request shapes (method, URL, Bearer header presence/absence, JSON body), `ApiError` on non-OK responses, and that `getPortfolioClient(customFetch)` routes through the supplied fetch |
 
 Backend suites run inside Docker (`docker compose exec backend …`) against a test
 database and mock outbound services; frontend suites run under Vitest with every API
-client mocked. Both rules apply unchanged to this subsystem.
+client mocked. Both rules apply unchanged to this subsystem — and the `/portfolios`
+page suite now mocks **two** client modules, `$lib/api/portfolioClient` (rename/delete)
+and `$lib/api/accountClient` (card totals), because both singletons are imported by
+reference and cannot be intercepted through a stubbed `fetch`.
 
 ## Working on this system
 
@@ -551,6 +637,7 @@ client mocked. Both rules apply unchanged to this subsystem.
   `AuthorizationApi.check_entity_owned_by_user`, which keeps the 404-not-403
   property rather than reimplementing a `user_id` comparison that would leak
   existence.
-- **Anything new that a component calls through the `portfolioClient` singleton**
-  needs its suite to add or extend the `vi.mock('$lib/api/portfolioClient', …)`
-  factory, or the test will attempt a real network request.
+- **Anything new that a component calls through the `portfolioClient` (or
+  `accountClient`) singleton** needs its suite to add or extend the matching
+  `vi.mock('$lib/api/…', …)` factory, or the test will attempt a real network request;
+  `portfolios/page.svelte.test.ts` mocks both modules for exactly this reason.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f7c8221d89ced05faba3d81056ed306c69b374bca8f9f610863cdbb1be6f6d43",
+  "pageVersion": "sha256:25dfdfee3fa487fb8fe05c4f6a0efe2aae428127ca10e5c79da92aa9e0d88094",
   "claims": [
     {
       "id": "claim_bbf8133c92a24e1189d471bdedd5bd2a",
@@ -43,15 +43,15 @@
           "version": "repo-lines-v1:sha256:8d81e0aeed611bfa3b4670d021612746c030b3ae9666339be501a18b99cb8404:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2M3ODM1YjE5NmNlYzJmYmU2ZWEzYjA1OWJhN2FjODViOTkxYmYwYjJjMGM2ODA5MWVmMTNlMzc5ZmIzOThiYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFhZjk4NDYzYTg4ZjFkYWQ0MmE0YTcxZDAxNzgzZjRhZGVjODg4YmMyNTc3NWRkMzdlMWFjYjgwNTdkNGYyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGY4MWRhNTE0Y2E5NmEwMTMzYjdlYmVjOGM2MTNlZGNhMmRiZDQxYzAwMTMyNTZhOGFlNWVjOGJmZDk1NWFlMyJ9"
         },
         {
-          "resource": "repo://src/integration/task.py#L231-L233",
+          "resource": "repo://src/integration/task.py#L325-L327",
           "version": "repo-lines-v1:sha256:52290f915869bbe09d25dfe6a77ff67d1cedf6be7675196e58573fb0657e690f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU0YTZiNGI3OGRmZDIyNmNjNzdmOTIwMzkyM2EwYTQ5ZDdkNDZlMGI4ODgwYTQwYWUyOTUzNjJhYzE0NTBkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjE3Zjk1ZWNkNDM3M2I4ZmFhMzJhYmE1ZGM5YWMxNDkyY2FlMTg1MDE2YmRlNmU1ZGFiM2RlNjQ3ZmZmZmJkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2M5OTA0ZjU4NDU4NTA2OWQyNzNlNjkxNmQzMzJkOWMyNGQ0NzcxZGEyNTY5MjZlMDVlNWExNjZkZmNkNGY0YiJ9"
         },
         {
-          "resource": "repo://src/market/task.py#L149-L155",
+          "resource": "repo://src/market/task.py#L168-L174",
           "version": "repo-lines-v1:sha256:8704febf50b8bd6803b80cc9537ce442cf441932e4ddbb8c778c19c59886f681:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjM1ZGE2NDQwYzg2YjY1MjlmMzQzYTdlMGJmZjlmZDM2NTI5NGE2ZDM0OTJkZjM1NzkyMWI0NmU5NzUxODFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWYyYjdjYzM2N2UxMDY1MmE2OWE5NDdlNGViZTFjYTFmYjZjNDQxN2EzNWM2ZjViODY1MmNhNGRlMzNiMWE1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2JmZDI3Mzg2NDIwMGY3NmNkOGM3MzE1MTY1ODkzYzE5ZmYwOTJhMmYzZmEwZGMyNjJhOWJlZjFhYTQ5OTFhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNjZWUyNjljZWFiOWEzYWYyODExOWNiYTAwYmNlZDkzYmExY2NmNzU4OGVmODc0NzEzMmRhM2JjMWQzNTBhYiJ9"
         },
         {
-          "resource": "repo://src/market/task.py#L68-L73",
+          "resource": "repo://src/market/task.py#L71-L76",
           "version": "repo-lines-v1:sha256:25a4d44d32a143267b74baf805368de247e6b18dba39d5c58d267ccf198b6307:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmJmYjIxNzQ1MTBjZGQ4MWUxOTQzYTY5NGY0YmRjZDdlMzdlZDViYzYwM2ZhNmZlNmU1MzBkY2ExZGE0NDllNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWYyYjdjYzM2N2UxMDY1MmE2OWE5NDdlNGViZTFjYTFmYjZjNDQxN2EzNWM2ZjViODY1MmNhNGRlMzNiMWE1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE1M2JkMTVjOWJmNWMwNGMxODM1NDQ4ZjAwODdmZmU2Y2RkYjc3YTljZjAwNWQ2NTI3ODA3YmYwZDczY2NjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmZiNGMzNWQyMWNlNzczYWRiZDQyYTVhYTNlNzNmMzQxZGQ5N2UwYjJlM2UxZWY5NTEzMmJhYTQ2YTNhOTMxYiJ9"
         }
       ]
@@ -61,8 +61,8 @@
       "statement": "The API resolves services from a registry built in lifespan_context and stored on app.state.svcs_registry, which is a different registry instance from the worker's huey.svcs_registry; the two are deliberately separate so task code never resolves from the app registry and the API never touches the worker registry.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L56-L62",
-          "version": "repo-lines-v1:sha256:8cfc95be449b426ba6edf21c2e9faea3735a1390b5876143cc0c35fae7982a78:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5NTY2NTg5YTIwMmU2YzczMzdkNDRlYjlkMTE3Nzc4YmEyZmVkMTc5YTVjNjY1OTFiMjllYTM5NGFkOTk3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGZjNDJiMDE4NDE3MmMwMTU0NjNhMWVhMjgzZDE2NTkxYWE5YWIwMWJkNDljMWIwNjI3MTM1OThjYzcxMzI5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjMyMzllMzQzMjNhYTMwM2RkNmZhM2ViMTA3ZGM2ZmU0YzkwNWQ5ZWMxNjNhMzJiZGJiZTI4ODA3ZTQ4Y2ZiNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTNjNjQzOGJlMmU5OTQ0ZjAyNTY3ODhiMDViNTE0MGM0YWIyMWQ0ZTk1YmRjMjQyMWIzOTI3NjI0NzNiOWE1ZiJ9"
+          "resource": "repo://src/main.py#L52-L61",
+          "version": "repo-lines-v1:sha256:6f7ff1d605729bde643c71c24b2b2997691a38998fab264c77ef9ac27d768aaf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjNTVkZDExMjg4NDUzY2ZjNmNlZDIxYjlmMDkxYTQ5NDk3Mzc3N2Q1YWM1YmM1NjI2MWE1NTczYWUzMTI4MzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhNjg1ZWI3YjIyNjc2MTI0MzA5ZDk2MTExNTdkMzAwNmY0MTE5MjU3ZGU3MDQ4NTY0NzBlMmMyNzE1YzFiMGMifQ"
         },
         {
           "resource": "repo://src/worker.py#L43-L50",
@@ -75,7 +75,7 @@
       "statement": "hourly_intraday_price_update is a @huey.periodic_task(crontab(minute=\"0\")) that, after running MarketService.update_intraday_prices_for_all_securities and logging success/failure counts, enqueues recalculate_all_account_totals_task and then check_and_dispatch_price_alerts, each inside its own try/except that only logs, so a failed enqueue of one does not abort the other or the periodic task.",
       "evidence": [
         {
-          "resource": "repo://src/market/task.py#L89-L136",
+          "resource": "repo://src/market/task.py#L108-L155",
           "version": "repo-lines-v1:sha256:c263abc4acf9b92c4d0f49d1d247036fd99c4021cbe9f94915a69e1ab0092084:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NjI5NDQyZjhiYzQwZmZiYjhlODY0ZTdlYWMxYjNjNTE3MDBkNjkxZDJlM2FmODA1ZWM3ODVkOGIzNTFkYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2MjM0M2EwMmJhYmJhOTc0Nzg3NGU2MzliOGU3NTY0NjMwM2RlMWEzZTcyMjgxM2I3ODI3MzYwODc0N2E5M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhN2Y2MTk5OThiMmFiNDMwNjMwMWE5YTM3NmQ5ZmZmYjZiM2EzNDE2ODllZjNhZmI4NTc3ODJkNmE4ZmI1ZTMifQ"
         },
         {
@@ -97,7 +97,7 @@
           "version": "repo-lines-v1:sha256:283be522c236b42b40825df7801b1f81c7c9cab5e435930d1e65196332dd2ad9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxYWJjZDBjYzY5MTNkNGY1MWViMjFlNGY1YWZjMmU5MGY4NmQzNmE0NTBiYjQyY2IwNWM2ZjNlMGQ3MDZmOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMDhlOTYyOTA2MTBkN2I0NmQxMzlmZDNhZDljMGYyZWMzYzIzNjUzM2QyNzQyMjIxZjEwOTFiYmQ2YjM2YzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhY2I2YzdkNTdkZjRlMDI5MGYyNDRkMjZiNDA5Y2IyNGNjODlhYzhhZWU0YmI3Y2RiOGRhNDFmZTZlYzdlMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMDE1Yjg4OTFkMzY5Y2MwMmY0ZWUxMDIxMDJlZmU4ZmEwYTUwYWU2MjgzZjkyMTllMDYwZDcwMDRiNDNhMTMifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L139-L199",
+          "resource": "repo://src/market/task.py#L158-L218",
           "version": "repo-lines-v1:sha256:f27acc88ec44ddec7897691b74ad896c3b194b41bd5e9e5d71538fe4fb736224:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YjU4YzcyMTUyMzViYmU5ZjBjNGM3MTA0MDU2Yzk5NmNlMGQ5M2I2NzYyZTQwYjQ4MjVhMWEzZDA4N2Q0OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkZjZkYWFhN2RmYmUzZmQxZjU4NDIxNjY0MzkxNTM4NDg4MTA2Y2QxMWVmMDZmNTM5ZmQ5OTM3NTQ1N2E5ZjAifQ"
         },
         {
@@ -115,7 +115,7 @@
           "version": "repo-lines-v1:sha256:48e6fa66c1995183b4b612d64cad7ac4b24fe4dff6f10b893a03a95fd527a985:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNWFmMWM0ZTczMzk5N2I5MDg5OWQzMGIyNTRiNDEzZjNhNTM3MzU5MjJjZTU0ODA4ODIxNzU2MmQ1M2FlMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3YjE3NzIyOTQ3M2YwNjliY2Y3MmMxZGFhNjU4NzBlNjRmZGE2NzZmMWI0ODJiYjNjOTI1NDA4NDlkMjVlODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMGZhZDQwMTQ3MTk5MzU1ZTY2ZWRlODI2MWIyZDJkNzg4NDJjODUwZWRmZWIwZjM0ZDU4ODdiZmM0MjdhZjEifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L202-L220",
+          "resource": "repo://src/market/task.py#L221-L239",
           "version": "repo-lines-v1:sha256:1a4a3288c46c844f3be9fcfdae78eb8eabe4d371a172fb44c6404699c87e7b8d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkOTcyMmQ4YzA2OTdkMzMzMWI2ZDgyMmY3MTJlNWNlYjgzNmFjYjk3Yzc5ZjIwZjhlNDhmN2QxMmVhYmZkNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3Zjc4YzA5MzZjNTBiYTJjNzU1MjE0ZjU3MTRhN2I0NjUzZjBkOTNiY2M0OTk2NjEwMWM0OTlmNGZiNDZhNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -147,12 +147,16 @@
       "statement": "sync_account_positions_task orders its side effects: mark_sync_started in its own log-only try/except, then the sync_started event, then _do_sync_positions, then sync_finished; on any exception it logs, attempts the error email in its own try/except, publishes sync_failed, and re-raises so the Huey task is recorded as failed, while mark_sync_finished runs in a finally on every exit path.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L221-L288",
+          "resource": "repo://src/integration/task.py#L315-L382",
           "version": "repo-lines-v1:sha256:ddcb7d32296da737021d4085b8e7d545e7582d01b8582124dbfcbb903ff05f33:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMjZlZDhlZjMyNzM2OTQ5YTUyODIyM2I2Yjk3MTgxOWZlMTNiZTBmYmY2MWIwMDhjOGE5N2RiOGY0NjMxYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhM2U3ZjU1MmE5OTU4OWZjYTBlYmYwZGZiNTcwOTUzYjAwYTYxZjAwNWE5NDQ1ZmUxN2Q2NmFiNGJhZTU4MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZDBhZTUxMGIyNzM3MDA2MDBlNDk4ZmM3NDBmYmI2NTY5OWUwN2U5ODhhYTgxOWJhYWVkZjM5MjQ0YWVkNDgifQ"
         },
         {
-          "resource": "repo://tests/tasks/test_integration.py#L251-L375",
-          "version": "repo-lines-v1:sha256:11c0c660dc52e4a215ca35204b34703bc29226bec84e2b853f773de1a375d1d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzZjcwZTNiM2VjZTU3YzM0MDhjY2U0ZDIwMGVhNTM2ZGViY2ZiM2EyMDJlYjQxOTExNDNiMzJiNWM0YWE2OThmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MGFhNWIxZTc2MTRiNjk2NDczMmMwZWFhZDZiY2E4NTkyZmYxN2RlODE2NmM0OWJlNmY4Y2MyZTlkMzhjYTI5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5In0"
+          "resource": "repo://tests/tasks/test_integration.py#L1008-L1066",
+          "version": "repo-lines-v1:sha256:79050285084b9c4588a61732ca68abbbe8a2748ca7813c27eefceb60be94e4ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYWE1YjFlNzYxNGI2OTY0NzMyYzBlYWFkNmJjYTg1OTJmZjE3ZGU4MTY2YzQ5YmU2ZjhjYzJlOWQzOGNhMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L354-L481",
+          "version": "repo-lines-v1:sha256:839b1211e776dadb0c4de4680096332c0ec92f5031134e23f4a7e64bcc0d783e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDk5NDJkZWI3ZGJhYmMxMTRiMWM0OGQwMmRhNDYzODZlOWFjYTUxNWE1MmZiN2IzYzQxMmRjNjI3OTIxYjA4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlNTIzNmEzNTEyMTMzNmFkNTQwMDViMzExZmRhOTYzNTQzMTBlMzdmNDJlMDg2OGU3YmMyYWY0NzFkZmE5ODAyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5MmM1Y2ZiMzJmYTI2MDdjMThlZjE2MWZlZTJmZmQ4N2ZmZDdjOWIzYzMzNWZhZDVmZjIwMTk2MzI5NzdiMzlhIn0"
         }
       ]
     },
@@ -161,7 +165,7 @@
       "statement": "A @huey.signal(signals.SIGNAL_INTERRUPTED) handler in src/integration/task.py inspects task.name == \"sync_account_positions_task\", reads task.args[0]/task.args[1], and calls mark_sync_finished via asyncio.run, so a killed worker does not leave an account stuck in the active-sync set until the TTL expires.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L291-L307",
+          "resource": "repo://src/integration/task.py#L385-L401",
           "version": "repo-lines-v1:sha256:ab8cc41a213fdf95840aed21c74d628a60566bbf7844a2006d34d32f99cf503b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyMzU5ODcyMjQ1MWMwZDRiNjQyYTkxMDNlZDFkMDQwNzI3NzAzN2UxOGM1MjAzYWZjYmJkNjM5ZTJjZTM0YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmZmMzUwMWNiNzNkOWQ1ZTk4YzZiNjgwMzEwZjNlOTlmNjdkMDk2NDlhNWExOGY1NDgzNTFhOWVhMDJjM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyZDY3ZjFjMDc0MDlhNDAyZThiYWViYWY4YzYwOGY2YWRkYzJlNGU2MTgwMThlY2YyNmMxMjg5OTEzNGIzYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -171,7 +175,7 @@
       "statement": "The broker sync task is enqueued synchronously from the request path by POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute, via PositionService and IntegrationAccountApi) and once per newly imported broker account in the broker import route, both forwarding get_request_id() so worker logs correlate with the originating request.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L527-L562",
+          "resource": "repo://src/account/router.py#L596-L631",
           "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -189,7 +193,7 @@
       "statement": "ConnectionManager keeps a user-keyed local connection registry (dict[UserId, list[WebSocket]]) and one Redis client per running event loop in a map guarded by a threading.Lock, pruning and aclose-ing clients whose loop has closed; the FastAPI lifespan initializes it (starting the pub/sub listener in the API's main loop) and closes it on shutdown.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L61-L81",
+          "resource": "repo://src/main.py#L68-L88",
           "version": "repo-lines-v1:sha256:2e94691443c60a81a6302e5beff1e38a1173517a02148cc78596cc076aee3bec:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NjIwM2UzMzk3OGFmYWE3YmJiZDMzMmZkYWU2OWFhNTExZjlmYmIxYThhOGJlNTdmODgzOTcxMmRiNjI0N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MjFlOTZlZDhkYTJiNGIyYTY5YWNjZGU2ZjYyYzFlNDQ3NjdmNzgxZGY0MmEwMzNlOTRlZTg0MjZkNGYwOTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjZDEyODU2ZTIxOWQwOWI5Y2E0N2Q4NTcwNjdlMzA2NmQ2MTYwZDVmZTc2M2FiOGJmODZmYTUzNWEyMmI0ZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTk5MTFkZjYwMGFlNjBmMmZkNmYzNjIzN2QyNDEwNjI5Y2IxZjA1ODk4ZGNhYzE3NjU2OWQ3N2YzZjk1ZWQifQ"
         },
         {
@@ -267,12 +271,12 @@
       "statement": "Account-sync display state is a single Redis set, account_syncs:active:{user_id}, written by mark_sync_started (SADD plus EXPIRE settings.sync_ttl_seconds, default 300), cleared by mark_sync_finished (SREM) and read back as UUIDs by get_active_syncs (SMEMBERS); the TTL is the safety net for a worker that dies without cleanup, and the set is display state rather than a lock because duplicate syncs collapse into one member.",
       "evidence": [
         {
-          "resource": "repo://src/config/settings.py#L46-L48",
-          "version": "repo-lines-v1:sha256:63e2d6a4929c923db2894b381b36193672cca396a1da4376fcf3890f75c0cdbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY3OWM4MjdmMGUxNWExZDBiNjFkMWI2YTdjOGM5MjUwZDMwZGNmMDVmYTIwYzNhMWJjMDE1NTYyNmU2ZTIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1ZDFiNmMzOTgzMWY4OGM0NTljZWRlM2E1Y2I4MGI1ZTBlNWNjOGVlNjI2YTAxNDU1NDQ1Mzg4OTE2NWY3NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTM3MzRkZmQ1NDdkN2MzOGQwYjJmODM5Njg5NmFiN2Y4NzQ4ZDJlNWMxZmI4N2VlZTc3YTFmOTMxYjUyMDI4YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNkNTkxMzZhM2E2YjQyYjlmNjlhZDBiNTY5YjdmNWQ0Y2JiY2RlM2FjMzlkMzM1MjUyNjE4N2M4ODk2NjBkNiJ9"
+          "resource": "repo://src/config/settings.py#L55-L57",
+          "version": "repo-lines-v1:sha256:63e2d6a4929c923db2894b381b36193672cca396a1da4376fcf3890f75c0cdbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY3OWM4MjdmMGUxNWExZDBiNjFkMWI2YTdjOGM5MjUwZDMwZGNmMDVmYTIwYzNhMWJjMDE1NTYyNmU2ZTIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1ZDFiNmMzOTgzMWY4OGM0NTljZWRlM2E1Y2I4MGI1ZTBlNWNjOGVlNjI2YTAxNDU1NDQ1Mzg4OTE2NWY3NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTM3MzRkZmQ1NDdkN2MzOGQwYjJmODM5Njg5NmFiN2Y4NzQ4ZDJlNWMxZmI4N2VlZTc3YTFmOTMxYjUyMDI4YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWM4OTI1Zjc5NDY3NDExM2JhOTI5NDc4ZGJlMThkYTE0ZGRjNWEwMjQzMThjNTBjMGYzZmEwY2RkM2UyY2E2NyJ9"
         },
         {
-          "resource": "repo://src/core/redis.py#L36-L63",
-          "version": "repo-lines-v1:sha256:f088e4aab23363ee0c895eee99a1371a9e9d8bc5cd629be9c493bc53c9572a28:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZTg4YjFkY2VhMWQxNDNlYzJjNDAwMjcyNTNjNjIxMmE4ZmM4Mzg1Yzg2MzliZTM2Y2M2YzQzNWRlMDc1NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxMmM1M2I1NWQ0MTUzNDEzMDA0YTA4YWQzYWY5MTczMWMxOTYwZWFiNjNiYjk1ZmFkYzExZGRmOGQ3YzM2MDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MGJmOTcwZjYzMGM4ZGFhMjMzNzg2ZmVjYmJhNjhmNmNkODRhMTlkMmQwOWVhMTIxMDNiYTkzNGY3NmY0MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZGM4MjViMzdlMzVhNTI0ZGI1MWQ4MzY2YWM1ZjQ0OWVkOTQxOTE3MTQzZThlMjZkN2YyM2I1MGVmNzNhZjgifQ"
+          "resource": "repo://src/core/redis.py#L52-L82",
+          "version": "repo-lines-v1:sha256:966438a8c7750a622a4c0a52491b2735db468d9dee4314b2ad8cfe0c2be1da3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZTg4YjFkY2VhMWQxNDNlYzJjNDAwMjcyNTNjNjIxMmE4ZmM4Mzg1Yzg2MzliZTM2Y2M2YzQzNWRlMDc1NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxMmM1M2I1NWQ0MTUzNDEzMDA0YTA4YWQzYWY5MTczMWMxOTYwZWFiNjNiYjk1ZmFkYzExZGRmOGQ3YzM2MDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MGJmOTcwZjYzMGM4ZGFhMjMzNzg2ZmVjYmJhNjhmNmNkODRhMTlkMmQwOWVhMTIxMDNiYTkzNGY3NmY0MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZGM4MjViMzdlMzVhNTI0ZGI1MWQ4MzY2YWM1ZjQ0OWVkOTQxOTE3MTQzZThlMjZkN2YyM2I1MGVmNzNhZjgifQ"
         },
         {
           "resource": "repo://src/integration/sync_status.py#L12-L30",
@@ -285,7 +289,7 @@
       "statement": "GET /api/v1/accounts/sync-status returns {\"account_ids\": [...]} for the authenticated user only and translates redis.RedisError into HTTP 503 \"Sync status service unavailable\".",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L178-L190",
+          "resource": "repo://src/account/router.py#L180-L192",
           "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
         },
         {
@@ -345,8 +349,8 @@
           "version": "repo-lines-v1:sha256:a953241d78bdcfc36a8b70ac835043a6ee6396aae9023fc88a8ac3e9aacd402b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Y1ZmNiNjk5ZjE5ZGY5NDQyM2Y3NjgwYmE0MmM4Y2NjZTcwNjRjYThhZDNjNTNlNGJkNDFmM2M2MmI0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYifQ"
         },
         {
-          "resource": "repo://tests/tasks/test_account.py#L105-L161",
-          "version": "repo-lines-v1:sha256:909df64d375e3bac59f716bcbc55a8edc9e4aff9db2c1d7eb0e2ca38747f2956:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNWZjMTIzNzI1MmNlNTNjMmMyMjllYWIyYWU4OTg1NmI1ODM1ZWJlZDAwNTE5NGU1N2Q2MWE3Nzg4NWQ5ZjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmYzNiYTllNjU3ZDNiN2MxOThmYjM0OGExNTg2NjBjZmRjMmI1Nzg5OGI2ZTJmMmI3NDhhNWVlZmQ3NWU5OWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
+          "resource": "repo://tests/tasks/test_account.py#L44-L171",
+          "version": "repo-lines-v1:sha256:bf482a034e54a17b7c53fdccf6c5631f169a5f21cabfe32028eb32cb4665318c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDk5NDJkZWI3ZGJhYmMxMTRiMWM0OGQwMmRhNDYzODZlOWFjYTUxNWE1MmZiN2IzYzQxMmRjNjI3OTIxYjA4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MzVmYzEyMzcyNTJjZTUzYzJjMjI5ZWFiMmFlODk4NTZiNTgzNWViZWQwMDUxOTRlNTdkNjFhNzc4ODVkOWY0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzNzM1NGVkNDZjNzVlMWQxYWVkMzVmYTc0ZGJmMzU3YzY3MmQ2MTFjOTY2MzMxMDllYjJiZmVlZTgzOGVmYTUxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5In0"
         }
       ]
     },
@@ -355,11 +359,11 @@
       "statement": "generate_note_title_task is the on-demand task enqueued by the security-note create and update routes with the current request id; its async body returns early when huey.svcs_registry is absent and otherwise resolves SecurityNoteRepository and AIService to generate and persist the title.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L614-L636",
+          "resource": "repo://src/market/router.py#L759-L781",
           "version": "repo-lines-v1:sha256:91ada3f64e1357fd6bff9e9bf539809a042aa2ad8ab64075342e7d6205bd351d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODgzZmFkYzYwMTAxZmFmMGYxZDJjMjE4OWU4ZDk0NTIzZTc5NjljYzM0MTY1YWMwZDRlZGRkNzYyMzUwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZTNkNDNlNDUwMTE3MTI1MTdiZTc2NmNjYjZlMDBiYTBmNGU3OTdlZGJiYzRlZDk1ZjZhMzhiNjYyNmNiZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MDkyOTZkNjZiYWZkZjM1ZmQ5NmVhMjY2OTE1ZjBhMzc2YWYwOWY0Mzk3YzAxNDI3ZDExNTAwMTUwYzE4NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5ZWRjNjFlN2Y5Mzg4ODFhZTBlZTFjZWJkODFjZDIzMDQ1NjQ4NThhMjkzMWQ5NTBjYjJjODczZTdhZWRmYzUifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L23-L55",
+          "resource": "repo://src/market/task.py#L26-L58",
           "version": "repo-lines-v1:sha256:d17c39473b686cca7d490274659104cccbfbb1f44882572e8f495947baeebbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhM2U3ZjU1MmE5OTU4OWZjYTBlYmYwZGZiNTcwOTUzYjAwYTYxZjAwNWE5NDQ1ZmUxN2Q2NmFiNGJhZTU4MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4NzI4NTJlMDEwNjQ2ZTRkZTU5MGU2YjlkY2UyZDVmN2U5MjFmYzcxMjEwNjY0YzdmMGQ0YjMxYTRmMDZiMmMifQ"
         }
       ]
@@ -373,7 +377,7 @@
           "version": "repo-lines-v1:sha256:1da15b3b21765e8c5139079318d34842c0a43fa16048d95cb2e05872d5b9489b:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE0YTk0YWEyZGM5YjYzMmM5YTc5Yzk1NjhjNDFiOWJlNmFkZjUyOTVmMDFjNWVhMDE3ODRmNTZhNjViNzAwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGIyODYzYmIyZTY5NmExZDllOGU2MWMyNzJiZjVkYjY2ZDRiMzk1NmFhNjI5ZWFlZDlmZWIwNzhhZGFkMzFlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjVlOGYzYTc0ODE4ZDQwYTBkNDJjZGM4NTAzMjc5ZTc5ZTA2ZTA4OTAyNjg4MGViZjZhMzU3NmI1ZThjN2UyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzAxODkyMzEzMmRmNGYyMWNiNWJiOWQ0MjM0OWY1MDc3NDY0MjFkOWQ5ZjY5Y2NkODNlNGIzN2UyYmNjZTE0MSJ9"
         },
         {
-          "resource": "repo://src/main.py#L64-L71",
+          "resource": "repo://src/main.py#L71-L78",
           "version": "repo-lines-v1:sha256:4c00ee67f5980a204cfd2a5c57a12c0c7da4cf3bd8fc0185f79727bf7769f5d0:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY5ZGU1ZWYxN2I0ZjE0MzgyMmQ5ZDYwMWYwZDFjZWYxNTIzMTViNmVjM2M2YzllNGE4YzE1NTk4YzRkN2NkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM0YTM5ZmE5NDEyNzNjMDU5ZDA4M2I5YWNjODRmODVhNjdhN2U4MjhlYmNkYWUyMjZhMDA1MjM4YTE0MGI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjYyOGViMjUzMzdhOWQ2ZGNmZTNiNDlmMDg3ZTU1ZTI1M2ZjN2EzMGFlMzQwMTVlZWFmMDg4YzhjZGI2MmUyMyJ9"
         },
         {
@@ -395,7 +399,7 @@
           "version": "repo-lines-v1:sha256:693f8a9ace0d81e3938546b8bea03fc486b60e2cc34b22d098bd2b5fab148eb8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkzZjhhOWFjZTBkODFlMzkzODU0NmI4YmVhMDNmYzQ4NmI2MGUyY2MzNGIyMmQwOThiZDJiNWZhYjE0OGViOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkzZjhhOWFjZTBkODFlMzkzODU0NmI4YmVhMDNmYzQ4NmI2MGUyY2MzNGIyMmQwOThiZDJiNWZhYjE0OGViOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM2YWI4MDdiNjk3YzYyODA3ZDdiNTlmNzJkZjVjZmZlNjFlNzQyNjYwMDkzOTU2OWUyMzBiYjFlY2EzNDYxZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWRlZTdkMzZhZjZiODYxZDY4NTY2YzI2ODMzNTdiYjc1NGQxYThjYjJkYzFkMzRmY2M5MjBlYzEyMGVjNjg0OSJ9"
         },
         {
-          "resource": "repo://src/main.py#L64-L79",
+          "resource": "repo://src/main.py#L71-L86",
           "version": "repo-lines-v1:sha256:6cbc6f5ffdb59ad950c824d5cd8011ad8dd0bcdc4d144e8a99bb5b3d5a89b183:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmOWRlNWVmMTdiNGYxNDM4MjJkOWQ2MDFmMGQxY2VmMTUyMzE1YjZlYzNjNmM5ZTRhOGMxNTU5OGM0ZDdjZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZWJlMmJmNDQ2ZWE0YmM0OWY0MGE0ZjM4NjE5NzFhMjQxMGZkOGU2NjM1YWE3ZDRhNzUzNTc5ZWY4MzBjMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNGEzOWZhOTQxMjczYzA1OWQwODNiOWFjYzg0Zjg1YTY3YTdlODI4ZWJjZGFlMjI2YTAwNTIzOGExNDBiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzMGVmNzc3ODBkZmNkZThlNjgyM2NmOGRlZTI5OGM2YjBmZGM2OGNkNjExNmMzZDcxNmYzMTZiZTliNjBlNDkifQ"
         },
         {
@@ -413,7 +417,7 @@
       "statement": "Test isolation for the async runtime is global: tests/conftest.py sets huey.immediate = True so tasks run synchronously without a broker, patches ConnectionManager's init_redis/close/send_personal_message/send_personal_message_sync on the class, patches src.main's dashboard init/close bindings, and the autouse fake_redis_manager fixture replaces the src.core.redis.redis_manager client with a dict-backed FakeRedis implementing set(nx=...), sadd/srem/smembers and publish — so no test requires a live Redis, a running worker, or a real socket.",
       "evidence": [
         {
-          "resource": "repo://tests/conftest.py#L37-L86",
+          "resource": "repo://tests/conftest.py#L44-L93",
           "version": "repo-lines-v1:sha256:1bf7ed8c46b1dfbf573eff07c1ec4ddefcf2eaf90065cd9cfa8072678f06d4ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlMzZhODM0MWIzMmViMGZkZGY4YTk0MzAyNjlkNzRiNmQ4MTBjMDMyYmI2NTk5MjUzNWE2MzQ0MDdiYzNjMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNDQ2MGRiOTA0NDY3Y2U1NWRhMDZlYTU3YTY4YjFhN2QzMDllNzMwMzBiMDE5MGVhZDQ3NTcwZjk3NmYxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OWVkZGU5OGY1MThlMzY5NjZmYWVhNzdiYzcwYTlmZmM5ZmE0M2FmYTczNmJhMzQ2MjI2Yjc2ZTQ3MmJlZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMzc1ZjdjZDVkMWMzYWI1YzFlMjE1N2ViNjFhNjRhMDRlOTZiZDA1YTg1NThkYmY0MWRmZWUxMTE4YjcxMDcifQ"
         },
         {
@@ -421,10 +425,126 @@
           "version": "repo-lines-v1:sha256:3ec5318dc4f0887f33c3db5c04328a2188a1430ce587d062723c4b7ad2b09f9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjNjMzFmMDcxOGM0ZmU4NGNkNWZmNzc4NDhhN2Q2ODIwODk0NDdmZTAyNjhlMDY3OGI0M2MwMDMwY2U0MTg1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_8eaaee08d856492eb03f7f3c8e5c19f7",
+      "statement": "daily_fx_refresh is the third periodic task (crontab hour=17 minute=30, after the ECB publishes its reference rates) and the only task that never touches huey.svcs_registry: _daily_fx_refresh opens redis_manager.client() and a plain httpx.AsyncClient and hands both to refresh_fx_rates, which stores the ECB history in Redis for the FX provider.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/fx.py#L127-L127",
+          "version": "repo-lines-v1:sha256:f20c03a4f5d20e83c90fd4cd2ef98d556a675db7e456c9ef64bd9ec66d2f75ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjIwYzAzYTRmNWQyMGU4M2M5MGZkNGNkMmVmOThkNTU2YTY3NWRiN2U0NTZjOWVmNjRiZDllYzY2ZDJmNzVlYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjIwYzAzYTRmNWQyMGU4M2M5MGZkNGNkMmVmOThkNTU2YTY3NWRiN2U0NTZjOWVmNjRiZDllYzY2ZDJmNzVlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzU3ZGY5NjI3MTBmMjhlNzRjYTA5NGRjMDU2NGJlYTliNDg5MzNlMjNmMzM4MGQyNWI2YTQ1NmM1MTE4ZGZkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjllMGZhZDg4NjQwMjZmMjllMzc4YTgyOGM1NWJmMmZjNmU4OGFhZmMxZDc3MjhhNzQ4OTNjOGNiM2IxYmI4MiJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L92-L106",
+          "version": "repo-lines-v1:sha256:b023ab08bbf35e39fb3dbc1d9805f4e1b56336349bc475d0d59197a2018aa8ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlM2M2ZjYzZTYzNjQxY2Y4M2Q5ZGMwYjdhYmYzNDRkYjk1YjdlNzBiZjQzOWE1M2Y5NGZlMjYyYzc5ZmRhNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4OGRmNGMwNWVhMmQxODBiYzk3N2ZjMGMxODNkYmI2OTgzMmIwOGNkZjA5YzM3MDlhMTY2NDdiNWVkYWQ4ODAifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_fx.py#L351-L382",
+          "version": "repo-lines-v1:sha256:6e384a155ce5fd7fdc54a4ed1d4fa3cccf47442eff5acf4336a2539ee824c606:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5N2FmMzA2NzBjZDkwY2Q2ODQzYTRlMzA3ZThiOWQ0ZDI3ZDRiMDI0YTQ0NzYwODMyZWY1ZDhhOGU3ZjkzZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNGE4NmFmZTQ3MTdhZWUwMDExMTkyNzQ3OWEwZGZmOTQ1ZDgzMGFiOWNmOTcxMTUzM2Q5ZGE2NDJhMGIwODgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0YzJlYzJkZGViYzdmZDYyYzFjZWU4OTNkNzA3ODgxOTM4OTI0MzY5NjVmMWU3NWM5MmVmYzdkNDBlOWFmNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4b14fea5765f4ac79b365f32611a812c",
+      "statement": "Neither docker-compose.yml nor docker-compose.prod.yml publishes a host port for the redis service, so the Huey broker, the ws_messages pub/sub channel, the account_syncs:active:* sets and the ws-ticket-used:* keys are reachable only from containers on the compose network.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L45-L48",
+          "version": "repo-lines-v1:sha256:5b575c3e25476e8b95219df7f589d75661062c35905447c74273e262cab831fd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTNjYmE2ZmY2YmVjNzViMzgwMzhjYjdlNmJlMjFiYWIxOGZiYzJhMmUxYjU2YjQ4M2QwODYyNmQxYWI2OGIyMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTdhNGQ1MzY1MTJjNWU4ZmVkNDc2MDViNGRhYjczNWU2NWNiYTU2YzAyNDYwZDgyNTBmYjIzODcwOGRlOWYxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTM4NjY5MmQ2Zjc2NjhhZGViNTc1NDczMDk1ZTM5MWYyNjgzZDYwN2NkMjU4MjE5ZGQ4OTkyOWM2ZWRiZjJjYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ0NjkzMDBkNjk5Y2QyMDRlZDZhYWI4NzI2ZjYzMGFmNzRjZTY1YTJiNWFiYzlhYzU4MTNmNWExZWEyOTE0MCJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L101-L103",
+          "version": "repo-lines-v1:sha256:0993b84fbbf0f19c1c4172d1f001ca00c3994c41c9c2782e3b3ec7d902b68b67:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTNjYmE2ZmY2YmVjNzViMzgwMzhjYjdlNmJlMjFiYWIxOGZiYzJhMmUxYjU2YjQ4M2QwODYyNmQxYWI2OGIyMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTM4NjY5MmQ2Zjc2NjhhZGViNTc1NDczMDk1ZTM5MWYyNjgzZDYwN2NkMjU4MjE5ZGQ4OTkyOWM2ZWRiZjJjYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTM2ZDJhYmU4YTc1M2Q5YjBjNmFjYzg4YmFkZjFlMjhlODc4Yzg5MjhmYzYyMGFlMTgwZGQxODVkNjQ5NmYyMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d66c3a600dc14899804bac9690f48892",
+      "statement": "alert_email_dispatch_task is the only task in the repo that declares retries (retries=3); every other task keeps Huey's default of no automatic retries and no task declares a timeout or expiry, so a failed periodic price or FX run is only retried at its next cron tick while a failed alert email is retried inside the same hour, and the consumer's two thread workers execute task bodies concurrently with one asyncio.run loop each.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L50-L50",
+          "version": "repo-lines-v1:sha256:7e5f02e45f9385efb6ea35cc87e8bf6be3336659deb0694c22b5393d036620c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1ZjAyZTQ1ZjkzODVlZmI2ZWEzNWNjODdlOGJmNmJlMzMzNjY1OWRlYjA2OTRjMjJiNTM5M2QwMzY2MjBjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1ZjAyZTQ1ZjkzODVlZmI2ZWEzNWNjODdlOGJmNmJlMzMzNjY1OWRlYjA2OTRjMjJiNTM5M2QwMzY2MjBjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAzMmViMDY0NjI3OTE2NWNmMzFlODBlMzNkNDU2NmY5Y2UzY2ZkZjVmNGZhYjExM2JmY2U5ZjIyZmU0ZThjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmZDc1MDhjZjIxZDFjZGM4MWViYjk2MWI0NzhlYjcyZTdmN2ZiOTJmZGFiYWZjOGZmZTViNWViOGZmNzc0NiJ9"
+        },
+        {
+          "resource": "repo://src/account/task.py#L13-L13",
+          "version": "repo-lines-v1:sha256:1ec96c3e61a6129dbad481f2b74019c8c7cc284d9b19a33554fa917ea23bd3c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjIwMDk3ZTRhYTUwMDY4YmExNTdmOWEyNzM5ZmFkODY5OTVlMWUwY2RjY2RhZGM1ODk3YzIwMzRjNzRkM2VmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjBjNWI5NTE3NTE4ZWM1MWJlMjA5NmVhMmE0ZDJjZjRkN2I1NjBiN2Y0NDU1NTVlOTE4ZGQ4NGE5ZmFjYzIxNCJ9"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L41-L41",
+          "version": "repo-lines-v1:sha256:1ec96c3e61a6129dbad481f2b74019c8c7cc284d9b19a33554fa917ea23bd3c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjIwMDk3ZTRhYTUwMDY4YmExNTdmOWEyNzM5ZmFkODY5OTVlMWUwY2RjY2RhZGM1ODk3YzIwMzRjNzRkM2VmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU3NGVkMWJiODQ1MWU3YmJmZTc1OWYzZWI3NTMyYTZlZGE2Yjg3YmRkODU5NTg4ZTI4MDk4ZjMyNTk4OWM3MSJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L221-L221",
+          "version": "repo-lines-v1:sha256:cd9722d8c0697d3331b6d822f712e5ceb836acb97c79f20f8e48f7d12eabfd50:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2Q5NzIyZDhjMDY5N2QzMzMxYjZkODIyZjcxMmU1Y2ViODM2YWNiOTdjNzlmMjBmOGU0OGY3ZDEyZWFiZmQ1MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2Q5NzIyZDhjMDY5N2QzMzMxYjZkODIyZjcxMmU1Y2ViODM2YWNiOTdjNzlmMjBmOGU0OGY3ZDEyZWFiZmQ1MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNkZjJhY2YwNmU4YzNmMDNjNzEzNWM2ZThhYzVhOWNhNTQzMmFiZTA2YTc0YWNhMGZkZDlhNTNhMDA4Zjk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmUzYjNiNTkzODk0NDRhNjZmYjRkODJjZDk2YjExODY4ZDY0M2Q0MzNlOGZjYmM5MmJmZWY0NmU2MTNmYmY3MCJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L26-L26",
+          "version": "repo-lines-v1:sha256:1ec96c3e61a6129dbad481f2b74019c8c7cc284d9b19a33554fa917ea23bd3c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVjOTZjM2U2MWE2MTI5ZGJhZDQ4MWYyYjc0MDE5YzhjN2NjMjg0ZDliMTlhMzM1NTRmYTkxN2VhMjNiZDNjOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjIwMDk3ZTRhYTUwMDY4YmExNTdmOWEyNzM5ZmFkODY5OTVlMWUwY2RjY2RhZGM1ODk3YzIwMzRjNzRkM2VmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2ZiMTg1ZDBhOWNjNjMxYmFmNDVkYjkzZDQ3NWRkOGVlZWI4NzkxZjZhOTA3NjE1ZGY2ZTJjYWZjYzUzZjUyNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ad984e34c6546378850f88e622a49ad",
+      "statement": "Task bodies execute only in the worker container: the backend imports src.worker.huey solely to hand the huey instance to the dashboard, and request handlers enqueue by calling the decorated task function instead of running it — the account sync route through PositionService and IntegrationAccountApi, and the broker import route once per imported account.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L604-L631",
+          "version": "repo-lines-v1:sha256:b793804de03a50e605e1ca771f1beb72e884561c887cc6e790c7a75591324bdb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzYTY0NDg0MzI3MjUxODk2ZDA1NzUzNjkxZTczODQ5Yjg1OWZkOGNjNjg2ZDRkNDYxZGQ0ODk0Yjg2ODBlMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyNzQyMjcwNzYzMTQ1ZmQ1YjgzYjk1ZmQ2OTcyMzVhZGZlOWJiZWYwZDcyOWJhNGY3NzZhYmZmMmUxYWJmNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/integration/api.py#L40-L53",
+          "version": "repo-lines-v1:sha256:5f7de1db1f2cf5168aadee49bfdc620c643ae905f1233d1bb85055d12461e7f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlMTkxOWJhMzE2OTZhNjkyYWUwZTI1NWFjY2NjNGE0M2RmM2FiMjhjODk0ODhiNzNlODdjMWVjYWYwNjVhMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMzliNjQ2OTlmNDcyNzQyMDMxN2U3ODM3YmM0ZmU2ODIzYzkwN2YwN2Y1ZDdkZmMxMGQ5NzZiNjNjODI2YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYmVjYzNlNGEwMTViNmJmYjE4ZTA2NzU4ZTA0NmJmODEyNDI3MGI5YWFhMWVlMmI2NjdiNzYwYTU2OWU2ZjMifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L184-L185",
+          "version": "repo-lines-v1:sha256:83e470eaded4646d5dc7309feb716d46dfb7c636fb11de03015546c84320ec85:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDM3MGM1YmQxYmI5NWEyMTkxYjE2ZTM4MDBhMzYyOWMxNjc5MWU0ZDViOWZlZDlmNGE4NjhkNWE4OTg0Y2UzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRjN2ZmZmZlYmQzMDhhYWFhZWQ4MzcyYjM1NmY2NTdiNjcxZDU0YjYwZjQ5NTIwODg2MDNlZGUzMGRmNGYyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjZkMDAzMTMyMmYwM2IzNjQwNzU1Mjk5ZjQ2NGNjN2ZlZmQ1OWI5ZjhlYTEyODUyOTQ2ZGRmMDYwMTQxNzQ3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWFiMjI1NGNiZWY4NGQ3MDcwY2ZhYTczMGI4ODM1Mjk1ZGIxODFhZTRjNThmYzU0ODM2YTYxNmFjOTk1NjNkMSJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L42-L42",
+          "version": "repo-lines-v1:sha256:eb3985607746bd170a34a7c715fe955973498ecc1cbc413597d09caa9e3696b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIzOTg1NjA3NzQ2YmQxNzBhMzRhN2M3MTVmZTk1NTk3MzQ5OGVjYzFjYmM0MTM1OTdkMDljYWE5ZTM2OTZiMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIzOTg1NjA3NzQ2YmQxNzBhMzRhN2M3MTVmZTk1NTk3MzQ5OGVjYzFjYmM0MTM1OTdkMDljYWE5ZTM2OTZiMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWYwOGE2YzIyZTUxY2E2YWI1MDM0OWY1MmEzMDFhNGIzNzZmYzM1ODU0NjllMzI0NjgzOGMxZjliYzFkODc3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzQ5N2ViYzM5MmEyMTJlYjg1YTI0NjY3ZmJlOTNhZjBmYjE4MjcyNDI0OGI5NzE3MTQ1ZjRhYjQ0ZTUyZjVjOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_036d15a71c364f259acf2927e0297c5a",
+      "statement": "The dev worker command wraps huey_consumer in `uv run -m watchfiles ... src/`, so edits under src/ restart the consumer and pick up new task registrations automatically, while the prod worker runs the bare huey_consumer command and therefore needs a redeploy for task changes.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L24-L24",
+          "version": "repo-lines-v1:sha256:510c931bc015b6365a4cc2be85a359899ade78cf235cdb786515f4898c29dcc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTEwYzkzMWJjMDE1YjYzNjVhNGNjMmJlODVhMzU5ODk5YWRlNzhjZjIzNWNkYjc4NjUxNWY0ODk4YzI5ZGNjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTEwYzkzMWJjMDE1YjYzNjVhNGNjMmJlODVhMzU5ODk5YWRlNzhjZjIzNWNkYjc4NjUxNWY0ODk4YzI5ZGNjNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzFjMzY1NDk2YzQ3NGQyYWUxZGNmNWIxYmU5MmZmZTk4OTUzYjZhYjA2NGFjZWM3YjhjOWU2YTQ0ODlkMjUxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmZDc1MDhjZjIxZDFjZGM4MWViYjk2MWI0NzhlYjcyZTdmN2ZiOTJmZGFiYWZjOGZmZTViNWViOGZmNzc0NiJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L50-L50",
+          "version": "repo-lines-v1:sha256:7e5f02e45f9385efb6ea35cc87e8bf6be3336659deb0694c22b5393d036620c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1ZjAyZTQ1ZjkzODVlZmI2ZWEzNWNjODdlOGJmNmJlMzMzNjY1OWRlYjA2OTRjMjJiNTM5M2QwMzY2MjBjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1ZjAyZTQ1ZjkzODVlZmI2ZWEzNWNjODdlOGJmNmJlMzMzNjY1OWRlYjA2OTRjMjJiNTM5M2QwMzY2MjBjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAzMmViMDY0NjI3OTE2NWNmMzFlODBlMzNkNDU2NmY5Y2UzY2ZkZjVmNGZhYjExM2JmY2U5ZjIyZmU0ZThjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmZDc1MDhjZjIxZDFjZGM4MWViYjk2MWI0NzhlYjcyZTdmN2ZiOTJmZGFiYWZjOGZmZTViNWViOGZmNzc0NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a333418da5fb48bc9356a001219d17f5",
+      "statement": "RedisManager in src/core/redis.py is the module-global singleton behind redis_manager.client(): it keeps one decode_responses client per running event loop in a lock-guarded dict, prunes and aclose()s clients whose loop has closed, and builds each client with 5-second socket and socket-connect timeouts so a stalled Redis fails fast; the API lifespan closes it and /health/ready pings Redis through it.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/redis.py#L13-L85",
+          "version": "repo-lines-v1:sha256:e44dde27366b7c41858a5b87284493ed1a500fd82b3c34bdab92c41aff9032b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzA1NzcxMzAzNWJhMzg0OTRiMTIwZjM2MWU1ZTBlN2ZkNWI3Yzc5MzAwNGIxMWVhOWRmYTEzNTNkNmRjNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MzczMWM0ZWQ1ODhhODZiMzZhZjk3MjVmYzJkODUzMDI0OTIwNDliMjgwMWQxZWQ3MDEwYjI5YWIzYWZkNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L193-L214",
+          "version": "repo-lines-v1:sha256:a9655f3fb27216f9e23b2a6a50df174ee3b2086e2256a1ab5310faa510270542:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljY2NmZmMxYzkyZjIyOGFjZDg3NjQzYTZhOTRlMWYzZDM2ZmEzOTY3NWViNWQ5YmM3ZjZmYjdhYTFkMWZiZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MDgxMmEwMThiZDc0NzZmYWRjNWZkYzNkNzJkNjdlNWQ3OTI2MzNkMGU2NjQ2NmZjNmZhZWQxNjZjY2Y5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L86-L88",
+          "version": "repo-lines-v1:sha256:422163d08aed5e2f90dd0ccc896537241a3bafe57e60c165383818050d160cea:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZlYmUyYmY0NDZlYTRiYzQ5ZjQwYTRmMzg2MTk3MWEyNDEwZmQ4ZTY2MzVhYTdkNGE3NTM1NzllZjgzMGMwNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQyMWU5NmVkOGRhMmI0YjJhNjlhY2NkZTZmNjJjMWU0NDc2N2Y3ODFkZjQyYTAzM2U5NGVlODQyNmQ0ZjA5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQ0YTQ1ZWUwNTJhNTkwMGE3MDA1MDY0YmRiZDIzM2RlZjMzZDFmZmMwM2NhYTIzN2M2YjI0NjJlYmU5Y2YxNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGI5OTkxMWRmNjAwYWU2MGYyZmQ2ZjM2MjM3ZDI0MTA2MjljYjFmMDU4OThkY2FjMTc2NTY5ZDc3ZjNmOTVlZCJ9"
+        },
+        {
+          "resource": "repo://tests/tasks/test_redis_concurrency.py#L14-L71",
+          "version": "repo-lines-v1:sha256:ef3e4fed76b2d430ca66c1c80ab4844a04acd97c1a4e1589bb9890c19325ea5f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMGY0ZDU2NWQ4ZjYyY2RjN2FiMzMyYWU2MjU0MTM4MmM0NjU5ODNjMTI1OGQ3ZWUzNDQ3MzFmNDNjYWZlMjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4MTE3ZDIyZjg2OGI3ZjFmZTk0MjUzY2ZkNDg1NzliNGY4YzIwZDMyOWI5YjYwZmY5MmFiMmY1NzUwNGEwNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

@@ -1,7 +1,7 @@
 ---
 type: workflow
 title: Realtime, Background Jobs & the Worker
-description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker and its service registry, periodic and on-demand tasks, the hourly price-update cascade with isolated enqueues and retries, the Redis pub/sub WebSocket fan-out with per-event-loop clients and ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard mounted on the backend app.
+description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker container and its service registry, the full task inventory with periodic scheduling, retries and the hourly price-update cascade, the Redis pub/sub WebSocket fan-out with per-event-loop clients and single-use ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard mounted on the backend app.
 tags: [huey, background-jobs, worker, periodic-tasks, websockets, redis, pub-sub, task-scheduling, sync-status, svelte]
 sources:
   - id: openwiki-source-f3f760255077b0dab1a7b5f1
@@ -42,6 +42,8 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-417f64db491a1fd8e8f4bda0
     resource: repo://src/market/alert_service.py
+  - id: openwiki-source-8ba5fb9f2a2892acafff13a8
+    resource: repo://src/market/fx.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-689c3cecf701f8b197038e75
@@ -66,6 +68,8 @@ sources:
     resource: repo://tests/market/test_alert_email_dispatch_task.py
   - id: openwiki-source-3fc8ae58de9c48599e06465d
     resource: repo://tests/market/test_check_and_dispatch_price_alerts.py
+  - id: openwiki-source-543f389821cf5a7569850a37
+    resource: repo://tests/market/test_fx.py
   - id: openwiki-source-2669a2552e3657a5af8af4b9
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-f0bb1945da9ad36de5e92591
@@ -82,10 +86,10 @@ sources:
     resource: repo://tests/ws/test_manager.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 # Realtime, Background Jobs & the Worker
@@ -94,26 +98,71 @@ Everything that runs outside a request lives here: the `worker` container that c
 Huey queue, the tasks it runs, and the Redis-backed channel that lets a worker thread push a
 message into a browser socket held by a completely different process.
 
-Three contracts hold the design together:
+Four contracts hold the design together:
 
-1. **The worker owns its own DI registry.** The API resolves services from
+1. **Only the worker executes task bodies.** The backend imports `src.worker.huey` for the
+   dashboard, but no route runs a task — request handlers *enqueue* by calling the decorated
+   function, which publishes to the Redis broker and returns immediately.
+2. **The worker owns its own DI registry.** The API resolves services from
    `app.state.svcs_registry`; a task body resolves from `huey.svcs_registry`, which only exists
    inside a running consumer. Every task therefore guards on that attribute before touching
    anything.
-2. **A task never writes a WebSocket directly.** It publishes to the Redis channel
+3. **A task never writes a WebSocket directly.** It publishes to the Redis channel
    `ws_messages`; whichever process holds the socket delivers it. Delivery is best-effort and the
    client has an independent poll as a fallback.
-3. **Redis holds the display state for in-flight work, not a lock.** `account_syncs:active:{user_id}`
+4. **Redis holds the display state for in-flight work, not a lock.** `account_syncs:active:{user_id}`
    drives the "syncing" badge and the fallback poll; it is a set with a TTL, not a mutex.
 
 Related pages: the broker flow that drives the sync task is in
 [Broker Connect, Import & Position Sync](./broker-sync.md); the price-update cascade's market
 semantics in [Market Data, Indicators & the Price Update Cascade](./market-data-and-indicators.md);
-the async note-title task in [AI Analysis Flows](./ai-analysis.md); settings and DI wiring in
+the async note-title task in [AI Analysis Flows](./ai-analysis.md); the ECB/FX task's data source in
+[External Services](../integrations/external-services.md); settings and DI wiring in
 [Configuration](../architecture/configuration.md); the domain map in
 [Backend Domains](../architecture/domains.md); process/container topology in
 [Architecture Overview](../architecture/overview.md); the mock-only testing rule in
 [Testing & Verification](../operations/testing.md).
+
+## The realtime path end to end
+
+One account sync touches five components across two containers. The ticket is single-use, the
+worker never touches a socket, and the browser keeps a poll running in case pub/sub drops the
+event.
+
+```mermaid
+sequenceDiagram
+    participant Browser as AccountsListState
+    participant Auth as Auth API
+    participant Router as WS Router
+    participant Store as Redis
+    participant Task as Huey worker task
+
+    Browser->>Auth: POST /api/v1/auth/ws-ticket with auth_token cookie
+    Auth-->>Browser: signed ticket, salt ws-ticket, max_age 30
+    Browser->>Router: GET /api/ws with ticket query param
+    Router->>Store: SET ws-ticket-used hash NX EX 30
+    Store-->>Router: OK on first use, nil on replay
+    Router->>Router: serializer.loads max_age 30, then accept
+    Browser->>Auth: GET /accounts/sync-status
+    Auth->>Store: SMEMBERS account_syncs:active user
+    Store-->>Browser: account_ids, hydrating the syncing badges
+    Browser->>Auth: POST /accounts/id/sync
+    Auth->>Task: enqueue sync_account_positions_task on the Redis broker
+    Task->>Store: SADD plus EXPIRE account_syncs:active user
+    Task->>Store: PUBLISH ws_messages sync_started
+    Store-->>Router: pub/sub listener delivers to local sockets
+    Router-->>Browser: sync_started then sync_finished
+    Browser->>Auth: poll sync-status every 1500 ms until 60000 ms
+    Task->>Store: SREM account_syncs:active user
+```
+
+Caption: the end-to-end realtime path. Redis is the only shared medium — the worker publishes,
+the API process's pub/sub listener delivers, and the browser's poll is the safety net.
+
+Redis itself is never exposed: neither `docker-compose.yml` nor `docker-compose.prod.yml`
+publishes a host port for the `redis` service, so the Huey broker, the `ws_messages` channel, the
+`account_syncs:active:*` sets and the `ws-ticket-used:*` keys are reachable only from containers on
+the compose network.
 
 ## The worker instance and its registry
 
@@ -149,6 +198,13 @@ same interfaces), and assigns it to `huey.svcs_registry`. `NullPool` is not an o
 call `asyncio.run()` once per invocation, and a pooled async engine reused across those short-lived
 event loops produces "operation in progress" errors. `@huey.on_shutdown()` closes the registry.
 
+The API side of the split is `lifespan_context` in `src/main.py`: it creates its own
+`svcs.Registry()`, stores it on `app.state.svcs_registry`, registers the shared `sessionmanager`
+on it, eagerly resolves `DataPlaneMarketGateway` so a broken provider registration fails at boot
+rather than on the first request, and only then initializes the WebSocket manager and the worker
+dashboard. Task code never resolves from that registry, and the API never touches
+`huey.svcs_registry`.
+
 The three task modules are imported at the *bottom* of `src/worker.py`, purely so their decorators
 run against the same `huey` instance; nothing else in the process imports them for their tasks. That
 import is what makes `tests/tasks/test_account.py` able to assert
@@ -164,28 +220,34 @@ Because the registry exists only inside a running worker, task bodies split into
 Both styles then open `async with Container(huey.svcs_registry) as svcs_container:` and resolve
 services with `aget`. Tasks that accept a `request_id` (the sync and note-title tasks) call
 `set_request_id` and reset the contextvar in a `finally`, so worker logs inherit the originating
-request's correlation id.
+request's correlation id. `_daily_fx_refresh` is the exception to the table above: it touches no
+services at all and therefore never checks the registry (see below).
 
 **Adding a job** means: define it in the owning domain's `task.py` with `@huey.task()` or
 `@huey.periodic_task(...)`, import that module in `src/worker.py`, resolve dependencies through the
-container, and restart the worker.
+container, and restart the worker (in dev `watchfiles` does that for you).
 
 ## Task inventory
 
 | Task | Decorator / trigger | Retries | Publishes |
 |------|---------------------|---------|-----------|
-| `daily_price_update` | `@huey.periodic_task(crontab(hour="0", minute="0"))` | default | — |
-| `hourly_intraday_price_update` | `@huey.periodic_task(crontab(minute="0"))` | default | — (enqueues two follow-ups) |
-| `recalculate_all_account_totals_task` | `@huey.task()`, enqueued by the hourly update | default | `account_totals_updated` per active account |
-| `check_and_dispatch_price_alerts` | `@huey.task()`, enqueued by the hourly update | default | — (enqueues Stage 3) |
+| `daily_price_update` | `@huey.periodic_task(crontab(hour="0", minute="0"))` | none | — |
+| `daily_fx_refresh` | `@huey.periodic_task(crontab(hour="17", minute="30"))` | none | — (writes ECB FX rates into Redis) |
+| `hourly_intraday_price_update` | `@huey.periodic_task(crontab(minute="0"))` | none | — (enqueues two follow-ups) |
+| `recalculate_all_account_totals_task` | `@huey.task()`, enqueued by the hourly update | none | `account_totals_updated` per active account |
+| `check_and_dispatch_price_alerts` | `@huey.task()`, enqueued by the hourly update | none | — (enqueues Stage 3) |
 | `alert_email_dispatch_task` | `@huey.task(retries=3)`, enqueued per triggered alert | **3** | — |
-| `sync_account_positions_task` | `@huey.task()`, enqueued by the account sync route and the broker import path | default | `sync_started`, `sync_finished`, `sync_failed` |
-| `generate_note_title_task` | `@huey.task()`, enqueued by note create/update routes | default | — |
+| `sync_account_positions_task` | `@huey.task()`, enqueued by the account sync route and the broker import path | none | `sync_started`, `sync_finished`, `sync_failed` |
+| `generate_note_title_task` | `@huey.task()`, enqueued by note create/update routes | none | — |
 
 Every task body is a thin synchronous wrapper over `asyncio.run(<async impl>)`; the async
-implementation holds the logic and the container. Huey's own default retry count applies to
-everything except `alert_email_dispatch_task`, which is the only task in the repo that declares
-`retries=3` (pinned by `tests/market/test_alert_email_dispatch_task.py`).
+implementation holds the logic and the container. `alert_email_dispatch_task` is the only task in
+the repo that declares `retries=3` (pinned by `tests/market/test_alert_email_dispatch_task.py`);
+every other task keeps Huey's default of no automatic retries, and no task declares a timeout or
+an expiry. The practical consequence is that a failed periodic price run is not retried until the
+next cron tick, while a failed alert email is retried three times inside the same hour. The dev
+consumer runs two thread workers (`-w 2 --worker-type thread`), so task bodies execute
+concurrently in threads and each one gets its own `asyncio.run()` loop.
 
 ## The periodic price cascade
 
@@ -236,13 +298,22 @@ threaded forward; an enqueue that raises is logged and skipped, and the loop con
 `daily_price_update` is the simple branch: it runs `update_daily_prices_for_all_securities` and
 logs the result counts, with no downstream enqueue.
 
+`daily_fx_refresh` (17:30 UTC, after the ECB publishes its reference rates) is the other simple
+branch and the only task that bypasses the service registry entirely: `_daily_fx_refresh` opens
+`redis_manager.client()` and a plain `httpx.AsyncClient` and hands both to
+`refresh_fx_rates(redis, http_client)`, which stores the ECB history in Redis for the FX provider.
+`tests/market/test_fx.py` pins its periodic registration, the `asyncio.run` bridge and the
+delegation.
+
 **Periodic scheduling is armed by the consumer command, not by the decorator.**
 `docker-compose.yml` runs
 `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic` for dev (wrapped in
 `watchfiles`), while `docker-compose.prod.yml` runs the same command **without** `--periodic`.
 Without that flag Huey ignores `crontab` schedules entirely and the price tables stay empty —
 the regression pinned by `test_worker_command_enables_periodic_scheduling`, which reads
-`docker-compose.yml` and asserts both `huey_consumer` and `--periodic` are present.
+`docker-compose.yml` and asserts both `huey_consumer` and `--periodic` are present. The prod file
+is not covered by that guard, so as configured it does not fire `daily_price_update`,
+`hourly_intraday_price_update` or `daily_fx_refresh` at all.
 
 ## The broker sync task
 
@@ -348,9 +419,10 @@ failure. A malformed payload is logged and the loop continues; `CancelledError` 
 closes the pubsub; any other exception logs, sleeps 5 seconds and starts a fresh listener task.
 
 **Lifecycle.** `lifespan_context` calls `await ws_manager.init_redis(settings.redis_url)` at startup
-(so the API's main loop owns the listener) and `await ws_manager.close()` on shutdown, which cancels
-the listener and closes every loop-keyed client. `src/main.py` mounts `ws_router` *outside* the
-`/api/v1` prefix, so the endpoint is `/api/ws`.
+(so the API's main loop owns the listener) and, on shutdown, `close_worker_dashboard`, then
+`await ws_manager.close()` (cancels the listener and closes every loop-keyed client), then
+`await redis_manager.close()`. `src/main.py` mounts `ws_router` *outside* the `/api/v1` prefix, so
+the endpoint is `/api/ws`.
 
 ## Ticket authentication and the replay guard
 
@@ -396,6 +468,13 @@ per-event-loop-client pattern the WebSocket manager uses, on a separate singleto
 | `mark_sync_started(user_id, account_id)` | `SADD account_syncs:active:{user_id} <account_id>` then `EXPIRE ... settings.sync_ttl_seconds` |
 | `mark_sync_finished(user_id, account_id)` | `SREM account_syncs:active:{user_id} <account_id>` |
 | `get_active_syncs(user_id)` | `SMEMBERS ...` → `list[AccountId]` (UUIDs) |
+
+`RedisManager` is the module-global singleton behind that context manager: it keeps one
+`decode_responses=True` client per running event loop in a lock-guarded dict, prunes and
+`aclose()`s clients whose loop has closed, and constructs every client with bounded
+`socket_timeout`/`socket_connect_timeout` of 5 seconds so a stalled Redis fails fast instead of
+blocking a caller (the API lifespan closes the manager on shutdown, and `/health/ready` pings Redis
+through it).
 
 `sync_ttl_seconds` defaults to **300** and is the safety net for a worker that dies without running
 any cleanup: the key expires on its own. The set is display state, not a lock — two concurrent syncs
@@ -502,11 +581,18 @@ dashboard subscribes to.
 
 Operationally:
 
-- **Restart the worker after touching a task.** `src/account/task.py`, `src/integration/task.py` and
-  `src/market/task.py` are loaded by the consumer process only; the API process imports
-  `src.worker.huey` for the dashboard but never runs the task bodies.
-- **The dev command includes `--periodic`; the prod compose command does not.** If periodic tasks
-  stop firing, check that flag first.
+- **The container split is the first thing to check when work "does not happen".** The `backend`
+  container serves HTTP and the dashboard, and only enqueues; the `worker` container runs
+  `huey_consumer src.worker.huey -w 2 --worker-type thread`. A route that enqueues successfully
+  proves nothing about whether a worker is consuming.
+- **Dev reloads tasks automatically; prod does not.** The dev worker command is wrapped in
+  `uv run -m watchfiles "huey_consumer ..." src/`, so editing anything under `src/` restarts the
+  consumer and picks up new task registrations. The prod worker command is the bare
+  `huey_consumer src.worker.huey -w 2 --worker-type thread` — no `watchfiles`, no `--periodic` — so
+  task changes need a redeploy and periodic schedules never fire until that flag is added.
+- **Redis has no host port in either compose file.** Use `docker compose exec redis redis-cli`
+  rather than connecting from the host; a host-side `redis://localhost:6379` client will fail even
+  when the stack is healthy.
 - **`/health/ready` pings Redis** through `redis_manager.client()`, so a Redis outage degrades the
   readiness probe as well as the fan-out and sync status.
 - **The dashboard is served by the backend process, not the worker.** `src/main.py` includes
@@ -524,17 +610,24 @@ or a real socket.** `tests/conftest.py` enforces it globally:
   bound them, avoiding real `AsyncRedis` connections whose teardown costs ~4 s per test;
 - the autouse `fake_redis_manager` fixture (`tests/fixtures/redis.py`) swaps the
   `src.core.redis.redis_manager` client for a dict-backed `FakeRedis` implementing
-  `set(nx=...)`, `sadd`/`srem`/`smembers` and `publish`.
+  `set(nx=...)`, `sadd`/`srem`/`smembers` and `publish`. That fixture is the reference pattern for
+  any new Redis-touching code: reach Redis through `redis_manager.client()` (or a patched module
+  symbol) and the fake covers it, instead of pointing a test at a real server.
 
 Representative focused tests:
 
 - `tests/tasks/test_market.py` — daily/hourly success and logging, the `RuntimeError` guard, the
   periodic-task registry membership (`huey._registry.periodic_tasks`), both isolated enqueues and
   their failure paths, and the compose `--periodic` regression guard.
+- `tests/market/test_fx.py` — `daily_fx_refresh` periodic registration, the `asyncio.run` bridge and
+  the delegation to `refresh_fx_rates`.
 - `tests/tasks/test_account.py` — task registration, `asyncio.run` bridging, inactive-account
   skipping, per-account error isolation, and the missing-registry `RuntimeError`.
-- `tests/tasks/test_integration.py` — sync task success and failure with `mark_sync_started`/
-  `mark_sync_finished` assertions, the email per mapped exception, and email-failure resilience.
+- `tests/tasks/test_integration.py` — the largest task suite: sync success and failure with
+  `mark_sync_started`/`mark_sync_finished` assertions, the ordered `sync_started`/`sync_finished`
+  events, the error email per mapped exception, email-failure resilience (the `sync_failed` event
+  still goes out and the exception still propagates), free-cash/FX handling, and the broker-value
+  reconciliation warnings.
 - `tests/tasks/test_redis_concurrency.py` — two threads, two loops, two clients, closed-loop pruning
   for both `RedisManager` and `ConnectionManager`.
 - `tests/ws/test_manager.py` — connect/disconnect, skip of non-`CONNECTED` sockets, publish payload
@@ -552,13 +645,17 @@ Representative focused tests:
 ## Extension points and invariants to preserve
 
 - **New task** — owning domain's `task.py`, `@huey.task()` or `@huey.periodic_task(...)`, import the
-  module in `src/worker.py`, resolve everything through `Container(huey.svcs_registry)`.
+  module in `src/worker.py`, resolve everything through `Container(huey.svcs_registry)`. A periodic
+  task is only scheduled when the consumer runs with `--periodic`, and only after the consumer
+  restarts.
 - **New event type** — add it to `WsEventType` in `src/ws/api_types.py` and to the frontend enum in
   `frontend/src/lib/types/websocket.ts`; a type the consumer does not know about is silently ignored.
 - **New publisher** — call `ws_manager.send_personal_message` and let the fallback handle Redis; do
   not reach into `active_connections`.
 - **Keep the two registries separate.** A task must never resolve from `app.state.svcs_registry`, and
   the API must never touch `huey.svcs_registry`.
+- **Keep task execution out of the request path.** Routes enqueue and return; anything that must run
+  inline belongs in a service, not in a decorated task body.
 - **Keep the enqueue isolation.** Wrapping a follow-up enqueue in its own `try/except` is what makes
   the cascade partially successful instead of all-or-nothing.
 - **Keep the sync markers paired.** Every new exit path out of a sync task needs a matching

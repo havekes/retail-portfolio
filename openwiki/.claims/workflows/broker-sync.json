@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5515f6455000d4248405545b037ce85b8abcd0591eaf20462ec62c66ef284409",
+  "pageVersion": "sha256:ec3742b9c048899b9dcbbecdc9ae467c5539bdb41597df3666f66033e091fb39",
   "claims": [
     {
       "id": "claim_dc41cb6365fb48fa9d83873704c74cfb",
       "statement": "Broker credentials are never persisted: the external password and OTP exist only for the duration of a login call, and what survives is an integration_users row (user, institution, external username, display name) plus a broker session token cached in the OS keyring by the gateway.",
       "evidence": [
         {
-          "resource": "repo://src/integration/brokers/wealthsimple.py#L61-L80",
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L75-L94",
           "version": "repo-lines-v1:sha256:a2cfedb11487f544326e13747c2b6fe342827962a9dea73b79e8cce4aef26cdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZDY3Mjc5NmM0NzJhM2E5NTAwOTRkNGRhZDk5MDhhZGU4YWU5MWE2YjJiZjBkOWFjOTQzNmZhMDZhMGMzYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZmFjNDAxMWYyZjIxNTljYzA2ZTgyMjA1MmU4OGMzY2E3MDc0Y2QzZDJmN2Y5YjAyYjAwMmEwMjNhZmIxMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5YTVlMDJmMTdmZWRiMDNlZTk0ZDhkYmU5NzA3NDhjNGZhZGUzZjQxOWQyMmUwNWY4N2Y3OGVmNTgwMWQ1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGYxNjgyNjMxZmRiMDIwMzM0YmU5ZTUxNWYwZGYxNDZlMTM0NzBiMDRlOTc5ZWI0NmFlM2RmN2ZkYzY3MzMifQ"
         },
         {
@@ -29,7 +29,7 @@
           "version": "repo-lines-v1:sha256:7d87f5bd7a991737c8aadee73ef70ec50a91b3b1c84b1a4e1fc2f0fb8dac4da9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1ZjU4MGFkYTY4NGRkNjhhZjY3NmNkMjhkNTUxMTlkOWZkMTljYjA4N2MxMzdiODRjYjQ0ZmRhOGY5OTUyZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTRkMjUwZWUyYjJjZDc4NzZjOWZlNmY4Y2UyOTQwYWE3YjYwY2U3MDU5NTI5ZjA0MmUxNzljMGNlMzY5NDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTY4YjI1MzU5Y2QxZmQ1NDM5MTkyM2FlZDUzYTBlNjFhYTM1MmU5OTJkMzNjNjVmODA0YzY1MWNhYzc0MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZTc4ZTZhMGZhZGU0MjViMzg2ZDM1MDMwZGNmMTg1NDlmMWRhMGM0ZjAyZTQwYWIxMmIwOTE2ZjBlMDQ1NmYifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L288-L299",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L305-L316",
           "version": "repo-lines-v1:sha256:d63195dfdf55fd183784f08af0de0a8cc91447db57e612c06ee66b81ecc1c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzFmMjc5Y2IxZjdmZTgwNDlkMTU1ZDE1ODY1MDRiMzhmMTk1MjdlZDhlNWYwYjgwNzFiODE5OWI0MTA0NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDhiZGMyMzBmNTJlMTJkMzhlMDE1NzFiYzlmMjM4MmQ3ZDg0MzIzNzZlZjFiMzU2ZmE1ZWE4N2Y4NzNjOGYifQ"
         }
       ]
@@ -39,7 +39,7 @@
       "statement": "Every broker position is resolved to a market Security before being written: SecurityApi.get_or_create_from_broker checks SecurityBrokerRepository for an existing mapping, otherwise maps the broker symbol/exchange, searches the market gateway (via SecuritySearchCache), takes the first result and upserts both the Security and the SecurityBroker mapping.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L88-L103",
+          "resource": "repo://src/integration/task.py#L90-L105",
           "version": "repo-lines-v1:sha256:204bd60dbb978a952368bc88645240c59a739c6a38d3142e7ceeb215ac5153fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNjVkMzA4NzViZDQzNjc3MWQxYjU4MTU5NTViNzJjYjVkZjFhMGRjMWU5ZmM2YWJmYzZiOTQ4YjA0ZDRkNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYzUwZjFjOTAzNDlhZjYyZjFiNDAzZWRmN2MyOWQyYjc3MWJmMzZlMWE2OWRkMmQzZDZhMTk4MWE3MmE2YTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmMjM4NTY1ZjFkMWVjMTA0ZDhiOTE2ZmIzMjg4M2I2OGU0YTIyNTQ1MjYyZWNhZjY0ZjQyNmQ0MTNmYTFlOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2N2VjYjVkNmJiOGJiMDZmNDk3YjJiM2JiZjE4MWRkODMxMDUzMmMzOTBjMmQxM2RlNDk1NmFjYmE3OTQwMDEifQ"
         },
         {
@@ -81,7 +81,7 @@
       "statement": "WealthsimpleApiGateway.login first tries the cached keyring session and probes it with get_accounts(); only when no session exists does it perform a real credential login via ws.login_internal with persist_session_fct=_save_session.",
       "evidence": [
         {
-          "resource": "repo://src/integration/brokers/wealthsimple.py#L110-L147",
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L124-L161",
           "version": "repo-lines-v1:sha256:7825ef409c80b5db84691b4f5b021417d4f32a7cd26bf63ea9f5684fbd8337ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMzcxYjVjZjU3NDljYTQ2MDFkYjUxZjVmZTY2YmNkZDAzODdjZGYxMDI0ZTZmMmQwNDk2OGZhOWQxNWE1OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQ1NTgxNmZhNTFjNDc1ZjY2NmUzNGZjYWE4NTk5MTRiYWE1MTQyYzYxYjgyOGMyOWE4YTZmMzhlODE4NTQifQ"
         }
       ]
@@ -101,7 +101,7 @@
       "statement": "POST /external/accounts/import (rate-limited 3/minute) validates ownership with AuthorizationApi.check_entity_owned_by_user, lists broker accounts, filters them to the requested external_account_ids, imports non-duplicate accounts via AccountApi.import_from_broker, and enqueues one sync_account_positions_task per newly imported account.",
       "evidence": [
         {
-          "resource": "repo://src/account/api/account.py#L49-L75",
+          "resource": "repo://src/account/api/account.py#L59-L85",
           "version": "repo-lines-v1:sha256:f63fe85dd25cf1517d84fccce9d1eca1b886b4054713ad628e5ad63c6dc01359:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1Nzg2ZTg1ZDI2ZTcyMTc0ODg0YmJhNWQ5YmJiMGQ2OGJhMWNjYjc3ZDE4OGQ3OTkwZjA0NGY3MjA3YjY2YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ODhlMzIzNGJlYjdmNDQxNmIwZmFlMjg5ZTM3MzJhODQ3ZGZhYTNjNzk2NmNlMGIyYmNlY2I4MDA2ODljYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlYmQzOTgwODE0Yjc1ODdiNzhkM2VmMzZjMWE2N2FkZmIwMGNkODA2M2RhOWZmYjNkNDllODNiNWFkMzBhMTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYzc2Y2EwNjg3MGZkNDNhMGFmODZmNzE0MjlmMWNlMDViMTc4MzBhOGY2NWE0YTllOTdiYTY2NTQ4NzczZGQifQ"
         },
         {
@@ -111,25 +111,15 @@
       ]
     },
     {
-      "id": "claim_db39db23703e4d99a6ffba677fcf8cec",
-      "statement": "POST /external/positions/import is a separate synchronous variant that performs the same symbol-resolution and position-write work inline in the request instead of on the Huey worker, and is not rate-limited.",
-      "evidence": [
-        {
-          "resource": "repo://src/integration/router.py#L212-L268",
-          "version": "repo-lines-v1:sha256:ecc14b83433cbda68117e1b7f8c3260eb99f3c3d91d55c86b9f90afe7490d1cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOGNmOGYxOWU0MDlkOGZiZDQ2NDVjYWIyMWZlNjdkN2EwMjg3NDg3MzU0MjU5ZDY3YTcwYmViODc4ZDY0ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MmI0NzI5M2ZiOTAyMjhmZWQ5ZmY2Njc5YzVlMzBlZjE4Y2RhODE0NjEwMWIyNTc5ZGFmYzk5NTQ1YWNlYTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1NDVjNmU5NGMzYTgwYmI2YzVjMWM0MzU3NGEwOWMwODEyNzg1YTllZWVhOGNlMGM3ZTZkNWU0MTMxYWVjOTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
       "id": "claim_a1e822ecf2f748c7b83ed29d6a481524",
       "statement": "sync_account_positions_task is a Huey task that runs in the huey-worker process, asserts huey.svcs_registry is set (raising RuntimeError otherwise), and runs its async body under asyncio.run inside a fresh svcs Container.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L221-L238",
+          "resource": "repo://src/integration/task.py#L315-L332",
           "version": "repo-lines-v1:sha256:30331b28bf6c8e1dc11965c3376da43acc4a47f7f898b7791f844fc5d501c3c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMjZlZDhlZjMyNzM2OTQ5YTUyODIyM2I2Yjk3MTgxOWZlMTNiZTBmYmY2MWIwMDhjOGE5N2RiOGY0NjMxYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0M2RhNmVmNzkyODJjNDA0OTU0Njc0OTJhYjQ3OTY5NDA0YzFiZTFjZWQ1ZTE4MjZiMTIwZGVhYTlkOThiZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMTAxMmRjNDY2MjdhNDg4YzkyYTk2YzlkMGNjNzE3MTI4ODhjNzAzZDBmYzIwZTJjMjRlMGRjNGQyMjdkMmUifQ"
         },
         {
-          "resource": "repo://src/integration/task.py#L39-L59",
+          "resource": "repo://src/integration/task.py#L41-L61",
           "version": "repo-lines-v1:sha256:3724c9fa49d6867908ad7195b1718def5cbe30387258d64a3eadfe9aea564c95:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjMTBkZGQ2MzBjNTJiMWQxMmM2ZTNiOTczYzBhNDY5MGJlYTY4MGI1MGM1NzE3MWNhYWE2NThjZjRlMzUwN2UifQ"
         },
         {
@@ -140,11 +130,11 @@
     },
     {
       "id": "claim_7ca63328385e4528b0972ed6761fda5c",
-      "statement": "_do_sync_positions enforces ordering and guards: it raises AccountPositionsSyncError when account.integration_user_id is None and IntegrationUserNotFoundError when the integration user row is missing, then fetches broker positions, resolves securities, writes positions, and finally updates net_deposits and last_sync_at from a re-listed broker account.",
+      "statement": "_do_sync_positions enforces ordering and guards: it raises AccountPositionsSyncError when account.integration_user_id is None and IntegrationUserNotFoundError when the integration user row is missing, then fetches broker positions, resolves each broker symbol to a Security, replaces the account's positions through PositionApi.create, writes free_cash when the gateway overrides get_cash_balances, and finally updates net_deposits, broker_value plus broker_value_at, runs the broker-value reconciliation check, and stamps last_sync_at from a re-listed broker account.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L62-L116",
-          "version": "repo-lines-v1:sha256:800215257b51f3422aefc18e573fcc96368c5af135467fecdde9cd1656ac9b89:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjFjOTllYjFlNjdlZmY3YjU1MzM3MDc3ZDgyNmE5OGU3NjI3NzYzZjYzYWM2N2ViNTE0NThjOTg2OWQ0NjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiODUyZmFkMTBkYzBlMTJlZDM4YTllYzk1MTVjMDUwNmQ2NDNhMmE4Y2MwNjQ3MzhkZjJhMWRjODE5N2JhZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0OGQ1NjcwOTVhZGViMWQ2OGY5MDE2NjQ5NDZhYjNmZDEyY2ViOTZiNzJlZjljNDJhNmY2ZDQwM2ZiMDU2ZWYifQ"
+          "resource": "repo://src/integration/task.py#L64-L142",
+          "version": "repo-lines-v1:sha256:faae4e1a75babe4813ca4f024dd40530771b72201c19a0ac09911e19d93fc651:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjFjOTllYjFlNjdlZmY3YjU1MzM3MDc3ZDgyNmE5OGU3NjI3NzYzZjYzYWM2N2ViNTE0NThjOTg2OWQ0NjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiODUyZmFkMTBkYzBlMTJlZDM4YTllYzk1MTVjMDUwNmQ2NDNhMmE4Y2MwNjQ3MzhkZjJhMWRjODE5N2JhZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MWY4MDE4NmZmNWRjZmFkZjRiMWRhOTQwMzcyNzYwMGU3MGJkMGE5ZTQ5MDQ3ZTkxMWFjZmIwN2UwNWQzZjYifQ"
         }
       ]
     },
@@ -153,7 +143,7 @@
       "statement": "Sync bookkeeping is a Redis set account_syncs:active:{user_id}: mark_sync_started SADDs the account id and sets settings.sync_ttl_seconds expiry (default 300), mark_sync_finished SREMs it, and get_active_syncs returns the members as AccountId UUIDs.",
       "evidence": [
         {
-          "resource": "repo://src/config/settings.py#L46-L48",
+          "resource": "repo://src/config/settings.py#L55-L57",
           "version": "repo-lines-v1:sha256:63e2d6a4929c923db2894b381b36193672cca396a1da4376fcf3890f75c0cdbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY3OWM4MjdmMGUxNWExZDBiNjFkMWI2YTdjOGM5MjUwZDMwZGNmMDVmYTIwYzNhMWJjMDE1NTYyNmU2ZTIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1ZDFiNmMzOTgzMWY4OGM0NTljZWRlM2E1Y2I4MGI1ZTBlNWNjOGVlNjI2YTAxNDU1NDQ1Mzg4OTE2NWY3NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTM3MzRkZmQ1NDdkN2MzOGQwYjJmODM5Njg5NmFiN2Y4NzQ4ZDJlNWMxZmI4N2VlZTc3YTFmOTMxYjUyMDI4YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNkNTkxMzZhM2E2YjQyYjlmNjlhZDBiNTY5YjdmNWQ0Y2JiY2RlM2FjMzlkMzM1MjUyNjE4N2M4ODk2NjBkNiJ9"
         },
         {
@@ -167,7 +157,7 @@
       "statement": "mark_sync_finished is called in a finally block so it runs on both success and failure, mark_sync_started failures are only logged and never abort the sync, and a huey SIGNAL_INTERRUPTED handler clears the sync status for an interrupted sync_account_positions_task.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L237-L307",
+          "resource": "repo://src/integration/task.py#L331-L401",
           "version": "repo-lines-v1:sha256:2bd7121785d0b0a57f56c7becbaaf4a4a7b4ab3f75175f683ae8ec8811c49b6c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYTVjNjZlMTdiMTQ1Mzk3ODM0YjhjODU0ZGM0MTkzZTIxMjUxODBhODk5NmExNGMzMTg4MzMyNmIyZWZiY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmZmMzUwMWNiNzNkOWQ1ZTk4YzZiNjgwMzEwZjNlOTlmNjdkMDk2NDlhNWExOGY1NDgzNTFhOWVhMDJjM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOTkwNGY1ODQ1ODUwNjlkMjczZTY5MTZkMzMyZDljMjRkNDc3MWRhMjU2OTI2ZTA1ZTVhMTY2ZGZjZDRmNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -177,7 +167,7 @@
       "statement": "GET /api/v1/accounts/sync-status returns the authenticated user's active sync account ids and maps a redis.RedisError to HTTP 503 'Sync status service unavailable'.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L178-L190",
+          "resource": "repo://src/account/router.py#L180-L192",
           "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
         },
         {
@@ -191,7 +181,7 @@
       "statement": "The sync task emits exactly three WebSocket events with wire values sync_started, sync_finished and sync_failed, each an AccountSyncMessage serialized with model_dump(mode='json'): sync_started before any broker call, sync_finished after the sync body, and sync_failed in the except branch after the error-email attempt and before re-raising.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L246-L283",
+          "resource": "repo://src/integration/task.py#L340-L377",
           "version": "repo-lines-v1:sha256:40a7829b2a0af43ca9990bb1280a9ec41e0ba37a8c2091e111a2d6d0ef152bab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjFjZTliMTJjOGMxZGQwOWU3MTcwMWUzNzU3Mjk3OGU1MWU3YTQ3ZDA4ZDAwYzEwM2JkODE2NmU3NTFjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDliNDgzMzgzOTBjNDZjYWYxN2ZiODgzYTA4Y2JjZWNlMTVjZTgyODIyZGZjOGZhNDRhNmEyMWI4ZWE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2YjYyZWQ5OWZlMzI2ZGE0MDc0NTEyNGVhN2I4ZDUxZTQxZTU0NDc2ODE0OTVkMGY3OTE2NjIyZGJmZmU1YjAifQ"
         },
         {
@@ -277,11 +267,11 @@
       "statement": "POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute) returns HTTP 400 when api_sync_enabled is false, delegates to PositionService.sync_account_positions, which re-checks the flag raising ApiSyncDisabledError and silently returns when account.integration_user_id is None, and finally enqueues the Huey task via IntegrationAccountApi.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L527-L562",
+          "resource": "repo://src/account/router.py#L596-L631",
           "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L63-L85",
+          "resource": "repo://src/account/service/position.py#L70-L92",
           "version": "repo-lines-v1:sha256:e3273c79f3502dbfa2af532fa1198d9ceb3bc0d53ee46c2368408884fff7b618:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZTRkNzhhZjUzNTBlZTNiNWE0YWZkMDNlNzQyZDVkZTk5ZjY2MDc5NmIwMzBkNTg0NmVmM2ZhODIwNjdhOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNTczOWE5ZGFjOWVmOWJjMjU5NWJlZmE0YzJjMTkwOGZiMTBlYTMwYTg1ZDYzY2RjNzFiNDMxNjIyNzRiNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlN2FjMjAwZTBlN2FiYjAxMmYxZDk3NDczMmMwZTJlM2NhY2IyNjUwYjY5MDkyZjM0YzY0NTcyNjY1MDhhODAifQ"
         },
         {
@@ -295,7 +285,7 @@
       "statement": "_SYNC_ERROR_MESSAGE_MAPPING maps SessionExpiredError, SessionDoesNotExistError, OTPRequiredError, LoginFailedError, IntegrationUserNotFoundError and ExternalAPIError to distinct user-facing sentences; AccountPositionsSyncError is handled first using its own message (with a default when empty) and any unmapped exception falls through to a generic unexpected-error sentence.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L119-L182",
+          "resource": "repo://src/integration/task.py#L213-L276",
           "version": "repo-lines-v1:sha256:c964c2a9bc38e740caa3a68a85fce61a4023ff74c131d327e746796223462c49:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMDI5NWI2YTViOWUyMzdmYTgzMWRkMjZkNjRjYmQxY2U3ODQ4MWRlMWVjODgwNTc1YmUyNTcyMmZjMDhjZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNWRhZTU3OTQ5MzQ4YzFmYTk2ZjQ3YzgwNWRmYjg2OWE3YmI5ZmE1NDBmNmY5NWRjODY4MjRhYmY3Y2NjODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMzE1NWRmMWE1MDM3MzE1OWZmMjkxZjE0ZmI0NDQ1MTk0NGE1N2MyMmEyNmIyNGJhNGQ1ZDU0ZWM0NDBiYzgifQ"
         }
       ]
@@ -305,7 +295,7 @@
       "statement": "_send_sync_error_email resolves the recipient via UserApi.get_email_for_user, derives the institution label from InstitutionEnum name with a fallback to str(account.institution_id) for unmapped ids, and sends an ExternalAccountErrorEmailData with the deeplink {settings.frontend_url}/accounts; the whole attempt is wrapped so an email failure is only logged and a missing user email only warns.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L185-L218",
+          "resource": "repo://src/integration/task.py#L279-L312",
           "version": "repo-lines-v1:sha256:b3e5f8e5c5ca852e4eab02e85845cadee7640cf1ee11778c631f349cb3b4fd1e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4OWYxMzA3NDc5ZGQ5Y2YwMTIwNzBiZGE4M2U2ZjI5NWEwMDM4MWU3NTA5YTQyYjU3M2Y3ZjExMGZkMmIyYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhYTIwYWJjMjEzYTM3YmRlNTE0OTQ0ZGRhMjFhMDMxNjBlNjI2NTExM2RhYzQ0NDNkOTliM2FmNmQyMWMwMTAifQ"
         }
       ]
@@ -315,11 +305,11 @@
       "statement": "tests/tasks/test_integration.py pins the sync task's success path (resolved security, update_net_deposits with the broker value, update_last_sync_at, and exactly two send_personal_message calls ordered sync_started then sync_finished) and one test per error-mapping entry asserting the exact email body and frontend_url deeplink, including sync_failed as the last socket call when the email itself throws.",
       "evidence": [
         {
-          "resource": "repo://tests/tasks/test_integration.py#L68-L162",
-          "version": "repo-lines-v1:sha256:3dc3af768a9bd597462eaec46e91a5a6b15babdabde77ccff99957d4674dc0ec:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMDM1MjRhZDY5OGMzNzYzMmVhNjZlYjViM2E1MTg0ODM2MmMzN2ZjMzFjZDBhOGM0YTY0OGIyYjkzMWUyOGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlMjQ2Njc3ZjhjMGNhNjk1YzI2NTg2MTlhNWU3NGE5NjYzYjkwYjc4ODc0NjU4NjE5YzI4NzNhZjdkOTgzNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MzNjYTFjYWQwN2I4ZjlmZDhjODVmODZmM2QzZWY4YWFlMGMzZmQwZjIyNmI5NTkyZTdlMTY4YzI2MTk1ZDIifQ"
+          "resource": "repo://tests/tasks/test_integration.py#L75-L266",
+          "version": "repo-lines-v1:sha256:1f56e18c88512fce454ff7a6bb5d2c07f407e4e2ab9ad975337015f3c1df2c5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTkyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDk5NDJkZWI3ZGJhYmMxMTRiMWM0OGQwMmRhNDYzODZlOWFjYTUxNWE1MmZiN2IzYzQxMmRjNjI3OTIxYjA4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhZTI0NjY3N2Y4YzBjYTY5NWMyNjU4NjE5YTVlNzRhOTY2M2I5MGI3ODg3NDY1ODYxOWMyODczYWY3ZDk4MzQ5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5NTMzY2ExY2FkMDdiOGY5ZmQ4Yzg1Zjg2ZjNkM2VmOGFhZTBjM2ZkMGYyMjZiOTU5MmU3ZTE2OGMyNjE5NWQyIn0"
         },
         {
-          "resource": "repo://tests/tasks/test_integration.py#L903-L961",
+          "resource": "repo://tests/tasks/test_integration.py#L1008-L1066",
           "version": "repo-lines-v1:sha256:79050285084b9c4588a61732ca68abbbe8a2748ca7813c27eefceb60be94e4ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYWE1YjFlNzYxNGI2OTY0NzMyYzBlYWFkNmJjYTg1OTJmZjE3ZGU4MTY2YzQ5YmU2ZjhjYzJlOWQzOGNhMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
         }
       ]
@@ -330,14 +320,14 @@
       "evidence": [
         {
           "resource": "repo://tests/conftest.py",
-          "version": "repo-file-v1:sha256:7891c0be474e61aefb126e5f301481a8f325a15e5f0c00e2a393b51990f22c13"
+          "version": "repo-file-v1:sha256:cc2d2ecc86f4c0114f90f7298a370dc116585bb22f9158951fc61e865181b294"
         },
         {
           "resource": "repo://tests/fixtures/redis.py",
-          "version": "repo-file-v1:sha256:66cc5b31526d034b81ec2cf805218eb0cf83a078c3757b887c9d83d941042b79"
+          "version": "repo-file-v1:sha256:3204bbf58a4d92958170bea46ae958ec622cebc5c6c66127c6135d9b4ce584d3"
         },
         {
-          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L30-L37",
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L31-L38",
           "version": "repo-lines-v1:sha256:a35047ac339a59e57be7fd4be90bbb24d24e55270a1e475327a965f5392d84e8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDBhMDQ1YzU5OTA4ZDkzZThmNGQ1ZjlmZjM5NjBjNDEzZDIwNGE2ZTg0M2UxZjg2MWJkODhkNTZhOTZmYmVhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODUzYzU1OGRiODFkOGEyYjg4MmUxNGQ1Mjk3ODFiYTVjYzY1YjY5ZTg0MmE1YjE0OWZmYmYxMjk4ZWZlZmJhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjQ0YmEyZTk3MjYyMGIwMWI4ZjhjNzhiNDBiNGMyMmQ0Mjk4MWM5NTE1ZGEzZjgwMjI1OGE2YmU0MjlkOGM0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODFjMTQyNmJlYTdmYWJhMDVhMTJjMWUxYzg2MGRhNjdjNjE3MzhmZmNjY2NhNGY2NzZlNGI5MjZkZWE2NmUwMiJ9"
         }
       ]
@@ -351,7 +341,7 @@
           "version": "repo-lines-v1:sha256:e5018e57689c8fd05d7a583d02398cb4da5da5e0a2e9e79c532765a0e002143e:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQwMDU5Mzg4Y2Q1MTdhNWY4OWY2MTNhMDlmMWQzNzZlM2YwMTkzZmQyZjYyY2E0NjNjNGFkMzIwYTAzZjMwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJiOGE4MzM5ZDYxYWNmY2NjYzA1MzJjZWQ2YjM1YzQwYzE4ZjY4MGZiNDQ2NmE4ZWQ1OThiMzNhMmYzZjM3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNkZjJhY2YwNmU4YzNmMDNjNzEzNWM2ZThhYzVhOWNhNTQzMmFiZTA2YTc0YWNhMGZkZDlhNTNhMDA4Zjk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk4ZTUzMzlkYjAyZTM1MmVlNDNlYzhkNGVlZGNiYzUyNDYyNjhlNWI0ZWNjODJhOTk5NjE5OTFkYjQ2NmM5MyJ9"
         },
         {
-          "resource": "repo://src/integration/brokers/__init__.py#L15-L44",
+          "resource": "repo://src/integration/brokers/__init__.py#L16-L45",
           "version": "repo-lines-v1:sha256:1297e249afbf6296f78877a1f0e69d5bb35906d424ad535c0d1a8375eeaa125a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Q4OTJjYmM0ODU2ODE5YzY0NGJkMmIxYmEzN2ZkYTZlYTFmY2FjMDgyMjJlNzM2N2ZjMmE4ZDVlOTk3MzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZDg2ZmU0OTQwOGU0OTI3ODU2YzI2YTQ5MTY3ZjBmMWExNzE1ZmQ3YzQ2NTEwYWNhNjMxZWVlMDAxNzAxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -365,7 +355,7 @@
       "statement": "Broker gateways installed on both the live and stub path store Wealthsimple session tokens unencrypted on disk because BrokerApiGateway.__init__ calls keyring.set_keyring(PlaintextKeyring()) from keyrings.alt.file, guarded only by a TODO comment.",
       "evidence": [
         {
-          "resource": "repo://src/integration/brokers/__init__.py#L19-L22",
+          "resource": "repo://src/integration/brokers/__init__.py#L20-L23",
           "version": "repo-lines-v1:sha256:8f955503902b5a1cc135625a9bad813a703089419870f9ee7e463343463639b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2YjRiOWIxYzMzMDE0NDQxZmMwZTc5ZTMyNDUxMDJkMjM0NWQ2NDgxZWMxNWQ5ZjMzYzg2MzYwNWQ5MDA5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzA4MjQxNTJlYmUxMjllZGE1OThmYWExNzVmNDY5YTgxZDhiMmRiMGFjMDNmNDI2MWEyYTQxYjgwZTMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MzA2ZmE3ZTdlOTZmNTcyMzlkYTg5MmNmOTM5MTBjMzlhMjhlMGQ2YjQ3OGE0MmI3ZWUxZDMxNjljYTllYyJ9"
         }
       ]
@@ -395,7 +385,7 @@
       "statement": "The account row invalidates its cached totals and holdings and stamps a local last-sync override only on the falling edge of isSyncing and only when there is no sync error, so a failed sync does not fake a fresh last_sync_at.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L109-L124",
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L110-L125",
           "version": "repo-lines-v1:sha256:62b4c673a9262cd96a41521ff314cf9aa26ed70c4ff8b24405dc9846ecf7ef9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MjI1ZGUxZWVkMTFjNWY5OGJlOTMxZjBiYTBhZDNhMDEyN2U4ZGQ0Y2VjYzEzODJiMTNjZWNhMWViNDdjZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YzJjMGNkMzk0NzYyY2EyNDNhYjlmODBjYWJlYmVjZDYyZGIwYjBhMDhmYmJjNDNjZTlhYzkzODE1MzlhZDAifQ"
         },
         {
@@ -413,7 +403,7 @@
           "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
         },
         {
-          "resource": "repo://src/integration/task.py#L246-L283",
+          "resource": "repo://src/integration/task.py#L340-L377",
           "version": "repo-lines-v1:sha256:40a7829b2a0af43ca9990bb1280a9ec41e0ba37a8c2091e111a2d6d0ef152bab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjFjZTliMTJjOGMxZGQwOWU3MTcwMWUzNzU3Mjk3OGU1MWU3YTQ3ZDA4ZDAwYzEwM2JkODE2NmU3NTFjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDliNDgzMzgzOTBjNDZjYWYxN2ZiODgzYTA4Y2JjZWNlMTVjZTgyODIyZGZjOGZhNDRhNmEyMWI4ZWE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2YjYyZWQ5OWZlMzI2ZGE0MDc0NTEyNGVhN2I4ZDUxZTQxZTU0NDc2ODE0OTVkMGY3OTE2NjIyZGJmZmU1YjAifQ"
         },
         {
@@ -421,10 +411,142 @@
           "version": "repo-lines-v1:sha256:664cf2c57f5f6cd9784f1f6410fc818f352c6bef708a75afb4557f68998f508d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTY2OTk0NDExMjVhMTk0ZWU2YzJmNGM4YTM2NDc5Y2Q3NDA2ODdhZmJmNDMwNzM2ZDNhMDdmYTlkYWI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiOTA5NmEwMDc5N2E3YjZjOWJiMzFjZGQ1ZjY5Zjc5MGU5MWI2MzgyNWFlZmY1M2NiZjMwY2Y4NDNiODcyZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYWU5NWRiMjg1YmQ0YzhjMmQ2MGI4ZjVhYmI5ZjgxMWQyOGU1ZmJhMDhkYTMxNDUzMzAwNWIxMzUxNmM2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNTc2MjMwMTU2NGYzNDJkZDRlMzZmOGNiYWM2YWJhMTNkYjk3Yzg0MjIzNzg5OWFjNTE3NTE0M2M1YjBhMTIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f21388b6aa104859a778ec81df7bb5df",
+      "statement": "Cash is an account attribute rather than a position: BrokerApiGateway.get_cash_balances is a non-abstract no-op returning an empty mapping, and the sync task gates the free_cash write on type(broker).get_cash_balances not being the base implementation, so a gateway that cannot report cash leaves a CSV-imported free_cash untouched while a gateway that overrides it but reports no cash keys writes 0.0.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/__init__.py#L47-L59",
+          "version": "repo-lines-v1:sha256:b80acae386656f51a70a1ee95b1fecb3579e73aaa9aadf2f16d48e19c153794c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4OGFkZDRhNjBlMGU2ZTliMjRjMmZjMTAyODk0YzY1OWU0YjY0Zjk3ZjkyMTRlNTZhZTEyNzM4ODM0YzQ5OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmMjhlMTA2Y2I3M2E4NDJmZjhlMDg4MzA4MzdkNTIwZjk1NWI0YzA5NGE5NzBkMGU2M2Y0MDUyNWMxOGZjMjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkODdlYmJkOTc2NzUzOGY1YWZiMjBiNzVhMzkyOGY4NDQ4ZGRkZmI0MTBmYzA5NTA0NGJlNTE1M2JkMThjNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L113-L123",
+          "version": "repo-lines-v1:sha256:993529feb54f777743175f777fbfa779dc6f108dd8bf48168c9d2d2295048a87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3ZmNkZGE3YTg1ODY5NWZiODFhZWNlNWE4MmRjZjBhODBlNDY1ZjQ2MTFhNzM1MTA3Nzk5MzE4ZTA5NmY0ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MjFmMWM2YzBlODU5MjM4NmMzNWIxOThhNmM3NGY0MjExYjQ3ZmRkZDE3Y2Q2YzliNWVlZDY1YTY4MjVlNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2N2VjYjVkNmJiOGJiMDZmNDk3YjJiM2JiZjE4MWRkODMxMDUzMmMzOTBjMmQxM2RlNDk1NmFjYmE3OTQwMDEifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L172-L182",
+          "version": "repo-lines-v1:sha256:5a69bd02adca7386395ae2bc6d00f7ef5338c35604737eb00ea18f0a0ee1c2ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1YjM1MjgwNzdhMzQ2Y2Q4NTE3MzNlNjJkMmQzZTZmZjAzZmYyYzIxZWI1ZjRmODlkYWQ2Njg5NmM1Y2YwZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNTlkZWI5NjNkZjAxYmVkOWQyYWNmMzk3ZmM2MTI2NDY2YjA1ZmNmOTVlY2I4NzhiMjRkY2IzN2JlYWVkOWYifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L1333-L1401",
+          "version": "repo-lines-v1:sha256:80a88c0dec486b021415bdd10d55a89b7a12870c637b68daca8211a6762e12d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZDJiOWE2YTAxZDI3N2M2OTBlNmFlZGYyNzQwYTk3YmQ3ZjM2NzQ2Mzc1OTdlNTFkOTFlNTA1YThiYmExZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1OWVhZGYwN2RkMDI2ZWUzYzU2M2I3NzQ2MWMxYzFmNDllMmNkMmIxMzU0YTRlNTYwOWU1ZGQyMWU4MjJjY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1NzE2YzA1YWM2NDhkNDE0OTAzYjQyNTRmN2YxYmYzZGIyYmQ5MGQzYzUwZWJmYjlmNzJjZjkzZTM5ZWI0NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d560913b0d8e44dd8b21a8621b456e7f",
+      "statement": "_sum_cash_in_account_currency converts each reported cash balance into the account currency through FxRateProvider.converter(), sums the floats and rounds the total to two decimals, short-circuiting to 0.0 for an empty balance map without resolving the FX provider.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L185-L210",
+          "version": "repo-lines-v1:sha256:a4ee223a41a157906c0f2689e612bd6f54dcfed2560d195fd635773df2f2fd54:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmODE5NzNmYjNmNDE5MDE1NWQxYmQzMWQ3OGJkYWM4M2ZiMWNmZmI5YTU1NWNiNGE1MDI1ODljY2FiNWQ4OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3NGQxZjcwNjIyNDU1NjYyMjBjNTc0NDk1NWZjYjlkMTRlMjBkNmMwZTI5OWU3NWU3M2FkZDMyNmU2MDI3YTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0OGQ1NjcwOTVhZGViMWQ2OGY5MDE2NjQ5NDZhYjNmZDEyY2ViOTZiNzJlZjljNDJhNmY2ZDQwM2ZiMDU2ZWYifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L1260-L1329",
+          "version": "repo-lines-v1:sha256:5eda4a2639b0d3f5236671ac5d58d368d645264ef8304cdb5895aa0aaaa503cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0MjAzYTVmOTEwNzI5NDIyZTI3ZWI4MWQzNjAzZjJjYzRlN2YzODBiOGEwY2FhMzJjMmY0ZjExOGUxMmU2MWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMjcxMGQ1MDg2OTYyYmRiY2UyYTQwYmY4ZTI2NjRmNTZhNmRmYTNmY2E4Zjc4YjdhNDJiZjk1ZWQ2MGY4M2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ba3f7ab3383480e81212291b48f6242",
+      "statement": "When the broker still reports the account, the sync task persists the broker-reported value via AccountApi.update_broker_value, which stores it as a Decimal and stamps broker_value_at, leaving both NULL when the broker omits the value.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L175-L186",
+          "version": "repo-lines-v1:sha256:8e18c70ea476c934edb1a0d1a8c4fbae576dece88381f01e81572b1ef9b4c938:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2N2JiYzQwYzY5MGY5MGVhNDkzNjJkNWIxZTAxMzM2MTI1NTBhOGRjMWY2YzQzNWMxNTNhYzZjYjAyYTE4NTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NjE1ODk2OTU5NmFhZmI5ZjliZTA5NTE0MGMwZWExMzBhZDY5M2JiZGZmZGJmZGI3NjI0NWJmNjRiNjYyM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0MmY1YzYyMzQzNThmNGU1ZDZjNzcwNjg1ZjU0ZDU1OWI2N2U3YjdiZjgxOTZmNzlkOGZmNmYwMDA5ODlkMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjZTdlYzc1ZGI2MDUyMGFlYjU4MjMxMDI3NzQ5ZjIyNTc3NzlhMzg5NTlhN2VjODY0NjJhZjFlODg1OGZkMDMifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L139-L142",
+          "version": "repo-lines-v1:sha256:b7f2516d2a863911ce31d92a185a31c212d771ec3679b85b88feea58d4e945d0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcwMDU2Zjg1ZjdjZDYzZGQwZTk3NzdlYTk4ZTVjMzFjYjExMWYxODM4YzM0MDllNWUyMDI4ZDkxYTEwMDQxZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2I4NTJmYWQxMGRjMGUxMmVkMzhhOWVjOTUxNWMwNTA2ZDY0M2EyYThjYzA2NDczOGRmMmExZGM4MTk3YmFmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWEwZDI2MThhMjFiZDdhNDNkMGVhNjE2YmIxNjg2Y2JhMmIxODEzOWNiODlmNDY5YjEzZTY2MGJlOGE5NzI0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjcxZjgwMTg2ZmY1ZGNmYWRmNGIxZGE5NDAzNzI3NjAwZTcwYmQwYTllNDkwNDdlOTExYWNmYjA3ZTA1ZDNmNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d0068cd8ac548eb8e369ed59fc44a1f",
+      "statement": "_reconcile_broker_value compares the computed PositionService.get_total_for_account value against the broker-reported value and logs a WARNING naming both values when the difference exceeds 1% of the broker value; it never fails or alters the sync, and it imports PositionService inside the function because a module-level import would create a cycle with src.integration.api.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L145-L170",
+          "version": "repo-lines-v1:sha256:47d7a5f54108d677f748f695cfad3210d7069b6eb14cb55baf3b07ec2d30e302:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMjIyNGIyZDkyZTk0ODcwZWM4NTI4NzhiNzMxYTdlZjg3OWJjMjQwODU1MTQ0NjVjMzg3MGM3MWZiY2M5ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNWRhZTU3OTQ5MzQ4YzFmYTk2ZjQ3YzgwNWRmYjg2OWE3YmI5ZmE1NDBmNmY5NWRjODY4MjRhYmY3Y2NjODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmMTlmMmM2ZGIxZmVjMTY3NTY4M2QxN2Y0ZGU1MjY1NDEyOWRhM2Y4ZDBjNTNmNThkYjIxNDJkZTViMDhmYjQifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L1466-L1497",
+          "version": "repo-lines-v1:sha256:8b3dd212090965f080e754c0783b283de77de2f97c5ae610ab4e52867e37d873:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkMzBkMWE0YWU5YTA1Nzc4ODA2ZDQwZTQyMzVhNjkxYmExMjQxNzc4OGY1NTgxZTY5ZjRiNGY1ZDFiMWZmOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1NDEwOGI1YTVjMjRmZDZjNjhjNmJhY2IyZThlYjhlNDVmYTM3YmIzZWIxZjA3NzkxMzdlYTY4MTdjMDkwMTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a1c3badb15d4270af0b0da72681ef85",
+      "statement": "Wealthsimple reports cash as sec-c-<currency> security ids inside get_account_balances: get_positions_by_account skips them before any market-data lookup so they are never priced or resolved as securities, while get_cash_balances re-fetches the same endpoint and returns them keyed by upper-cased currency, summing duplicate ids for the same currency.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L209-L214",
+          "version": "repo-lines-v1:sha256:b1885e9445948fe4bb3140e64bc6c2560d842114f5a37f586b3baa6b8f897083:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmFmNDE5ODVkNTk4NWNkOTVmNjVlNWJkYThkOTBmNTE5MTViMmYzOTQyYmYwMGI2Y2EzOWI0ZGQxODM3N2JlZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ4YTllOWMzMjUyODIwYzY1YTgxNjUyMGI4ZGI0OTMyMjgwODQ5ZWM4YzdkMmViNjI3MmFmZGZlYmUwNTljMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE3YmE5NjMzYmM3MDRkZDAzMDgwNDczNWFhZGE4YzJjNmJlNjMzYzkwMDc1NTEwNGI4MzE2MDNhYzBmYTAwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjc2N2U5MmFmZWNlM2U1MGVlZjJmYTBmNDcwMmVjNjRiMjRiNzkzNjcyYjkwYThmNzhhOTMyMGZhN2ZlM2MwMCJ9"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L256-L294",
+          "version": "repo-lines-v1:sha256:2e3e6cb9de15eedee89c94d391b05b2ed59e125e740ef85afffdf1c33eeae26b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMTQyZWFmYTkzZjQ1MDA4NzU0ZjBjNWZhYmVjMmQyYzI4MWQ5YzdjMWIyMWE2ZDQxZTUwM2E0NTk2NmQ3YmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlYWUxOThmY2M4NGY3MjY1YzcyMzUwZGExMjNlNDM0MWFlNWE4ZjcwYTIzODVlN2M1Zjk1MmMyMDMyYmNhNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhNzA1ZTI3YzY4ZWE5NDNiOGZmZDBiYzlmNWE3NWU1MGJmNjBhNWQxMWFkYmEyNTJiZmNhNDdmM2MxNzE3OGYifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L44-L56",
+          "version": "repo-lines-v1:sha256:8eabb5ff9081c49314e26b2b1ede5de5de6045c5de28fe1a2d2b2e1715bc1d89:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NGFiYzJiYmIxNTA5NzhmMGFjZjZmMDgyMDIwMmZkMjIzZThmNmEwMTc4N2ZjYTI1Zjg4MDNkMjdlY2Q3ZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNDk1NTU4ODA4MjU5MzE2Y2E4NmRhNjhlYWE5MjIzMDQwMDJjOWIxYjc1ZGY4MjAwZDAwMzRhMjg5YmFkNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkYTU5N2RmOTk3ZTZhNDAwNWI2ZjM5YTJiMWQyZDgyNWRhMWIwMWRlYmVhYmE5ZWFiNGNlM2E2YTQxYmUwMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1Njg1NjQ4ZGNjM2NlNGExNDg5MzE4ODRmM2YzMzc1ZjIyOTQ5ODUzYjQ4NGU4NTg1N2U3YTFhODZkOGU5ZmUifQ"
+        },
+        {
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L327-L380",
+          "version": "repo-lines-v1:sha256:d3072ce7426341d4c24c434a6eab59fff9b4bda274690dd14a4e54c7b5d4fa1e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwNDkzZmYyNWU5OTJlNjI0Y2NlYzU0ZTdhOWFiY2ZjM2JkOGQ4YThjY2M3YzQyZmJhZDNhMWFkN2RiZGZjMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzZGI2MDE2MjM0ZWI0N2FjMDY2OGM2YzZiZWI4Yzk3YjE5ZTM5ZTYzZTA4ZTBhNWFmMTRhNGFlNDk5MGFmMGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhYjdiMjcyYWI0ZTI1MTc1YjVmZDI0YzEzY2ZlNTYzNDI1MTRjMDI3OTQ2ZjAzYjUzMDVkZjIwMzM3ODc5ZjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a91a2abe208c4d18ad240dcc7a45c771",
+      "statement": "sync_account_positions_task declares no Huey retries, so a failed sync is terminal for that enqueue and recovery requires a new enqueue from the account sync endpoint or a fresh import, while the raised exception is re-raised after the failure notification so Huey records the task as failed.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L360-L379",
+          "version": "repo-lines-v1:sha256:61892284ab77c7657f5c0da443fa826b3c5e3b26c676f01d8721022f7ded4e9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZjg1Nzg4ZmY1YjZiMjg2YWJmNzgzNzk0YzNhOWQ4ODEyMjFjMDU2MzdkNTIwYTg0ZTg2NzRkMjA4MGVkYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMjAyZWU5MGY1YWMzM2Y4MmUwYzUyZmEyOGZhZDlkYzkzZWY5YzE1YjAxNDJlMjEyYTZmNTY0MzFiOTk0NWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1ZWQ1MjkzYWQ0YWQyODQ2YWU1MjhiZjRmNzA4ZmY0YmNiODQ1NjRjOGJiOThlODZjM2U1NDkwYjdkYWY1MDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmZGY0MmVlZGU2ZGMzYzg2OTM4M2E5YjA1MTBkMjM0MjM0ZGU2ZjJlNDRiOGI2YzU5MjliYWIyNmY1ZDhmZTEifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L41-L61",
+          "version": "repo-lines-v1:sha256:3724c9fa49d6867908ad7195b1718def5cbe30387258d64a3eadfe9aea564c95:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjMTBkZGQ2MzBjNTJiMWQxMmM2ZTNiOTczYzBhNDY5MGJlYTY4MGI1MGM1NzE3MWNhYWE2NThjZjRlMzUwN2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0a6dc8af0c8e4511ab1b37a8542432db",
+      "statement": "When settings.stub_external_api is true, src/config/services.py registers StubWealthsimpleApiGateway in place of WealthsimpleApiGateway, and the gateway tests never touch the real client: they patch _get_client onto StubWealthsimpleAPI or a MagicMock, or patch the WealthsimpleAPI symbol that _ws_login instantiates, with keyring patched.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L27-L33",
+          "version": "repo-lines-v1:sha256:a31fe33ba3ad80521f19afbdb57363bfeed417f525345770be88c870b2494ae4:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzFjOGRkOGRkMzIwM2RjNTA4NDAyOWE4ZjNhMDZlYjQyNzhkYWIzZDYyZTRkZDI3MmJhM2U4OGM4MzRjNGExOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTRiODY5MzcxMzI0YTU0ODk5ZDUwOWIzNjg4YTVhNmY2NGFiNDk3ZGNhNGYwMGM2YzdmNTlkZTVkN2Q2NjBjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjc2MWM2NDRjNTM3Yzk1YzBjYzk0MDE3NzFiZTE3NDQ2MTk1ZTNlYjUzMzg1MzE2ZmY0ODZmNzVjMmYxZjJjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDU0MTc2NThlZWYyZWZjMDU4OTFjOTgyNzA2YzM0ZDhjNDg4OTI5NmNhYjk3MTJlZGFmNjBkYWVlZTlmZDNhMyJ9"
+        },
+        {
+          "resource": "repo://src/config/services.py#L36-L62",
+          "version": "repo-lines-v1:sha256:7dcf09e70a47c705e71ea74a4b8b45a799a1e3edf117ad002b51c941e1693a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODg2ZDA4ZjgxN2Y3ZWUwYTE4MWI4NzU4Yjg1MTc1N2U2OTY2OGYyYzk1MzkwNWI1MGIzZGNkYzk4OWNlM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMTgyMDQ0ZjEzMzdhNWUxZTQ0ZWVlOGU3MWY2NDkyOWJlNTNiY2UwMmRiY2ZkZTRiZGI0NDc0MDAzNjJjZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZWRlNDg3YmFjMGFjN2VhMzcwZWMzNzRhYjQ2MTQ1ZmU1YjBkZjc1MzYzZThjMjY0Yzk0M2QyNDg0YTJiMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YjA2NTFkMWVmMzFiNTBmNzAyOTRhNmI1ODA2YzY1ZTllYzYwYTk1MzQ0YWYyM2UxYTRiMmQyMWUwNzg0MDAifQ"
+        },
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L271-L294",
+          "version": "repo-lines-v1:sha256:0a04a5208982d2dd55746739bbf69d4969facf0e895bc85b7ba3cca4146d92db:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNjZiZjg2OGUwY2NkZjYzZGJjODRkMDk3ZjExNTAyZWVkODFhMmMzMjRmMTIwM2Q1OGE0MTFkYTk4OGU3NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmOTQ3NmYyMzcyMDA1OTA0NmY5YmQ3ZGI1ZGJmYjVlZWJlMzlmZGM1ZmU1MjdmY2MwYmVkZmEwM2MzZDU4ODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5ZGIwZWM1YmM4ZjYzZTMwYzZhZDNkYzQzNWRiMzdhMjI2MTRmMGExNWVjYTViY2NhZjY1ZjM2YjNhYWY4MGIifQ"
+        },
+        {
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L145-L186",
+          "version": "repo-lines-v1:sha256:ccc8b374bffb550d737feffdbf31c91d62e4285084547a31709d1b5907ede09b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5N2I0ZDcwYTMzNzczNDIwZjczZGI3MjlkZjcyMjRhOGI1NmNmMWJjNzgwOTkxODQzYTJiNjJjZDQzMTJkYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkZWQ0NmUwZmQwZDE5NzYwN2ZkZjViYzBkMWZmM2E1OGRmODUyOGU4YjZmYmE1YzBhMTZiZDc1NGRmNjEzYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3NjBmODYzZGQ2YmFjYTYzYTI1NmE0MDBiOGM5YTA5MjU0ZDY3OTE5MzMwMWFmZDE4YTU1YmM1OTcwZDYwNWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiZTExYTJiMWFmNjNhZWE4NjMzYjRiZmY4ZGM0MjQ5NzA5MWM2Y2UyZDZiNTFlZGM5MGQ4MzEyNDkwYjMzYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4420c185a0b4e6da03faa78b553fb08",
+      "statement": "On the login path the gateway logs the external username but never the password, OTP or session token, which are only passed through to ws_api or written as a WSAPISession JSON to the keyring; the exception is the UnexpectedException branch of _ws_login, which logs the last captured HTTP response body at exception level.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L66-L122",
+          "version": "repo-lines-v1:sha256:00506e2a78ba6dce2493eba9f66c89cfb62b1eb2c1a5a524af3317c4a3b1d331:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWZkZTAwY2I1NGNhMjk1YzBlYzQ4ZTIxOTZjMTMwZmM5MTNmMjM0OGI1NTM1NzNjYjk4ZWUzY2U5Y2QxYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MmNhMWI1NmE0ZGFkNzA5ZDBlMmMzY2YwOWE1YTg4YzU4NWJiMWE5ZTZkYzY4YjkwZTIxMWIzMmQ2ZTMwMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3OTIwOTVjZTIwOTUyMTIxNTVlMDdhZWMzOGVhMTJjNDZlZjFjN2M2ZWY3MzBhNWNmZTQ2ZTY0NzYyMTM1NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxY2RkYWE2OThmOGYwNWVkMWYwMTk0NzNiMDYwYjc1ZTJhNTUyYWY5YzIwNTRlY2UwZjJmZTQwMDQ1NjEyMTkifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

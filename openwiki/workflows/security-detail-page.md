@@ -1,16 +1,17 @@
 ---
 type: workflow
 title: Security Detail Page & Actions Sidebar
-description: How the /security/[security_id] route composes its non-chart surface — the shell-first server load and SecurityPageDataService data wave, the instant titlebar lookup from the default watchlist, the page-owned cross-group state and its two-way bindings, and the seven actions-sidebar groups that own notes, documents, price alerts, indicator configuration, holdings, fundamentals/valuation and AI analysis, including their per-user scoping, persistence and documented gaps.
-tags: [security-route, actions-sidebar, svelte, notes, documents, price-alerts, holdings, valuation, page-data]
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+description: How the /security/[security_id] route composes its non-chart surface — the shell-first server load and the SecurityPageDataService data wave, the instant titlebar lookup from the default watchlist, the page-owned cross-group state and its two-way bindings, the seven actions-sidebar groups that own notes, documents, price alerts, indicator configuration, holdings, fundamentals/valuation with its institutional-ownership block, and AI analysis, and the market read routes each part depends on.
+tags: [security-route, actions-sidebar, svelte, notes, documents, price-alerts, holdings, valuation, institutional-ownership, page-data]
 sources:
+  - id: openwiki-source-2163c40f6e8490dcf5aa468a
+    resource: repo://frontend/src/lib/api/accountClient.ts
   - id: openwiki-source-c6899c16b51d0089c637d6b9
     resource: repo://frontend/src/lib/api/async-data.ts
   - id: openwiki-source-76ee282c456ba62f6c69a0d4
     resource: repo://frontend/src/lib/api/documentsService.ts
+  - id: openwiki-source-9d52d426ef92ca9022ff29fa
+    resource: repo://frontend/src/lib/api/marketService.ts
   - id: openwiki-source-32d69207445712b7946a1c1d
     resource: repo://frontend/src/lib/api/valuationClient.ts
   - id: openwiki-source-d42146b8901fabc9328f2597
@@ -23,8 +24,14 @@ sources:
     resource: repo://frontend/src/lib/components/actions-sidebar/document/document-upload-dialog.svelte
   - id: openwiki-source-e1cb95ad60e9e5df185fb3aa
     resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte
+  - id: openwiki-source-cafc01f3c5ed6e466c825af4
+    resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts
+  - id: openwiki-source-f104b83ca1a0a5bdd2dfbce0
+    resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/institutional-ownership-modal.svelte
   - id: openwiki-source-1beec07c4e26e7747c7f4c75
     resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte
+  - id: openwiki-source-8394f84b6a0ea232a334a68d
+    resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.test.ts
   - id: openwiki-source-bcb6d766cf53db696338da6d
     resource: repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte
   - id: openwiki-source-544b7749ff54705a3c7e8737
@@ -61,14 +68,17 @@ sources:
     resource: repo://tests/routers/test_documents.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 # Security Detail Page & Actions Sidebar
 
-The `/security/[security_id]` route is the chart route, but the chart itself is documented elsewhere: [Charting: Chart Surface, Panes & Indicators](../architecture/charting.md) owns the `security-chart.svelte` surface, [Chart Drawings, Plugins & Rewind](../architecture/chart-drawings-and-rewind.md) owns the drawing/rewind pipeline, [Market Data & Indicators](./market-data-and-indicators.md) owns the candle and indicator math, and [AI Analysis Flows](./ai-analysis.md) owns the prompts and the note-title task. This page owns what those pages deliberately leave out: **how the route is composed** — the server load, the post-navigation data wave, the instant-titlebar trick, the page-level state that every sidebar group shares, and the seven actions-sidebar groups that hang every per-user annotation off the security.
+The `/security/[security_id]` route is the chart route, but the chart itself is documented elsewhere: [Charting: Chart Surface, Panes & Indicators](../architecture/charting.md) owns the `security-chart.svelte` surface, [Chart Drawings, Plugins & Rewind](../architecture/chart-drawings-and-rewind.md) owns the drawing/rewind pipeline, [Market Data & Indicators](./market-data-and-indicators.md) owns the candle and indicator math, and [AI Analysis Flows](./ai-analysis.md) owns the prompts and the note-title task. [Frontend Architecture](../architecture/frontend.md) carries the short inventory of the sidebar. This page owns what those pages deliberately leave out: **how the route is composed** — the server load, the post-navigation data wave, the instant-titlebar trick, the page-level state that every sidebar group shares, and the seven actions-sidebar groups that hang every per-user annotation off the security.
 
-The sidebar is where the route stops being read-only. Notes, documents, price alerts, indicator preferences, holdings, the fair-value range and the AI actions all live there, and each one has a different owner, a different persistence target and a different failure mode.
+The sidebar is where the route stops being read-only. Notes, documents, price alerts, indicator preferences, holdings, the fair-value range and its sibling institutional-ownership read, and the AI actions all live there, and each one has a different owner, a different persistence target and a different failure mode.
 
 | Layer | Location | Owns |
 |---|---|---|
@@ -76,8 +86,8 @@ The sidebar is where the route stops being read-only. Notes, documents, price al
 | Data wave | `frontend/src/routes/security/[security_id]/page-data.svelte.ts` | security identity + `1d` price series, sequence guard, non-throwing `load()` |
 | Route orchestration | `frontend/src/routes/security/[security_id]/+page.svelte` | shell/titlebar, timeframe & style state, indicator configs, alerts/holdings/valuation fetch, drawing service wiring, sidebar composition |
 | Sidebar groups | `frontend/src/lib/components/actions-sidebar/**` | per-group fetch, empty/error/loading states, modals, persistence |
-| HTTP surface | `src/market/router.py` (`market_router`, prefix `/market`) | per-user scoped notes/documents/alerts/snapshots/valuation routes |
-| Row models | `src/market/model.py` | `market_security_notes`, `market_security_documents`, `market_price_alerts`, `market_chart_snapshots` |
+| HTTP surface | `src/market/router.py` (`market_router`, prefix `/market`) | per-user scoped notes/documents/alerts/snapshots/valuation routes, plus the shared security/price/indicator/ownership/AI reads |
+| Row models | `src/market/model.py` | `market_security_notes`, `market_security_documents`, `market_price_alerts`, `market_chart_snapshots`, `market_security_valuations` |
 
 ## Ground rules
 
@@ -104,7 +114,7 @@ Neither the security identity nor its price series is awaited, so the shell and 
 
 `SecurityPageDataService` (`page-data.svelte.ts`) is the route's layer-2 state. It holds `security`, `items`, `isLoading` and `error` as runes, and `load(securityId)` runs the wave:
 
-1. Bump a private `loadSeq` — the stale-load guard. Every exit point compares `seq !== this.loadSeq` and bails, and the `finally` only clears `isLoading` for the newest sequence, so a slow response cannot clobber a newer soft navigation.
+1. Bump a private `loadSeq` — the stale-load guard. Every exit point compares `seq !== this.loadSeq` and bails, and the `finally` only clears `isLoading` for the newest sequence, so a slow response cannot clobber a newer soft navigation. The identity is additionally assigned only from inside its own promise, under the same check.
 2. Reset `security`, `items`, `error`, set `isLoading = true`.
 3. `Promise.all([ getSecurity(securityId), getPrices(securityId, from, to, '1d') ])` with the window from `getChartDateWindow(new SvelteDate(), '1d')`.
 4. An empty or missing `items` array is a **successful** load whose message (`No price data available for this security`) lands in `error`; `load()` returns `null`.
@@ -125,6 +135,10 @@ const isLoading = $derived(!security && !error);
 ```
 
 Shortcut navigation from a watchlist row therefore paints `symbol` + `name` immediately. A direct load (deep link, refresh) has no watchlist entry yet, falls back to the app-header skeleton, and resolves once the wave lands. The route test `renders the shell with the instant titlebar and chart placeholder before prices resolve` asserts both halves: `AAPL`/`Apple Inc.` and `Loading chart data...` are on screen before the price promise settles, and the title skeleton appears when the watchlist cannot resolve the id.
+
+### What the shell does *not* include
+
+The sidebar is not part of the instant shell. The chart region and the whole `w-64` actions column sit in a single `{:else if securityChart && security}` branch, and `securityChart` is only assigned after the dynamic `import('$lib/components/charts/security-chart.svelte')` resolves inside the init chain. Until then the page paints the app header plus a `Loading chart data...` placeholder (or the error card, which takes precedence when `error` is set). The practical consequence is an ordering guarantee: **no sidebar group fetches anything before the data wave has resolved and the chart module has loaded.** Every group's self-fetch (`getValuation`, `getInstitutionalOwnership`, `getHoldings`, `getNotes`, `getDocuments`, the indicator preferences read) starts after that point, in parallel with the page's own fan-out.
 
 ### The init chain
 
@@ -157,26 +171,49 @@ sequenceDiagram
     SL-->>Page: only security_id
     Page->>WL: read defaultWatchlistSecurities
     WL-->>Page: instant security for titlebar
-    Page->>Page: render shell and Loading chart data
+    Page->>Page: render header and Loading chart data placeholder
     Page->>Data: load securityId
     Data->>API: getSecurity and getPrices in parallel for 1d
     API-->>Data: identity plus 1d series
     Data-->>Page: null on success, error object on failure
     Page->>Page: redirectOn401 or show Failed to Load Chart card
-    Page->>Prefs: getPreferences
-    Prefs-->>Page: timeframe, chart style, indicators, valuation band
-    Page->>Groups: loadAlerts, loadHoldings, loadValuation
+    Page->>API: loadAlerts, loadHoldings, loadValuation
+    Page->>Prefs: getPreferences when userPreferences is still null
+    Prefs-->>Page: valuation band and pane heights
     Page->>Data: drawingsService loadSnapshots
-    Groups-->>Page: alerts, holdings, valuation
-    Page->>Chart: dynamic import then render with candles
+    Page->>Chart: dynamic import, then render candles and mount the sidebar
+    Groups->>API: getValuation, getInstitutionalOwnership, getHoldings, getNotes, getDocuments
+    Groups->>Prefs: getPreferences on mount
+    Prefs-->>Groups: chart style, timeframe, indicators
+    Groups-->>Page: onPreferencesLoaded and onToggleAveragePrice
     Page->>Page: force-refetch active timeframe when not 1d
 ```
 
-Shell-first load: the server returns only the route identity, the titlebar resolves from the watchlist, and the data wave plus sidebar fetches land after the shell is painted.
+Shell-first load: the server returns only the route identity, the titlebar resolves from the watchlist, the data wave and the page's own annotation fetches land after the shell is painted, and the sidebar groups only start fetching once the chart module has mounted them.
+
+### The market read routes behind the page
+
+Every request this page makes goes through the user-JWT `/api/v1` surface. The market ones, and the page that owns their contracts:
+
+| Route | What the page uses it for | Owning page |
+|---|---|---|
+| `GET /market/securities/{security_id}` | the data wave's identity (not user-scoped: looked up by id alone) | [Market Data & Indicators](./market-data-and-indicators.md) |
+| `GET /market/prices/{security_id}?interval&from_date&to_date` | the `1d` series, every timeframe switch, and `loadMoreData` paging | [Market Data & Indicators](./market-data-and-indicators.md), paging in [Charting](../architecture/charting.md) |
+| `GET /market/securities/{security_id}/logo` | the titlebar `StockLogo` | [Market Data & Indicators](./market-data-and-indicators.md) |
+| `POST /market/securities/{security_id}/indicators/compute` | `refreshActiveIndicators` after a toggle, timeframe or chart-style change | [Market Data & Indicators](./market-data-and-indicators.md), sequencing in [Charting](../architecture/charting.md) |
+| `GET`/`POST`/`PUT`/`DELETE /market/securities/{security_id}/notes` | the Notes group, plus the async title task | this page; prompts and task in [AI Analysis Flows](./ai-analysis.md) |
+| `GET`/`POST`/`DELETE /market/securities/{security_id}/documents` | the Documents group (no download handler — see below) | this page |
+| `GET`/`POST`/`DELETE /market/securities/{security_id}/alerts` | the page's `alerts` array, shared with the chart | this page; evaluation and email in [Realtime & Background Jobs](./realtime-and-background-jobs.md) |
+| `GET`/`POST`/`DELETE /market/securities/{security_id}/snapshots` | rewind snapshots, loaded by `ChartDrawingsService` in the init wave | [Chart Drawings, Plugins & Rewind](../architecture/chart-drawings-and-rewind.md) |
+| `GET`/`PUT /market/securities/{security_id}/valuation` | the Fundamentals group's range, and the page's own `loadValuation()` | [Security Valuations](../concepts/security-valuation.md) |
+| `GET /market/securities/{security_id}/institutional-ownership` | the Fundamentals group's ownership block | [Security Valuations](../concepts/security-valuation.md), cache and provider in [Market Data & Indicators](./market-data-and-indicators.md) |
+| `POST /market/securities/{security_id}/ai/fundamentals` \| `.../ai/summarize-notes` \| `.../ai/portfolio-debate` | the three AI actions | [AI Analysis Flows](./ai-analysis.md) |
+
+The account-domain reads the Holdings group needs (`GET /accounts/holdings/{security_id}`, `GET /accounts/`, `GET /accounts/{id}/totals`) belong to [Accounts & Holdings Views](./accounts-and-holdings-views.md); the default watchlist the titlebar reads from belongs to [Watchlists, Sidebar & Global Search](./watchlists-and-search.md).
 
 ## The actions sidebar
 
-`+page.svelte` renders the sidebar as a `w-64` column (`div.flex.h-full.min-h-0.w-64.flex-col.border-l`) wrapping `Sidebar.Content`, and stacks seven `Sidebar.Group`s in this fixed order: `HoldingsGroup`, `FundamentalsGroup`, `IndicatorsGroup`, `PriceAlertsGroup`, `NotesGroup`, `DocumentsGroup`, `AIAnalysisGroup`. All seven are passed `expanded={true}` by the route, which matters for the three that declare `expanded = $bindable(false)` internally (`NotesGroup`, `DocumentsGroup`, `AIAnalysisGroup`) — without that prop they would render collapsed. Groups that consume page-owned state are wired by bindable prop and callback rather than owning that state themselves.
+`+page.svelte` renders the sidebar as a `w-64` column (`div.flex.h-full.min-h-0.w-64.flex-col.border-l`) wrapping `Sidebar.Content`, and stacks seven `Sidebar.Group`s in this fixed order: `HoldingsGroup`, `FundamentalsGroup`, `IndicatorsGroup`, `PriceAlertsGroup`, `NotesGroup`, `DocumentsGroup`, `AIAnalysisGroup`. The route passes `expanded={true}` to six of them; it omits the prop on `FundamentalsGroup`, which declares `expanded = $bindable(true)` and so starts expanded anyway. That explicit prop matters for the three groups that declare `expanded = $bindable(false)` internally (`NotesGroup`, `DocumentsGroup`, `AIAnalysisGroup`) — without it they would render collapsed. Groups that consume page-owned state are wired by bindable prop and callback rather than owning that state themselves.
 
 ### Cross-group state and bindings
 
@@ -196,7 +233,21 @@ Two invariants follow. First, **the two-way bindings are what keep the chart and
 
 ### Holdings
 
-`HoldingsGroup` (`holding-group/holding-group.svelte`) shows what the user owns of this security. It fetches `accountService.getHoldings(securityId)` together with `accountClient.getAccounts()` and `getAccountTotals(acc.id)` per account, sums the totals to derive the `% of Portfolio` figure, and links each row to `/accounts/{account_id}`. It carries the `showAveragePrice` binding and a checkbox that both toggles the chart's average-price overlay through `onToggleAveragePrice` and persists it as the `avgPrice` indicator preference:
+`HoldingsGroup` (`holding-group/holding-group.svelte`) shows what the user owns of this security. One untracked `$effect`, gated on `expanded && effectiveSecurityId` (where `effectiveSecurityId = securityId ?? security?.id`), runs `fetchHoldings()`: it fetches `accountService.getHoldings(securityId)` together with `accountClient.getAccounts()` and `userPreferencesService.getPreferences()` in one `Promise.all` (preferences failing is tolerated with `.catch(() => null)`), links each row to `/accounts/{account_id}`, and only shows the skeleton when it has no rows yet, so a retry does not flash.
+
+The `% of Portfolio` figure is computed in the user's **display currency**, which is what makes the ratio meaningful across mixed-currency accounts:
+
+```ts
+const displayCurrency = prefs?.display_currency ?? 'CAD';
+const totalsList = await Promise.all(
+	accounts.map((acc) => accountClient.getAccountTotals(acc.id, undefined, displayCurrency))
+);
+// sum moneyToNumber(totals.value), then divide the holdings' display_total_value by it
+```
+
+The percentage is `sum(display_total_value) / totalPortfolioValue * 100`, and it is pinned to `0` when the portfolio total is zero, so a user with no account value sees `0.00%` rather than `Infinity` or `NaN`. A failure sets `error = 'Failed to load holdings'` and renders `SidebarError` with `fetchHoldings` as the retry.
+
+The group carries the `showAveragePrice` binding and a checkbox that both toggles the chart's average-price overlay through `onToggleAveragePrice` and persists it as the `avgPrice` indicator preference:
 
 ```ts
 await userPreferencesService.patchPreferences({
@@ -204,13 +255,23 @@ await userPreferencesService.patchPreferences({
 });
 ```
 
-The page side owns the authoritative average: `averageBuyingPrice = blendedAverageCost(holdings)` from `@/utils/finance/average-cost`, passed to the chart as `averagePrice` and shown when `indicatorConfigs.avgPrice.enabled` is set. Note that the page's `loadHoldings()` and the group's own `fetchHoldings()` are separate requests against the same endpoint — the page needs the array for the blended average, the group needs it for the table — and only the page's copy feeds the chart. The sidebar's `Maximize2` action opens a `HoldingsModal` with the full breakdown (period buttons, gain metrics, sparkline, Elliott-wave targets), which loads and persists its own `holdings_period` preference.
+The page side owns the authoritative average: `averageBuyingPrice = blendedAverageCost(holdings)` from `@/utils/finance/average-cost`, passed to the chart as `averagePrice` and shown when `indicatorConfigs.avgPrice.enabled` is set. Note that the page's `loadHoldings()` and the group's own `fetchHoldings()` are separate requests against the same endpoint — the page needs the array for the blended average, the group needs it for the table and the header card (which renders the same `blendedAverageCost` value) — and only the page's copy feeds the chart. The sidebar's `Maximize2` action opens a `HoldingsModal` with the full breakdown (period buttons, gain metrics, sparkline, Elliott-wave targets), which loads and persists its own `holdings_period` preference.
 
 ### Fundamentals & valuation
 
-`FundamentalsGroup` binds the page's `valuation` and `showOverlay` state two ways. It self-fetches with `valuationClient.getValuation(securityId)` on its own `$effect` when `expanded` and `securityId` are set — the client maps a 404 to `null` (both a thrown object carrying `status === 404` and an `Error` whose message contains `404`), so "no range set" is a normal empty state rather than an error — and renders the `lower_bound – upper_bound` range, with the header action icon switching between `Pencil` and `Plus` depending on whether a range exists. Saving goes through `ValuationModal` → `valuationClient.setValuation`, writes the result back through `bind:valuation`, and the page's `handleValuationSaved` mirrors it into `ChartDrawingsService` before persisting a rewind snapshot. The overlay checkbox assigns `showOverlay` first and then persists `show_valuation_band` via `patchPreferences`, so the chart reacts before the round trip completes.
+`FundamentalsGroup` binds the page's `valuation` and `showOverlay` state two ways and hosts **two independent blocks** that share only the group shell: the user-authored fair-value range and a read-only institutional-ownership summary.
 
-The chart is **not** fed the page's raw `valuation`. The page passes `valuation={drawingsService.effectiveValuation}`, so the band renders the live range normally and the active rewind snapshot's range while rewound, plus `showValuation={showValuationOverlay}` and `showValuationBand={showValuationOverlay}` — both gates carry the same flag. The page's init wave also calls `loadValuation()` against the same endpoint, so the value is filled from two places; both write the same page state. Backend side the range is a per-user row (`SecurityValuationRead` carries `user_id`, `security_id`, `lower_bound`, `upper_bound`) upserted by `PUT /market/securities/{security_id}/valuation`; the upsert also appends a `market_security_valuation_history` row, and `GET` raises 404 when the user has no row for that security. The concept, model, history table and modal are covered in [Security Valuations](../concepts/security-valuation.md); the sidebar group is only its binding surface.
+The valuation block self-fetches with `valuationClient.getValuation(securityId)` — the client maps a 404 to `null` (both a thrown object carrying `status === 404` and an `Error` whose message contains `404`), so "no range set" is a normal empty state rather than an error — and renders the `lower_bound – upper_bound` range, with the header action icon switching between `Pencil` and `Plus` depending on whether a range exists. Saving goes through `ValuationModal` → `valuationClient.setValuation`, writes the result back through `bind:valuation`, and the page's `handleValuationSaved` mirrors it into `ChartDrawingsService` before persisting a rewind snapshot. The overlay checkbox assigns `showOverlay` first and then persists `show_valuation_band` via `patchPreferences`, so the chart reacts before the round trip completes.
+
+The chart is **not** fed the page's raw `valuation`. The page passes `valuation={drawingsService.effectiveValuation}`, so the band renders the live range normally and the active rewind snapshot's range while rewound, plus `showValuation={showValuationOverlay}` and `showValuationBand={showValuationOverlay}` — both gates carry the same flag. The page's init wave also calls `loadValuation()` against the same endpoint, so the value is filled from two places; both write the same page state. Backend side the range is a per-user row (`SecurityValuationRead` carries `user_id`, `security_id`, `lower_bound`, `upper_bound`) upserted by `PUT /market/securities/{security_id}/valuation`; the upsert also appends a `market_security_valuation_history` row, and `GET` raises 404 when the user has no row for that security. The concept, the tables, the modal validation and the ownership route's Redis cache are covered in [Security Valuations](../concepts/security-valuation.md); the sidebar group is only their binding surface.
+
+The **institutional-ownership block** rides the same effect: `fetchOwnership()` calls `marketService.getInstitutionalOwnership(securityId)` (a plain `GET /market/securities/{security_id}/institutional-ownership` whose payload is `InstitutionalOwnershipResponse` — `symbol`, nullable `current_ownership_percent` / `investors_count` / `total_invested`, and a `history` list of quarterly points) and, unlike the valuation fetch, it has **no error surface**: a rejection logs and sets the payload to `null`, so a transport failure is indistinguishable from a security with no reported filings. The card is rendered inside `Sidebar.GroupContent` in *every* valuation state, including while the range is still loading or failed:
+
+- a skeleton while the ownership request is in flight;
+- a `View` affordance and a clickable metric showing `current_ownership_percent.toFixed(2)` + `%` only when `current_ownership_percent != null`;
+- otherwise a **disabled** `N/A` button.
+
+Both affordances open `InstitutionalOwnershipModal`, whose guard requires `hasOwnershipData`, which is why a security with no reported ownership cannot open the modal at all. The modal itself is a pure read-only view over the payload it was handed — three metric cards (Ownership / Investors / Total Invested) plus a quarterly-history table with an empty-history message — and performs no network work; its three formatters are exported from the component's `<script module>` so they can be unit-tested.
 
 ### Indicators
 
@@ -225,7 +286,7 @@ const isEnabled =
 
 ### Price alerts
 
-`PriceAlertsGroup` accepts a bindable `alerts` prop. When the page passes its own array the group mirrors it; only when the prop is absent does the group self-fetch. The page always passes its own, because alerts are **shared with the chart**: the same `alerts` array is the chart's `alerts` prop, and the chart's `onAddAlert` / `onRemoveAlert` callbacks are the page's `handleCreateAlert` / `handleDeleteAlert`, both of which re-run `loadAlerts()` after mutating.
+`PriceAlertsGroup` accepts a bindable `alerts` prop (`alerts: externalAlerts = $bindable(undefined)`). When the page passes its own array the group mirrors it; only when the prop is absent does the group self-fetch. The page always passes its own, because alerts are **shared with the chart**: the same `alerts` array is the chart's `alerts` prop, and the chart's `onAddAlert` / `onRemoveAlert` callbacks are the page's `handleCreateAlert` / `handleDeleteAlert`, both of which re-run `loadAlerts()` after mutating.
 
 Alerts are per-user rows in `market_price_alerts` with a `source` column of `manual` or `wave`; `PriceAlertWrite.source` defaults to `manual`, and the route defaults the same way — a chart-drawn or sidebar-created alert omits `source`, so it is a manual alert. Wave alerts are created by the page's own reconcile loop, which computes desired levels from the wave settings and current close, diffs them against the loaded alerts, deletes the stale ones and creates the missing ones with `source: 'wave'`. That reconcile is **serialized** onto a single promise chain precisely because `onWaveChange` fires per point while drawing and concurrent runs reading a stale `alerts` array would double-create. Failures are swallowed by design — a failed reconcile must never break drawing, and the next reconcile self-heals. Evaluation, triggering and the email dispatch are outside this page: see [Realtime & Background Jobs](./realtime-and-background-jobs.md).
 
@@ -255,20 +316,22 @@ Two further notes on the same group: the client-side acceptance rules are adviso
 
 | Group | Data owner | Persistence | Route |
 |---|---|---|---|
-| Your Holdings | `HoldingsGroup` (self-fetch) | none — read-only; the average-price toggle writes the `avgPrice` indicator entry, the modal writes `holdings_period` | `accountService.getHoldings`, `accountClient.getAccounts` / `getAccountTotals` |
-| Fundamentals | `FundamentalsGroup` (self-fetch), two-way bound to the page | `show_valuation_band` in user preferences | `GET` / `PUT /market/securities/{id}/valuation` |
+| Your Holdings | `HoldingsGroup` (self-fetch) | none — read-only; the average-price toggle writes the `avgPrice` indicator entry, the modal writes `holdings_period` | `accountService.getHoldings` (`GET /accounts/holdings/{id}`), `accountClient.getAccounts` / `getAccountTotals` |
+| Fundamentals — fair value range | `FundamentalsGroup` (self-fetch), two-way bound to the page | `show_valuation_band` in user preferences | `GET` / `PUT /market/securities/{id}/valuation` |
+| Fundamentals — institutional ownership | `FundamentalsGroup` (self-fetch, same effect) | none — read-only market data, Redis-cached for a day server-side | `GET /market/securities/{id}/institutional-ownership` |
 | Indicators | `IndicatorsGroup` ↔ page callbacks | `userPreferences.indicators[id]` | `PATCH` user preferences (see [User Preferences](../concepts/user-preferences.md)) |
 | Price Alerts | page (`alerts` array), shared with the chart | `market_price_alerts` rows, `user_id`-scoped, `source` manual \| wave | `GET`/`POST`/`DELETE /market/securities/{id}/alerts` |
 | Notes | `NotesGroup` (self-fetch) | `market_security_notes` rows, `user_id`-scoped | `GET`/`POST`/`PUT`/`DELETE /market/securities/{id}/notes` |
 | Documents | `DocumentsGroup` (self-fetch) | `market_security_documents` rows, `user_id`-scoped, plus a file under `settings.upload_path` | `GET`/`POST`/`DELETE` (no download handler) |
 | AI Analysis | `AIAnalysisGroup` (per-request) | none | `POST /market/securities/{id}/ai/*` |
 
-The `user_id` scoping is uniform across notes, documents, alerts, snapshots and valuations: every repository `get_by_security_and_user` / `delete` filters on the authenticated `user.id` from `current_user`. The security *identity* itself is not user-scoped — `market_get_security` looks it up by id alone — so the only private data on this route is what the sidebar groups own.
+The `user_id` scoping is uniform across notes, documents, alerts, snapshots and valuations: every repository `get_by_security_and_user` / `delete` filters on the authenticated `user.id` from `current_user`. The security *identity* itself is not user-scoped — `market_get_security` looks it up by id alone — and neither is the institutional-ownership read, which is a shared market read served from a Redis cache keyed by security id, so the only private data on this route is what the sidebar groups own.
 
 ## Extension points
 
-- **A new sidebar group** is a component under `components/actions-sidebar/<name>/` that takes `securityId` (and whatever page state it needs), owns its own loading/error/empty branches with `SidebarError` and `Skeleton`, and is added to the `Sidebar.Content` block in `+page.svelte`. If it needs to be visible on the chart, it must be wired through a page-level binding rather than publishing its own state.
+- **A new sidebar group** is a component under `components/actions-sidebar/<name>/` that takes `securityId` (and whatever page state it needs), owns its own loading/error/empty branches with `SidebarError` and `Skeleton`, and is added to the `Sidebar.Content` block in `+page.svelte`. Remember the mount ordering: the group will not render — and therefore will not fetch — until the chart module has loaded. If it needs to be visible on the chart, it must be wired through a page-level binding rather than publishing its own state.
 - **A new per-security user annotation** means a new repository pair (`get_by_security_and_user` + `create` + `delete`, all `user_id`-filtered), a model with the `market_` prefix, request/response schemas, a router triple under `/market/securities/{security_id}/...`, and a matching `ApiClient` subclass. Snapshot routes show the pattern; notes show the variant that also enqueues background work.
+- **A new read-only market metric on the Fundamentals group** is a second call in that group's existing untracked `$effect` (the ownership block is the template), with the failure path collapsing to a disabled placeholder rather than a `SidebarError`, since the block has no error surface of its own.
 - **A new AI action** is an entry in `aiActions`, a branch in `handleRequestAnalysis`, and a method on `aiService` — the group stays stateless.
 - **Wave alerts** are the one place where the sidebar and a drawing tool co-own data: extending the reconcile rule means `computeWaveAlertLevels` / `reconcileWaveAlerts` in `$lib/utils/finance/wave-alerts.ts`, and the serialized chain in the page must stay intact.
 - **A new cross-group value** must be added as page-level state and passed down; the two-way ones use `bind:`, the rest use a one-way prop plus a callback. A group that keeps such a value privately will silently disagree with the chart.
@@ -276,9 +339,10 @@ The `user_id` scoping is uniform across notes, documents, alerts, snapshots and 
 ## Focused tests
 
 - `frontend/src/routes/security/[security_id]/page.server.test.ts` — the load contract: only `security_id` returned, no `getSecurity`/`getPrices`, 400 when the param is missing.
-- `frontend/src/routes/security/[security_id]/page.svelte.test.ts` — mocks every API client and network-touching module up front (`marketService`, `userPreferencesService`, `alertsService`, `notesService`, `documentsService`, `accountService`, `valuationClient`, `snapshotsService`, `watchlistService`) plus `lightweight-charts`-adjacent globals (`Path2D`, `ResizeObserver`). The `Instant Shell with Async Chart Data` block is the reference suite: instant titlebar, skeleton fallback, resolved candles without navigation, force-refetch of a saved timeframe, in-page error card for a rejected fetch and for an empty series, 401 routed through `redirectOn401`, no navigation on a 500, and no unhandled rejections. The rewind suite asserts the valuation switch (`updates chart valuation to active snapshot valuation while rewound, and restores live valuation on now`) and that saving a valuation persists a snapshot carrying the range.
-- `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` — the "Fair value range not set." empty state, the currency-formatted range, and `patchPreferences({ show_valuation_band: false })` on toggle; `valuation-modal.test.ts` covers the bound validation.
-- `frontend/src/lib/components/actions-sidebar/holding-group/holding-group.test.ts` — the `% of Portfolio` math including the zero-portfolio case, the empty/loading/error states, and that the average-price toggle persists without clobbering the other indicator entries.
+- `frontend/src/routes/security/[security_id]/page.svelte.test.ts` — mocks every API client and network-touching module up front (`marketService`, `userPreferencesService`, `alertsService`, `notesService`, `documentsService`, `accountService`, `valuationClient`, `snapshotsService`, `watchlistService`, `indicatorsService`) plus the `security-chart.svelte` module and the `Path2D` / `ResizeObserver` globals. The `Security Page - Instant Shell with Async Chart Data` block, the last `describe` in the file, is the reference suite: the instant titlebar plus chart placeholder and logo URL before prices resolve, the title-skeleton fallback when the watchlist cannot resolve the id, resolved candles with the `1D` timeframe active and no navigation, a forced refetch of a saved `4h` timeframe, the in-page error card for a rejected fetch and for an empty series, a 401 routed through `redirectOn401` to `/auth/login?clear_session=true`, no navigation on a 500, and no unhandled rejections. The rewind suite asserts the valuation switch (`updates chart valuation to active snapshot valuation while rewound, and restores live valuation on now`) and that saving a valuation persists a snapshot carrying the range.
+- `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` — with `valuationClient`, `marketService` and `userPreferencesService` mocked: the "Fair value range not set." empty state, the currency-formatted range with its checkbox positioned beside it, `patchPreferences({ show_valuation_band: false })` on toggle, the short last-update date, the `60.12%` ownership metric, opening the ownership modal from the metric trigger, and the disabled `N/A` trigger for a `null` payload.
+- `frontend/src/lib/components/actions-sidebar/fundamentals/institutional-ownership-modal.test.ts` — the `{ticker} Institutional Ownership` title, the three metric cards (`60.12%`, `5,834`, `$1.98T`), the quarterly-history rows, the empty-history message, the close button flipping `modalState.isOpen`, and the exported formatters (`N/A` for null/`NaN`, `$1.98T` / `$2.50B` / `$15.00M` compaction); `valuation-modal.test.ts` covers the bound validation.
+- `frontend/src/lib/components/actions-sidebar/holding-group/holding-group.test.ts` — the `% of Portfolio` math including the zero-portfolio case and the display-currency case (the totals request is asserted with the display currency as its third argument), the loading/empty/error-with-retry states, the average-price checkbox rendering beside the blended average, and the toggle persisting without clobbering the other indicator entries.
 - `frontend/src/lib/components/actions-sidebar/indicator/indicator-group.test.ts` — reset restores defaults while keeping `enabled` from preferences, and saving settings never clobbers a sidebar-toggle flag.
 - `tests/routers/test_notes.py` — create and update both enqueue `generate_note_title_task` with the right id, and the task body writes the AI title back with a mocked `AIService`.
 - `tests/routers/test_documents.py` — upload returns the metadata with `data/uploads` in `file_path`, and the subsequent `GET` returns the uploaded document. There is no download or filesystem-cleanup test, consistent with the gaps described above.

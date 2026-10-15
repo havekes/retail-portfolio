@@ -1,8 +1,11 @@
 ---
 type: architecture
 title: Architecture Overview
-description: System-level runtime map of retail-portfolio — the FastAPI process (lifespan migrations, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL/Redis/mailcrab, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
-tags: [architecture, fastapi, huey, sveltekit, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
+description: System-level runtime map of retail-portfolio — the FastAPI backend (lifespan migrations, eager data-plane gateway probe, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the two Go services (the stateless indicator calculator and the MCP gateway that talks only to the backend data plane), PostgreSQL/Redis/mailcrab, the user-JWT versus X-Service-Token request paths, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
+tags: [architecture, fastapi, huey, sveltekit, go-services, mcp, service-to-service, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -20,22 +23,30 @@ sources:
     resource: repo://frontend/src/hooks.server.ts
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
+  - id: openwiki-source-c59fe4336a371ea1052a01dd
+    resource: repo://justfile
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
-  - id: openwiki-source-95aa045141f9e53c82a0bc2b
-    resource: repo://services/indicator-service/handlers.go
-  - id: openwiki-source-34cb4ee7457dd79b53e785af
-    resource: repo://services/indicator-service/main.go
+  - id: openwiki-source-7dd9acec632134dbf7c4e792
+    resource: repo://services/indicator-service/cmd/indicator-service/main.go
+  - id: openwiki-source-0989b05d6a997ac317b55a71
+    resource: repo://services/indicator-service/internal/httpapi/handlers.go
   - id: openwiki-source-692344b8dd5d47fcc6f9bfe0
     resource: repo://services/indicator-service/README.md
-  - id: openwiki-source-4a501a3fad557af156591f05
-    resource: repo://src/account/registry.py
+  - id: openwiki-source-c69476e28a0ace808a798ab2
+    resource: repo://services/mcp-gateway/internal/server/router.go
+  - id: openwiki-source-6b872fad076bdb4aa43f0fc9
+    resource: repo://services/mcp-gateway/README.md
+  - id: openwiki-source-fc76e2092b349ff852ef3b15
+    resource: repo://services/README.md
   - id: openwiki-source-30de42522595a37de333f4dd
     resource: repo://src/account/router.py
   - id: openwiki-source-b911aefb4dbb6f043ed2380e
     resource: repo://src/account/task.py
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
+  - id: openwiki-source-92dacc39dc7b0f24b1f6b1aa
+    resource: repo://src/auth/api.py
   - id: openwiki-source-822ca61471a547e89400439b
     resource: repo://src/auth/router.py
   - id: openwiki-source-4c3d639efe14a5f50763de50
@@ -48,14 +59,20 @@ sources:
     resource: repo://src/core/exception.py
   - id: openwiki-source-bb9b5d3400aa107e32ebff27
     resource: repo://src/core/middleware.py
+  - id: openwiki-source-75209be2251e0ad122f157ff
+    resource: repo://src/core/registry.py
   - id: openwiki-source-fd173f0cb9d58ea27b5992d2
     resource: repo://src/integration/router.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
+  - id: openwiki-source-d70f78b70446e1ce1912c7c5
+    resource: repo://src/market/data_router.py
   - id: openwiki-source-0759916706da37d0d3bef090
     resource: repo://src/market/exception.py
+  - id: openwiki-source-b5c9dababd9a2ff2d28150b0
+    resource: repo://src/market/gateway.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
@@ -74,18 +91,15 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 ---
 
 # Architecture Overview
 
 `retail-portfolio` is a portfolio tracker for the retail investor. It runs as a small
 set of cooperating containers: a FastAPI backend, a Huey worker process, a SvelteKit SSR
-frontend, a stateless Go indicator sidecar, plus PostgreSQL, Redis and — in dev only —
-mailcrab.
+frontend, two Go services (a stateless indicator calculator and an MCP gateway), plus
+PostgreSQL, Redis and — in dev only — mailcrab.
 
 This page is the system-level map: which process owns what, how the app starts, how a
 request flows, which layer rules hold the backend together, and which commands verify a
@@ -95,6 +109,8 @@ seams in [Configuration](./configuration.md); the UI shell in
 and drawing/snapshot internals in
 [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md); the asynchronous
 runtime in [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md);
+the service-to-service market surface in [Market Data Plane](./market-data-plane.md) and
+the Go client that consumes it in [MCP Gateway](../integrations/mcp-gateway.md);
 the per-user preference contract in [User Preferences](../concepts/user-preferences.md);
 authentication in [Authentication & Authorization](./authentication.md); developer/CI
 workflows in [Development, CI & Change Workflows](../operations/workflows.md) and
@@ -110,48 +126,109 @@ root `.env`, so ports are changed there rather than in the Compose file.
 
 ```mermaid
 flowchart TD
-    Browser["Browser"] -->|HTTP :8002| Frontend["frontend: SvelteKit SSR"]
+    Browser["Browser"] -->|"HTTP :8002"| Frontend["frontend: SvelteKit SSR"]
     Frontend -->|"SSR fetch VITE_INTERNAL_API_URL"| Backend["backend: uvicorn src.main:app"]
     Browser -->|"browser fetch VITE_API_BASE_URL"| Backend
-    Browser -->|WebSocket /api/ws| Backend
-    Backend -->|PostgreSQL| Postgres[("postgres:18")]
-    Backend -->|"Huey queue + Pub/Sub + rate limit + status keys"| RedisStore[("redis:7")]
-    Backend -->|SMTP| Mailcrab["mailcrab dev SMTP/UI"]
-    Backend -->|"POST /compute"| Indicator["indicator-service: Go sidecar :8080"]
+    Browser -->|"WebSocket /api/ws"| Backend
+    Agent["MCP agent"] -->|"MCP streamable HTTP on 127.0.0.1:8005"| Gateway["mcp-gateway: Go MCP server :8080"]
+    Gateway -->|"X-Service-Token to /api/v1/market/data"| Backend
+    Backend -->|"PostgreSQL"| Postgres[("postgres:18")]
+    Backend -->|"Huey queue, Pub/Sub, rate limit and status keys"| RedisStore[("redis:7")]
+    Backend -->|SMTP| Mailcrab["mailcrab dev SMTP and UI"]
+    Backend -->|"POST /compute"| Indicator["indicator-service: Go calculator :8080"]
     Worker["worker: huey_consumer src.worker.huey"] -->|"PostgreSQL NullPool"| Postgres
-    Worker -->|"task queue + Pub/Sub publish"| RedisStore
+    Worker -->|"task queue and Pub/Sub publish"| RedisStore
     Worker -->|SMTP| Mailcrab
 ```
 
-Container topology: the browser reaches the SvelteKit SSR app, which server-side-fetches
-the backend over the Compose network; backend and worker share PostgreSQL and Redis; and
-the backend is the only caller of the Go indicator sidecar. The sidecar publishes host
-port `${INDICATOR_SERVICE_PORT:-8085}` for manual inspection, but no frontend code holds
-its URL.
+*Container topology: the browser reaches the SvelteKit SSR app, which server-side-fetches
+the backend over the Compose network; an MCP agent reaches the Go gateway, which calls
+the backend data plane with a shared secret; backend and worker share PostgreSQL and
+Redis; the backend is the only caller of the indicator calculator.*
+
+The browser reaches the SvelteKit SSR app, which server-side-fetches the backend over the
+Compose network; backend and worker share PostgreSQL and Redis; the backend is the only
+caller of the Go indicator sidecar, while the Go MCP gateway is the only caller of the
+backend's service-to-service market data plane. Neither Go service holds provider
+credentials or touches PostgreSQL or Redis.
 
 | Service | Role |
 |---------|------|
-| `backend` | FastAPI app served by `uvicorn src.main:app`; owns HTTP, WebSocket, migrations, rate limiting and error handling |
+| `backend` | FastAPI app served by `uvicorn src.main:app`; owns HTTP, WebSocket, migrations, rate limiting, error handling and both the user-JWT API and the `X-Service-Token` data plane |
 | `worker` | Huey consumer; dev command is `uv run -m watchfiles "huey_consumer src.worker.huey -w 2 --worker-type thread --periodic" src/` |
 | `frontend` | SvelteKit dev server (`npm run dev`, container port 8100) in dev; the Node adapter build in prod |
-| `indicator-service` | Stateless Go calculator exposed at `POST /compute` and `GET /health`; no auth, internal network only |
+| `indicator-service` | Stateless Go calculator exposed at `POST /compute` and `GET /health`; no auth, no rate limiting, internal network only |
+| `mcp-gateway` | Go MCP server over streamable HTTP (`/mcp`) plus `GET /health`; a thin transport/client layer that holds no provider credentials and calls only the backend data plane with `X-Service-Token` |
 | `postgres` | Primary datastore (PostgreSQL 18) |
-| `redis` | Huey task queue, WebSocket Pub/Sub fan-out, slowapi rate-limit storage, sync/2FA/denylist keys |
+| `redis` | Huey task queue, WebSocket Pub/Sub fan-out, slowapi rate-limit storage, endpoint-response cache, sync/2FA/denylist keys |
 | `mailcrab` | Dev SMTP sink + web UI for outgoing email |
 
+In dev both Go services publish host ports bound to loopback only —
+`127.0.0.1:${INDICATOR_SERVICE_PORT:-8004}:8080` and
+`127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080` — for manual inspection. The MCP gateway also
+depends on the backend being healthy (`depends_on: backend: condition: service_healthy`)
+and reads `BACKEND_BASE_URL`, `MARKET_DATA_SERVICE_TOKEN` (dev default
+`dev-market-data-token`) and `DATA_PLANE_PATH` (default `/api/v1/market/data`) from the
+same root `.env`. No frontend code holds either Go service's URL.
+
 `docker-compose.prod.yml` keeps the same shape but is not a drop-in copy: it builds the
-images (`build: .` for backend and worker, `build: ./frontend`), pins ports
-(`8000:8000`, `80:3000`, `8085:8080`), drops the debug ports and **has no `mailcrab`
-service**, and its worker command is `huey_consumer src.worker.huey -w 2 --worker-type
-thread` — without `--periodic`, so Huey's periodic schedules only fire under the dev
-Compose file. The root `Dockerfile` builds a `python:3.14-slim` image whose `CMD` runs
+images (`build: .` for backend and worker, `build: ./frontend`), pins ports (`8000:8000`
+for the backend, `80:3000` for the frontend), drops the debug ports and **has no
+`mailcrab` service**, and its worker command is `huey_consumer src.worker.huey -w 2
+--worker-type thread` — without `--periodic`, so Huey's periodic schedules only fire under
+the dev Compose file. It publishes **no host port for either Go service**: both
+`indicator-service` and `mcp-gateway` are internal-network-only by design, and the gateway
+requires `MARKET_DATA_SERVICE_TOKEN` (`${MARKET_DATA_SERVICE_TOKEN:?MARKET_DATA_SERVICE_TOKEN
+must be set}`) with `BACKEND_BASE_URL` fixed to `http://backend:8000`. The root `Dockerfile`
+builds a `python:3.14-slim` image whose `CMD` runs
 `uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
 --timeout-graceful-shutdown 30` and whose `HEALTHCHECK` probes `/health/live`; each of
 those four worker processes executes the lifespan, and therefore `alembic upgrade head`,
 at startup.
 
 The indicator sidecar is deliberately public-network-free: it exposes no authentication
-and no rate limiting, so it must stay on the internal Docker network.
+and no rate limiting, so it must stay on the internal Docker network. The MCP gateway is
+unauthenticated on its own listener for the same reason — the shared-secret trust boundary
+is the backend data plane, not the MCP transport — and it rejects cross-origin browser
+requests with `403` via Go's `http.NewCrossOriginProtection`.
+
+## Two surfaces, two credentials
+
+The backend serves two audiences through one process, and the split is the single most
+important thing to internalize before changing an endpoint:
+
+- **User-JWT routes.** Everything a person drives — `/api/v1/auth/*`, accounts,
+  portfolios, market, integration, `/api/ws` — authenticates with an HS256 `auth_token`
+  JWT from the cookie or `Authorization` header, resolved by `get_token` → `current_user`
+  → `UserApi.get_current_user_from_token`, plus per-entity ownership checks.
+- **The service-to-service data plane.** `src/market/data_router.py` exposes eight
+  read-only routes under `/api/v1/market/data`, each declaring
+  `Depends(require_service_token)`, which compares the `X-Service-Token` header against
+  `settings.market_data_service_token` in constant time and answers `401 Service token
+  invalid` otherwise. It has no cookie fallback and carries no user identity.
+
+```mermaid
+flowchart TD
+    Browser["Browser and SvelteKit SSR"] -->|"auth_token cookie or Bearer JWT"| UserRoutes["backend: user-JWT routes under /api/v1"]
+    UserRoutes -->|"svcs DepContainer"| DomainServices["domain services, APIs and repositories"]
+    DomainServices -->|"POST /compute"| Indicator["indicator-service: stateless Go calculator"]
+    Agent["MCP agent"] -->|"MCP streamable HTTP /mcp, unauthenticated listener"| Gateway["mcp-gateway: Go MCP server"]
+    Gateway -->|"X-Service-Token on /api/v1/market/data/..."| DataPlane["backend: data plane behind require_service_token"]
+    DataPlane -->|"DataPlaneMarketGateway over EndpointResponseCache"| Composite["composite FMP and Polygon gateway"]
+```
+
+*Request paths by credential: people reach the user-JWT API (which is also the only caller
+of the indicator calculator), while agents reach the Go MCP gateway, whose only outbound
+surface is the shared-secret data plane.*
+
+The data plane is deliberately separate from the user-JWT `market_router`: it resolves the
+`DataPlaneMarketGateway` svcs key (the composed FMP/Polygon gateway), serves every response
+through `EndpointResponseCache`, requires a top-level `currency` on price-bearing payloads,
+and maps provider failures to provider-agnostic `404`/`502`/`503` bodies. Route paths and
+query parameters are a frozen contract for the Go client — see
+[Market Data Plane](./market-data-plane.md) for the route table, the committed OpenAPI
+snapshot and the caching layering, and [MCP Gateway](../integrations/mcp-gateway.md) for
+the tool surface.
 
 ## Backend startup (lifespan)
 
@@ -165,9 +242,15 @@ the single place where process-scoped resources are created and torn down:
 2. **Dependency registry.** A fresh `svcs.Registry()` is created, stored on
    `app.state.svcs_registry`, and populated by
    `register_services(registry, sessionmanager)` from `src/config/services.py`.
-3. **WebSocket manager.** `ws_manager.init_redis(settings.redis_url)` opens the Redis
+3. **Eager data-plane gateway probe.** Inside a throwaway
+   `async with svcs.Container(registry)` the lifespan awaits
+   `container.aget(DataPlaneMarketGateway)`, so a missing provider key or a broken
+   registration fails at boot rather than on an agent's first data-plane request. The
+   temporary container is entered and exited immediately; serving requests resolve the key
+   separately through each request's `DepContainer`.
+4. **WebSocket manager.** `ws_manager.init_redis(settings.redis_url)` opens the Redis
    client for the running event loop and starts the Pub/Sub listener task.
-4. **Huey dashboard.** `init_worker_dashboard(...)` binds the Huey instance, a task
+5. **Huey dashboard.** `init_worker_dashboard(...)` binds the Huey instance, a task
    database over `database_url` (creating its table), a Redis-backed
    `WebSocketManager` and signal handlers, all stored under `app.state.huey_dashboard`.
 
@@ -177,6 +260,7 @@ sequenceDiagram
     participant L as lifespan_context
     participant A as Alembic
     participant R as svcs Registry
+    participant G as DataPlaneMarketGateway probe
     participant W as ws_manager
     participant D as Huey dashboard
     participant M as redis_manager
@@ -185,6 +269,8 @@ sequenceDiagram
     L->>A: command.upgrade head in a worker thread
     A-->>L: schema at head
     L->>R: register_services with sessionmanager
+    L->>G: aget DataPlaneMarketGateway in a throwaway container
+    G-->>L: composite built or boot fails
     L->>W: init_redis plus Pub Sub listener
     L->>D: init_worker_dashboard with bind_signals
     L-->>U: yield svcs_registry
@@ -195,9 +281,12 @@ sequenceDiagram
     L->>M: close
 ```
 
-Startup creates migrations, the registry, the WebSocket listener and the dashboard in that
-order, then teardown unwinds them in reverse; only the `test` environment swaps the
-migration step for `BaseModel.metadata.create_all`.
+*Lifespan startup order: migrations, registry, the eager data-plane gateway probe, the
+WebSocket listener and the dashboard; teardown unwinds them in reverse.*
+
+Startup creates migrations, the registry, the gateway probe, the WebSocket listener and the
+dashboard in that order, then teardown unwinds them in reverse; only the `test` environment
+swaps the migration step for `BaseModel.metadata.create_all`.
 
 Inside the `async with registry:` block the lifespan yields
 `{"svcs_registry": registry}`; teardown then calls `close_worker_dashboard`,
@@ -222,6 +311,7 @@ v1.include_router(auth_router)
 v1.include_router(institutions_router)
 v1.include_router(integration_router)
 v1.include_router(market_router)
+v1.include_router(data_router)
 
 app.include_router(v1)
 app.include_router(ws_router)
@@ -234,18 +324,19 @@ top-level surface is:
 | Path | Owner | Notes |
 |------|-------|-------|
 | `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/portfolios/*`, `/api/v1/market/*`, `/api/v1/integration/*`, `/api/v1/external/*` |
+| `/api/v1/market/data/...` | `src/market/data_router.py` | Eight service-to-service data-plane routes; `X-Service-Token` instead of a user JWT |
 | `/api/ws` | `src/ws/router.py` | WebSocket endpoint, not under `/api/v1` |
 | `/api/ping` | `src/main.py` | Simple DB-backed healthcheck |
 | `/health/live` | `src/main.py` | Liveness probe used by the Compose and image healthchecks |
 | `/health/ready` | `src/main.py` | Readiness probe: DB + Redis |
-| `/worker/api/...` | `src/worker_dashboard/router.py` | Huey dashboard: `/worker/api/tasks` plus `/worker/api/updates` WebSocket |
+| `/worker/api/...` | `src/worker_dashboard/` | Huey dashboard: `/worker/api/tasks` plus `/worker/api/updates` WebSocket |
 
 Older documentation that describes routes as bare `/api` without the `/v1` segment is
 wrong: domain routers themselves are prefix-less relative to that (for example
 `auth_router` is `APIRouter(prefix="/auth")`, `account_router` is `/accounts`,
-`portfolio_router` is `/portfolios`, `market_router` is `/market`) and get their
-`/api/v1` prefix only here. The frontend `apiClient` hard-codes the same `/api/v1`
-base.
+`portfolio_router` is `/portfolios`, `market_router` is `/market`, `data_router` is
+`/market/data`) and get their `/api/v1` prefix only here. The frontend `apiClient`
+hard-codes the same `/api/v1` base.
 
 One naming inversion is worth internalizing because it makes URL-to-owner lookups
 error-prone: `src/integration/router.py` defines both
@@ -258,9 +349,9 @@ institutions_router = APIRouter(prefix="/integration")
 so `/api/v1/external/*` is the broker-integration surface while `/api/v1/integration/*`
 serves the institution list. Mounting is the only thing that gives these routers their
 `/api/v1` segment — `src/main.py` includes `account_router`, `portfolio_router`,
-`auth_router`, `institutions_router`, `integration_router` and `market_router` into `v1`
-in that order, so a new domain router must be added both where it is defined and to that
-include list.
+`auth_router`, `institutions_router`, `integration_router`, `market_router` and
+`data_router` into `v1` in that order, so a new domain router must be added both where it
+is defined and to that include list.
 
 Two routers that each own a wide surface are worth knowing by their module:
 `src/account/router.py` defines both `account_router` (`/accounts`) and `portfolio_router`
@@ -269,10 +360,14 @@ market read paths, watchlists with manual ordering, alerts, notes, documents, ch
 snapshots, security valuations (`/securities/valuation/batch` and
 `/securities/{security_id}/valuation`), indicator compute and the AI endpoints.
 
-Other process entrypoints: `src/worker.py` is the Huey consumer module, and
+Other process entrypoints: `src/worker.py` is the Huey consumer module,
 `src/commands/seed.py` / `src/commands/flush_market_data.py` are standalone CLI commands
 for reference data and market-data maintenance (`src/market/commands/` holds smaller
-EODHD inspection scripts).
+EODHD inspection scripts), and the two Go services start from
+`services/indicator-service/cmd/indicator-service/main.go` and
+`services/mcp-gateway/cmd/mcp-gateway/main.go` — each loads config with an injected
+`getenv`, initializes `log/slog`, registers its handlers and shuts down gracefully on
+`SIGINT`/`SIGTERM` with a bounded deadline.
 
 ## Request lifecycle
 
@@ -342,7 +437,8 @@ sequenceDiagram
 
 Request lifecycle from the CORS layers down through rate limiting and `X-Request-ID`
 binding, then router resolution, service/repository work and the response back out — with
-the CORS safety net catching anything that escapes.
+the CORS safety net catching anything that escapes. The same stack wraps the data-plane
+routes; their only difference is the dependency that authenticates them.
 
 ### Handlers and responses
 
@@ -363,7 +459,10 @@ They declare Pydantic request/response models, enforce auth through the `current
 dependency, and delegate business logic to services or domain APIs. They never touch
 another domain's repositories — though, as the layer rules below note, they may resolve
 their own domain's repositories directly (`@account_router.get("/")` does exactly that
-with `AccountRepository`).
+with `AccountRepository`). Data-plane handlers follow the same shape but declare
+`_svc: Annotated[None, Depends(require_service_token)]` and resolve
+`DataPlaneMarketGateway` with the sync `services.get(...)` because the composite factory is
+a sync closeable generator.
 
 ## Health and readiness
 
@@ -376,6 +475,12 @@ with `AccountRepository`).
 The two kinds are deliberately distinct: liveness must not depend on downstream
 services, readiness must. `tests/test_main.py` asserts both shapes, and `/api/ping`
 returning `"pong"` is the smoke test the README points at.
+
+Both Go services expose their own `GET /health` for their Compose healthchecks (a
+`wget` probe every 30s): the indicator service answers
+`{"status": "ok", "service": "indicator-service"}`, while the MCP gateway answers a fixed
+`{"status": "ok"}` that deliberately does **not** depend on backend reachability — a
+backend outage is reported per tool call, not by taking the gateway's liveness probe down.
 
 ## Dependencies and cross-domain calls
 
@@ -395,7 +500,9 @@ Dependency injection is centralized in `src/config/services.py`. Each domain exp
 The same function is what the worker calls, so the API and the worker resolve the same
 interfaces — only the session manager differs (see the realtime page). A new repository,
 service or domain API becomes resolvable only once it is registered in its domain's
-`register_*_services`.
+`register_*_services`. In the market domain that includes both gateway keys: the legacy
+`MarketGateway` binding stays on EODHD while `DataPlaneMarketGateway` binds the composed
+FMP/Polygon gateway, and both are registered in the live and the stub registration sets.
 
 Cross-domain access always goes through public domain APIs, never foreign repositories.
 `PositionService` is the canonical orchestrator: it depends on its own
@@ -475,9 +582,13 @@ shape:
 | `Exception` (catch-all) | `500` | `{"detail": "Internal Server Error", "error": ...}`, where `error` is the exception string outside `prod` and the literal `"Internal Error"` in `prod` |
 
 Both `cors_exception_middleware` and the catch-all handler apply the same `prod`
-redaction rule, and both log via `logger.exception`. Focused tests for this behavior are
-`tests/test_main.py` (health, ping, handler logging and redaction) and
-`tests/test_request_id.py` (header generation, preservation, log context, 4xx warning).
+redaction rule, and both log via `logger.exception`. The data plane deliberately sits
+outside this scheme: `MarketDataNotFoundError` is *not* an `EntityNotFoundError`, so each
+data-plane route maps its own failures to `404`/`502`/`503` with provider-agnostic bodies
+(a provider brand must never appear in a response, log-facing tool error, or the committed
+contract). Focused tests for the global behavior are `tests/test_main.py` (health, ping,
+handler logging and redaction) and `tests/test_request_id.py` (header generation,
+preservation, log context, 4xx warning).
 
 ## Frontend
 
@@ -498,7 +609,7 @@ Two base URLs matter: `VITE_INTERNAL_API_URL` (`http://backend:8000` in Compose)
 for server-side loads, while `VITE_API_BASE_URL` is the browser-visible backend. The SSR
 guard verifies JWTs with `JWT_SECRET`, which Compose derives from the backend's
 `SECRET_KEY` so the two can never drift, and rejects any token whose `scope` is not
-`access`.
+`access`. The frontend holds no MCP and no data-plane client: it is a user-JWT client only.
 
 See [Frontend Architecture](./frontend.md) for route, state and charting detail, and
 [Authentication & Authorization](./authentication.md) for the token and 2FA flows.
@@ -507,32 +618,42 @@ See [Frontend Architecture](./frontend.md) for route, state and charting detail,
 
 The global constraints below apply to every change, not just backend ones:
 
-- **Docker-only commands.** Run development commands inside the containers —
-  `docker compose exec <backend|frontend> <command>`; the host is never the reference
-  environment, and CI runs the same checks.
+- **Docker-only Python/Node commands.** Run backend and frontend development commands
+  inside the containers — `docker compose exec <backend|frontend> <command>`; the host is
+  never the reference environment. Go microservice checks are the exception: they run via
+  the host Go toolchain (`gofmt`, `staticcheck`, `go vet ./...`, `go test ./...`) or via
+  `just lint-go`, and CI runs the same checks.
 - **Use the agent harness.** `./scripts/agent-test` (shorthand `just test`) is the
   primary test entrypoint: Gate 0 (lint + type checker, halting before tests), Gate 1
   (a path argument, targeted and fail-fast) and Gate 2 (no argument, full regression
   with an Index/Traces summary). Raw `docker compose exec … pytest`/`vitest` is the
-  fallback.
+  fallback, and `just test-all` runs backend, frontend and both Go modules in parallel.
 - **Model edits require a migration.** Editing a backend model means generating the
   Alembic revision named `<hash>_<description>.py` in the same change.
 - **Tests never depend on external services.** No test may dial Redis, HTTP APIs
-  (EODHD, broker APIs), SMTP or DNS; the ephemeral testcontainers PostgreSQL is the only
-  allowed infrastructure dependency, and frontend tests mock every API client. A test
-  that makes a real network call is broken by definition.
+  (EODHD, FMP, Polygon, broker APIs), SMTP or DNS; the ephemeral testcontainers
+  PostgreSQL is the only allowed infrastructure dependency, and frontend tests mock every
+  API client. A test that makes a real network call is broken by definition. The Go
+  services are tested with `go test ./...` in their own modules, including the MCP
+  gateway's contract test against the committed data-plane OpenAPI snapshot.
 
-CI (`.github/workflows/ci.yml`) mirrors this in three jobs: backend
+CI (`.github/workflows/ci.yml`) mirrors this in four independent jobs: backend
 (`uv run ty check`, `uv run ruff check` + `uv run ruff format --check`, `uv run pytest`),
 frontend (`npm run check`, `npm run lint`, `npm run test:run` with the `VITE_*` and
-`JWT_SECRET` variables set but no backend running) and indicator-service
-(`go vet ./...`, `go build ./...`, `go test ./...`).
+`JWT_SECRET` variables set but no backend running, plus `node --test
+scripts/opencode-go-session-fetch.test.mjs`), and one Go job per module —
+`indicator-service` and `mcp-gateway` each run `go vet ./...`, a `gofmt -l` check,
+`staticcheck`, `govulncheck`, `go build ./...` and `go test ./...`.
 
 ## Relationship to the other pages
 
 - [Configuration](./configuration.md) — the single root `.env`, `Settings`, registry
   seams, database/Redis managers, logging and rate limiting.
 - [Backend Domains](./domains.md) — per-domain models, APIs, services, routers.
+- [Market Data Plane](./market-data-plane.md) — the eight `/api/v1/market/data` routes,
+  the frozen contract, the gateway keys and the endpoint cache.
+- [MCP Gateway](../integrations/mcp-gateway.md) — the Go MCP server, its tools and its
+  backend client.
 - [Frontend Architecture](./frontend.md) — shell, routes, clients and SSR rules.
 - [Charting](./charting.md) — chart surface, panes, indicators, price alerts.
 - [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — drawing plugins,
@@ -541,9 +662,10 @@ frontend (`npm run check`, `npm run lint`, `npm run test:run` with the `VITE_*` 
   — task semantics, the price-update cascade, Pub/Sub fan-out, sync-status keys.
 - [User Preferences](../concepts/user-preferences.md) — the per-user preferences column
   and its read/write matrix.
-- [Authentication & Authorization](./authentication.md) — token, 2FA and passkey flows.
-- [External Services & Adapters](../integrations/external-services.md) — EODHD,
-  Wealthsimple, the AI endpoint, SMTP, Redis and the indicator sidecar.
+- [Authentication & Authorization](./authentication.md) — token, 2FA and passkey flows,
+  and the `X-Service-Token` boundary.
+- [External Services & Adapters](../integrations/external-services.md) — EODHD, FMP,
+  Polygon, Wealthsimple, the AI endpoint, SMTP, Redis and the indicator sidecar.
 - [Development, CI & Change Workflows](../operations/workflows.md) and
   [Testing & Verification](../operations/testing.md).
 - [Quickstart](../quickstart.md) — the short onboarding path through these pages.

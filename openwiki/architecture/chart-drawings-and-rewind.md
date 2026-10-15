@@ -84,6 +84,8 @@ sources:
     resource: repo://frontend/src/lib/components/charts/plugins/user-price-alerts/state.ts
   - id: openwiki-source-d4f0cd24cd75b5cc0da82f96
     resource: repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts
+  - id: openwiki-source-0a9a504227d25141ac6e3e3a
+    resource: repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts
   - id: openwiki-source-3228ff446bd4627bdd629dbc
     resource: repo://frontend/src/lib/components/charts/rewind-timeline.svelte
   - id: openwiki-source-e1b2cd5ba1ffb9b4e60e9356
@@ -124,10 +126,10 @@ sources:
     resource: repo://src/market/schema.py
   - id: openwiki-source-82fce7bf4b134cbc785c3714
     resource: repo://tests/routers/test_chart_snapshots.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. The service exposes two parallel families of per-security data — **live** values read from user preferences and snapshot-scoped `effective*` values — and the security page binds only the `effective*` family into the chart, which is what makes rewind a read-only replay of a past snapshot rather than a mutation. This page documents the contracts inside each layer, the per-plugin directory rules, the live-versus-effective distinction, and the snapshot → rewind data path.
@@ -155,6 +157,8 @@ Each drawing tool lives in `frontend/src/lib/components/charts/plugins/<plugin-n
 | `index.ts` | Barrel exporting the primitive, state, renderer, view, mouse adapter and public types/constants. |
 
 The primitive itself is not named consistently: `elliott-wave/elliott-wave.ts`, `fibonacci/fibonacci-primitive.ts`, and `<tool>-primitive.ts` for `measure`, `horizontal-line` and `free-form-line`. `user-price-alerts/` additionally carries `irenderer-data.ts`, `renderer-base.ts` and `price-scale-pane-renderer.ts`, and has **no** `index.ts` barrel.
+
+`plugins/` also holds one primitive that is not a drawing tool at all: `valuation-band/valuation-band.ts`, a single-module `ISeriesPrimitive` exposing `setRange(lower, upper, visible)` for the fair-value band, with its pane view and renderer in the same file. `security-chart.svelte` constructs it from the `valuation` prop plus a derived visibility flag (`showValuationBand ?? showValuation`) and attaches it to the candlestick series; its rendering behaviour belongs to [Charting](charting.md).
 
 Two rules hold the structure together:
 
@@ -193,7 +197,7 @@ Primitive lifecycle: `attached` binds the projector and mouse handlers and track
 
 Every subscription goes through `_subscribe()` / `_subscribeToUpdate()` and lands in `_trackedSubscriptions`. `detached()` iterates that set calling `sub.unsubscribeAll(this)`, clears it, calls `mouseHandlers.detached()` and unsets `_chart` / `_series` / `_requestUpdate`. `destroy()` calls `detached()` then `state.destroy()`. `setCandles(candles)` forwards to the `TimeProjector` and requests an update; the elliott-wave and fibonacci primitives override it to also push candles into their mouse adapter (used for wick snapping).
 
-`updateAllViews()` early-returns into `paneView.update(null)` when the chart or series reference is missing, otherwise it computes renderer data, resolves the cursor and pushes data into the pane view. Cursor precedence in `_updateCursor()` is: dragging → `'default'`, drawing mode → `'crosshair'`, hovering a point → `'default'`, otherwise `null`. `hitTest()` returns `null` for a `null` cursor, otherwise `{ cursorStyle, externalId, zOrder: 'top' }`; the `externalId` (for example `'elliott-waves-primitive'`, `'fibonacci-primitive'`, `'measure-primitive'`, `'horizontal-line-primitive'`, `'free-form-line-primitive'`) is what lightweight-charts reports back to the page's own hit testing.
+`updateAllViews()` early-returns into `paneView.update(null)` when the chart or series reference is missing, otherwise it computes renderer data, resolves the cursor and pushes data into the pane view. Cursor precedence in `_updateCursor()` is: dragging → `'default'`, drawing mode → `'crosshair'`, hovering a point → `'default'`, otherwise `null`; `'default'` and `'crosshair'` are the only cursor values the drawing primitives ever produce (`user-price-alerts` adds `'pointer'`), so `_updateCursor()` is the authority even though `frontend/AGENTS.md` still lists `'grabbing'` / `'grab'`. `hitTest()` returns `null` for a `null` cursor, otherwise `{ cursorStyle, externalId, zOrder: 'top' }`; the `externalId` (for example `'elliott-waves-primitive'`, `'fibonacci-primitive'`, `'measure-primitive'`, `'horizontal-line-primitive'`, `'free-form-line-primitive'`) is what lightweight-charts reports back to the page's own hit testing.
 
 ## `BaseCollectionToolState`: shared collection state
 

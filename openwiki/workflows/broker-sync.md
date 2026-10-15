@@ -1,8 +1,8 @@
 ---
 type: workflow
 title: Broker Connect, Import & Position Sync
-description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
-tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring]
+description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities, replaces positions per account and refreshes cash and the broker-reported account value, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
+tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, cash-balances, background-tasks, keyring]
 sources:
   - id: openwiki-source-b263e02920f61e43137888d6
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
@@ -24,6 +24,8 @@ sources:
     resource: repo://src/account/router.py
   - id: openwiki-source-3f52b6a4e0898f1abe448990
     resource: repo://src/account/service/position.py
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
   - id: openwiki-source-6a6a2e379c607f943e74eba0
@@ -44,6 +46,8 @@ sources:
     resource: repo://src/integration/task.py
   - id: openwiki-source-01883905c6624d1aafed4cfd
     resource: repo://src/market/api.py
+  - id: openwiki-source-49a515c9449d205d8513d8a6
+    resource: repo://src/stubs/wealthsimple.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
   - id: openwiki-source-fabd6161da6a6b733306f7ce
@@ -64,10 +68,10 @@ sources:
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-d1793d747b8abce8c0959943
     resource: repo://tests/tasks/test_integration.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 # Broker Connect, Import & Position Sync
@@ -81,7 +85,7 @@ the state-class conventions in [Frontend Architecture](../architecture/frontend.
 mock-only testing rule in [Testing & Verification](../operations/testing.md). Money handling in
 positions and totals is covered by [Money and Currency](../concepts/money-and-currency.md).
 
-Three invariants govern the whole flow and should be treated as contracts:
+Four invariants govern the whole flow and should be treated as contracts:
 
 1. **Credentials are never persisted.** The external password (and OTP) exist only for the
    duration of the login call. What survives is an `integration_users` row (user, institution,
@@ -93,6 +97,10 @@ Three invariants govern the whole flow and should be treated as contracts:
 3. **Broker symbols are resolved through market security search/creation.** No position is ever
    written against a raw broker symbol; every `BrokerPosition` is mapped to a `Security` id by
    `SecurityApi.get_or_create_from_broker` first.
+4. **Cash is an account attribute, not a position.** Gateways report cash separately through
+   `get_cash_balances` and the worker writes the converted sum to `free_cash`; a gateway that
+   cannot report cash inherits the base no-op and must leave `free_cash` untouched rather than
+   zeroing it.
 
 ## Participants and surfaces
 
@@ -101,11 +109,11 @@ Three invariants govern the whole flow and should be treated as contracts:
 | Frontend client | `frontend/src/lib/api/brokerClient.ts` | `/integration/institutions`, `/external/users`, `/external/users/{id}/accounts`, `/external/{institution}/login`, `/external/accounts/import` |
 | Frontend state | `brokers-list.svelte.ts`, `brokerService.svelte.ts`, `connect-broker-modal.svelte.ts`, `broker-login-modal.svelte.ts`, `sync-accounts-modal.svelte.ts` | institution list, login form incl. OTP step, account selection/unsync |
 | FastAPI routers | `src/integration/router.py` (`integration_router` = `/external`, `institutions_router` = `/integration`), `src/account/router.py` | HTTP surface, auth, rate limiting, task enqueue |
-| Broker gateway | `src/integration/brokers/wealthsimple.py` | `ws-api` login/session handling, account and position parsing |
-| Task | `src/integration/task.py` | `sync_account_positions_task` Huey task, sync events, error mapping, failure email |
+| Broker gateway | `src/integration/brokers/wealthsimple.py` | `ws-api` login/session handling, account, position and cash parsing |
+| Task | `src/integration/task.py` | `sync_account_positions_task` Huey task, sync events, cash and broker-value writes, error mapping, failure email |
 | Sync bookkeeping | `src/integration/sync_status.py` | Redis active-sync set |
-| Market | `src/market/api.py` (`SecurityApi`) | broker symbol → security resolution |
-| Persistence | `src/account/api/position.py`, `src/account/repository_sqlalchemy.py` | replace-per-account position write |
+| Market | `src/market/api.py` (`SecurityApi`), `src/market/fx.py` (`FxRateProvider`) | broker symbol → security resolution, FX conversion of cash |
+| Persistence | `src/account/api/position.py`, `src/account/repository_sqlalchemy.py`, `src/account/api/account.py` | replace-per-account position write plus `net_deposits` / `free_cash` / `broker_value` / `last_sync_at` updates |
 | Fan-out | `src/ws/manager.py`, `src/ws/api_types.py` | Redis pub/sub → per-user WebSocket delivery |
 | Consumer | `frontend/src/lib/components/accounts/accounts-list.svelte.ts` | ticket handshake, sync badges, reconnect, totals refresh |
 
@@ -131,6 +139,7 @@ sequenceDiagram
     participant Q as Huey worker
     participant API as SecurityApi
     participant P as PositionApi
+    participant ACC as AccountApi
     participant X as Redis
 
     UI->>BC: getAvailableInstitutions
@@ -168,15 +177,19 @@ sequenceDiagram
     end
     Q->>P: create positions
     P->>P: sync_by_account, delete then insert
-    Q->>GW: get_accounts for net_deposits and last_sync_at
+    Q->>GW: get_cash_balances when the gateway reports cash
+    Q->>ACC: update_free_cash, sum converted to account currency
+    Q->>GW: get_accounts for net_deposits, value, last_sync_at
+    Q->>ACC: update_net_deposits, update_broker_value, update_last_sync_at
     Q->>X: publish sync_finished
     X-->>UI: sync_finished
     Q->>X: mark_sync_finished user, account
 ```
 
-Caption: the connect → import → sync path. Login is synchronous and request-scoped; every
-position write happens inside the Huey worker, never in the request that triggers it, and each
-task event reaches the browser only after Redis pub/sub fan-out.
+Caption: the connect → import → sync path. Login is synchronous and request-scoped; every position
+write happens inside the Huey worker, never in the request that triggers it, and each task event
+reaches the browser only after Redis pub/sub fan-out. The same worker pass also refreshes the
+account's cash and broker-reported value.
 
 ### Login and OTP
 
@@ -200,6 +213,19 @@ generic branch, so the modal never shows an empty error.
 A missing cached session is normal (first login), and `SessionDoesNotExistError` is
 `ExternalAPIError`'s subclass — but note that `login` *catches* it internally: it is the signal to
 perform a real credential login, not a user-facing failure.
+
+**What is stored and what is never logged.** The gateway logs the external username (`user: %s`) and
+never the password, the OTP or the session token. The only credential-shaped value that survives a
+login is the `WSAPISession` JSON written by `_save_session` under
+`retail_portfolio_wealthsimple.{username}` / `session` in the keyring. On the login path the single
+place vendor payloads reach the logs is the `UnexpectedException` branch of `_ws_login`, which logs
+the last captured HTTP response body at exception level; the account/position paths can also emit
+raw responses, but only when `debug_api_responses` / `debug_dump_path` are explicitly enabled.
+
+The stub counterpart used by tests is `src/stubs/wealthsimple.py::StubWealthsimpleApiGateway`: when
+`settings.stub_external_api` is true, `src/config/services.py` registers it in place of
+`WealthsimpleApiGateway`, so the container hands out a gateway whose `login` always succeeds and
+whose account/position reads come from `StubWealthsimpleAPI`'s fixed payloads.
 
 ### Import: accounts then positions
 
@@ -247,12 +273,49 @@ Inside the container, `_do_sync_positions` is strictly ordered:
    (institution, broker symbol, broker exchange, broker name) and build `Position` records with
    `broker_position.to_position(account_id, security_id)`;
 4. write them with `PositionApi.create`;
-5. re-list broker accounts, find the matching one, and update `net_deposits` (as `float`, `None`
-   when the broker omits it) plus `last_sync_at`.
+5. when the gateway reports cash, fetch the cash balances, convert them into the account currency
+   and write the rounded sum to `free_cash`;
+6. re-list broker accounts, find the matching one, and update `net_deposits` (as `float`, `None`
+   when the broker omits it), `broker_value` (plus `broker_value_at`), run the reconciliation
+   check, and update `last_sync_at`.
 
-The `net_deposits` and `last_sync_at` updates are inside the same `try` as the position write, and
-they are skipped entirely when the broker no longer reports that account — position replacement
-happens either way.
+Steps 4–6 share one `try`, so a gateway, resolution or persistence error fails the whole task — the
+writes are separate repository calls and are not one transaction. Step 6 is skipped entirely when
+the broker no longer reports that account, while position replacement happens either way.
+
+The task is declared `@huey.task()` with no `retries=...`, so a failed sync is terminal for that
+enqueue — unlike `src/market/task.py`'s alert task, which asks Huey for three attempts. Recovery is
+the user's: the accounts list's sync button (or a fresh import) enqueues a new task, and the
+`sync_failed` event plus the failure email are the signals that it is needed. A raised exception is
+re-raised after the notification attempt, so the Huey failure is still recorded.
+
+### Cash balances and the broker-reported value
+
+Two account attributes are refreshed by the same worker pass but are deliberately *not* positions:
+
+- **`free_cash`.** `BrokerApiGateway.get_cash_balances` is a non-abstract no-op returning `{}` for
+  gateways that cannot report cash. `_broker_reports_cash_balances` decides whether the task may
+  touch `free_cash` by testing
+  `type(broker).get_cash_balances is not BrokerApiGateway.get_cash_balances`, so a gateway that does
+  not override the base method leaves a CSV-imported `free_cash` intact instead of clearing it to
+  zero. A gateway that *does* override it but reports no cash keys writes `0.0`.
+  `_sum_cash_in_account_currency` converts each `{currency: amount}` entry to the account's currency
+  through `FxRateProvider.converter()` and rounds the total to two decimals; an empty balance map
+  short-circuits to `0.0` without touching the FX provider.
+- **`broker_value`.** `AccountApi.update_broker_value` stores the broker-reported account value and
+  stamps `broker_value_at` (both `NULL` when the broker omits the value). `_reconcile_broker_value`
+  then compares our own `PositionService.get_total_for_account` value against it and logs a
+  `WARNING` — `Broker value mismatch for account …` with both values — when the difference exceeds
+  1% of the broker value, the signal for a valuation gap such as missing cash, a stale price or a
+  bad FX rate. It is log-only: it never fails or alters the sync. `PositionService` is imported
+  inside that function because `src.integration.task` is imported by `src.integration.api`, which
+  the position service imports in turn; a module-level import would close the cycle.
+
+Wealthsimple surfaces cash as `sec-c-<currency>` entries inside `get_account_balances`.
+`_is_cash_security_id` filters them out of `get_positions_by_account` (they are never priced as
+securities and never reach symbol resolution), and `get_cash_balances` re-fetches the same endpoint
+to return them keyed by upper-cased currency, summing duplicate ids for the same currency. The
+endpoint is therefore fetched twice per sync — once for positions, once for cash.
 
 ### Symbol resolution
 
@@ -277,7 +340,7 @@ are not interchangeable; see [External Services & Adapters](../integrations/exte
 ```mermaid
 stateDiagram-v2
     [*] --> Started: mark_sync_started + sync_started event
-    Started --> Finished: positions written, net_deposits and last_sync_at updated
+    Started --> Finished: positions, cash, net_deposits, broker value and last_sync_at written
     Started --> Failed: gateway, resolution or persistence error
     Failed --> [*]: sync_failed event, error email, mark_sync_finished
     Finished --> [*]: sync_finished event, mark_sync_finished
@@ -450,19 +513,26 @@ worker-side signals).
 The repo-wide rule applies with no exceptions here: **broker gateways and Redis must be stubbed or
 mocked, never live** (`src/AGENTS.md`, restated in
 [Testing & Verification](../operations/testing.md) and
-[External Services & Adapters](../integrations/external-services.md)). `tests/conftest.py` sets
-`STUB_EXTERNAL_API=true` before the app import, the autouse `fake_redis_manager` fixture replaces
-`redis_manager.client` with a dict-backed `FakeRedis` (implementing `sadd`/`srem`/`smembers`, which
-is why the sync set works in tests), and `global_mocks` forces `huey.immediate = True` plus patches
-`ConnectionManager.send_personal_message`.
+[External Services & Adapters](../integrations/external-services.md)). No test may construct a real
+`ws_api.WealthsimpleAPI` client or reach the broker API: gateway tests either patch `_get_client`
+onto `StubWealthsimpleAPI` / a `MagicMock`, or patch the `WealthsimpleAPI` symbol that
+`_ws_login` instantiates. `tests/conftest.py` sets `STUB_EXTERNAL_API=true` before the app import
+(so the container registers `StubWealthsimpleApiGateway`), the autouse `fake_redis_manager` fixture
+replaces `redis_manager.client` with a dict-backed `FakeRedis` (implementing `sadd`/`srem`/`smembers`,
+which is why the sync set works in tests), and `global_mocks` forces `huey.immediate = True` plus
+patches `ConnectionManager.send_personal_message`.
 
 Representative focused tests:
 
 - `tests/tasks/test_integration.py` — the sync task's full success path (asserts the resolved
   security, `update_net_deposits(account.id, 5000.0)`, `update_last_sync_at`, and exactly two
   `send_personal_message` calls with `sync_started` then `sync_finished`), the
-  `RuntimeError` for an uninitialized registry, the two `_do_sync_positions` guards, and one test
-  per error-mapping entry asserting the exact email body and `frontend_url` deeplink — including
+  zero-`net_deposits` case, the `RuntimeError` for an uninitialized registry, the two
+  `_do_sync_positions` guards, the `mark_sync_started`/`mark_sync_finished` calls on both the success
+  and failure paths, cash handling (converted and summed `update_free_cash`, `0.0` when the gateway
+  reports no cash keys, untouched when the gateway inherits the base no-op), broker-value
+  persistence plus the reconciliation warning inside and outside the 1% tolerance, and one test per
+  error-mapping entry asserting the exact email body and `frontend_url` deeplink — including
   `sync_failed` as the last socket call when the email itself throws.
 - `tests/account/test_models_and_sync.py` — `PositionService.sync_account_positions` raising
   `ApiSyncDisabledError` for a CSV account, and the `api_sync_enabled` default of `True`.
@@ -471,9 +541,10 @@ Representative focused tests:
 - `tests/routers/test_sync_status.py` — the sync-status endpoint's empty, scoped, unauthenticated
   and Redis-unavailable cases.
 - `tests/integration/brokers/test_wealthsimple.py` — the gateway driven entirely through
-  `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py`, with `keyring`
-  patched, covering session save/get, the OTP and login-failure translations, and account/position
-  parsing.
+  `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py` or a mocked client,
+  with `keyring` and the `WealthsimpleAPI` symbol patched, covering session save/get, the OTP,
+  login-failure and `UnexpectedException` translations, account/position parsing, and the cash-key
+  rules (bracketed ids, duplicate currencies summed, `sec-c-*` skipped without logging).
 - `frontend/src/lib/components/accounts/accounts-list.test.ts` — mocks `WebSocket`,
   `accountClient` and `authService.getWsTicket`, so no socket or fetch is real.
 
@@ -482,7 +553,9 @@ Representative focused tests:
 Adding a broker means: a `BrokerApiGateway` subclass with its own `_keyring_prefix` and
 `InstitutionEnum`; an entry in `get_broker_gateway_class` (which currently raises `KeyError` for any
 id other than `WEALTHSIMPLE`); vendor-error translation onto `ExternalAPIError` subclasses; a stub
-under `src/stubs/`; and a registration in `src/integration/registry.py`. If the new broker
+under `src/stubs/`; and a registration in `src/integration/registry.py`. If the new broker reports
+cash, it must override `get_cash_balances` — the base no-op means "cash not reported", and only an
+override makes the worker write `free_cash`. If the new broker
 introduces a failure mode with actionable user guidance, it also needs a sentence in
 `_SYNC_ERROR_MESSAGE_MAPPING`. The seed data requirement — an `account_institutions` row with
 `integration_enabled = true` — is what makes the institution appear at all.

@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: Watchlists, Sidebar & Global Search
-description: The watchlist subsystem end to end — the market_watchlists and membership tables with their position/added_at metadata, the router-only WatchlistRepository contract and its ownership, duplicate-name and exact-permutation order rules, the ten watchlist routes with their price-enriched reads, the layout-owned WatchlistService that is the single client-side owner of watchlist state, the sidebar watchlist groups and ticker shortcuts, the /watchlists page with create/rename/delete, sort modes and manual reordering, and the global-search dialog that resolves or creates securities and toggles membership.
-tags: [watchlists, global-search, sidebar, market-domain, repository, svelte, preferences, ordering, workflow]
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+description: The watchlist subsystem end to end — the market_watchlists and membership tables with their position/added_at metadata, the router-only WatchlistRepository contract and its ownership, duplicate-name and exact-permutation order rules, the ten watchlist routes with their price-enriched reads, the layout-owned WatchlistService that is the single client-side owner of watchlist state, the sidebar watchlist groups and ticker shortcuts, the /watchlists page with create/rename/delete, sort modes and manual reordering, the two symbol-search surfaces (the user-JWT /market/search the dialog uses versus the service-token data-plane symbols/search behind the MCP resolve_symbol tool), and the global-search dialog that resolves or creates securities and toggles membership.
+tags: [watchlists, global-search, sidebar, symbol-search, market-domain, repository, svelte, preferences, ordering, workflow]
 sources:
   - id: openwiki-source-9d52d426ef92ca9022ff29fa
     resource: repo://frontend/src/lib/api/marketService.ts
@@ -25,12 +22,24 @@ sources:
     resource: repo://frontend/src/routes/watchlists/%2Bpage.svelte
   - id: openwiki-source-07e78ebb43c13654a939c9b4
     resource: repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py
+  - id: openwiki-source-814ff5c728465fa5bf20551e
+    resource: repo://services/mcp-gateway/internal/tools/registry.go
+  - id: openwiki-source-10d854a67d2daf724e5ceb32
+    resource: repo://services/mcp-gateway/internal/tools/symbols.go
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-336c8d4ea788e2c5f7cddd73
+    resource: repo://src/market/__init__.py
   - id: openwiki-source-8a10008d9bf8365255edbb33
     resource: repo://src/market/cache.py
+  - id: openwiki-source-c606a6f066e1a0d331b3781d
+    resource: repo://src/market/composite.py
+  - id: openwiki-source-d70f78b70446e1ce1912c7c5
+    resource: repo://src/market/data_router.py
   - id: openwiki-source-519cedd3ce6282336c277ff0
     resource: repo://src/market/enum.py
+  - id: openwiki-source-0fd23e2899c3441d3c49cae4
+    resource: repo://src/market/eodhd.py
   - id: openwiki-source-0759916706da37d0d3bef090
     resource: repo://src/market/exception.py
   - id: openwiki-source-cc33fb93093886e62b166a26
@@ -49,7 +58,10 @@ sources:
     resource: repo://tests/repositories/test_repository_sqlalchemy.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 # Watchlists, Sidebar & Global Search
@@ -59,7 +71,8 @@ sub-resources, and they are also the only per-user collection that the frontend 
 globally: the same loaded array feeds the sidebar groups, the `/watchlists` page, the numeric
 ticker shortcuts, the security detail page's instant titlebar and the global-search star toggle.
 This page documents that whole surface — storage, repository contract, HTTP routes, the
-client-side owner, and the three presentations of it (sidebar, page, search dialog).
+client-side owner, and the three presentations of it (sidebar, page, search dialog) — plus the
+search path that dialog drives, which is one of the app's two symbol-lookup surfaces.
 
 The domain catalog entry for these tables and the layer rules for the frontend live elsewhere:
 see [Backend Domains](../architecture/domains.md) for the market module map, service registration
@@ -73,6 +86,7 @@ route map, the `ApiClient` layer and the service/context conventions this page a
 | Repository contract | `src/market/repository.py` (`WatchlistRepository`) | the twelve-operation ABC the router resolves and calls directly — only `create_default` has no route, and there is no backend watchlist service |
 | Repository implementation | `src/market/repository_sqlalchemy.py` (`SqlAlchemyWatchlistRepository`) | ownership scoping, membership ordering, price enrichment, permutation validation |
 | HTTP surface | `src/market/router.py` (`market_router`, prefix `/market`) | the ten watchlist routes plus search and resolve-or-create |
+| Search surfaces | `src/market/router.py` (`/market/search`) and `src/market/data_router.py` (`/api/v1/market/data/symbols/search`) | the user-JWT search the dialog calls, and the service-token lookup the MCP `resolve_symbol` tool calls |
 | Client owner | `frontend/src/lib/components/watchlist/watchlistService.svelte.ts` | `WatchlistService`, instantiated once by `+layout.svelte` and read from context |
 | Presentation | `frontend/src/lib/components/layout/app-sidebar-watchlist.svelte`, `frontend/src/routes/watchlists/+page.svelte`, `frontend/src/lib/components/global-search.svelte` | sidebar groups, the page, the search dialog |
 | Shared helpers | `frontend/src/lib/components/watchlist/watchlist-utils.ts` | sort normalization, ordering, reorder key handling, formatters |
@@ -415,14 +429,17 @@ collapsible group — not just the default one.
   sorts the ids present in the order array by their index and appends any watchlist missing from it
   in original relative order, so a newly created list never disappears.
 - Collapse state lives in a `SvelteSet<string>` seeded from the `initialCollapsedWatchlistIds`
-  context or `$page.data.collapsed_watchlist_ids`. `toggleCollapsed` mutates the set and persists
-  the whole array with `patchPreferences({ collapsed_watchlist_ids })`, fire-and-forget
-  (`.catch(console.error)`) — see [User Preferences](../concepts/user-preferences.md) for the
-  preference contract and its read/write ownership matrix.
+  context or `$page.data.collapsed_watchlist_ids`. Each group's `Sidebar.GroupAction` chevron calls
+  `toggleCollapsed`, which mutates the set and persists the whole array with
+  `patchPreferences({ collapsed_watchlist_ids })`, fire-and-forget (`.catch(console.error)`); a
+  collapsed group hides its `Sidebar.GroupContent` — see
+  [User Preferences](../concepts/user-preferences.md) for the preference contract and its read/write
+  ownership matrix.
 - When the sidebar collapses to icon size only the default watchlist's group stays visible; every
   other group carries `group-data-[collapsible=icon]:hidden!`.
-- Each security is a link to `/security/{id}`, with the symbol plus name when expanded and a
-  scaled symbol only (font size keyed to symbol length) in the collapsed rail.
+- Each security is a link to `/security/{id}`: expanded, the row shows a `StockLogo` with the symbol
+  and name (and the `Kbd` hint when a shortcut was passed); in the collapsed rail only a larger
+  `StockLogo` (`size="md"`) is rendered, so the rail shows logos rather than text.
 - `getTickerShortcut(index)` maps indices 0–9 to the hints `1`–`9` then `0`, and the hint is only
   passed for the default watchlist's securities. The layout's document-level `handleKeydown`
   mirrors that mapping: for a bare digit it computes `index = e.key === '0' ? 9 : Number(e.key) - 1`,
@@ -521,23 +538,72 @@ update described above.
 Row selection is focus-driven and remembered per watchlist id, keyed by security id rather than row
 index so the highlight follows the same security through a reorder or a sort change.
 
+## Two symbol-search surfaces
+
+Symbol lookup exists twice in this repository, with different callers, credentials, providers and
+response shapes. Conflating them is the classic mistake here, so both are stated side by side.
+
+| | User-facing search | Data-plane symbol lookup |
+|---|---|---|
+| Route | `GET /market/search`, aliased at `GET /market/securities/search` | `GET /api/v1/market/data/symbols/search` |
+| Auth | user JWT (`current_user`) | shared secret (`require_service_token` → `X-Service-Token`) |
+| Handler | `market_search` in `src/market/router.py` | `market_data_symbol_search` in `src/market/data_router.py` |
+| Gateway binding | `MarketGateway` → `eodhd_gateway_factory`, i.e. EODHD | `DataPlaneMarketGateway` → `composite_market_gateway_factory`, which routes search and symbol lookup to FMP |
+| Cache | `SecuritySearchCache` (`market:search:<normalized query>`, 30-day TTL) | `EndpointResponseCache` under `data_class="search"` / `endpoint="symbol_lookup"` |
+| Result | `list[SecuritySearchResult]` | `list[SymbolLookupResult]` |
+| Consumers | the global-search dialog, and `SecurityApi.get_or_create_from_broker` | the Go MCP gateway's `resolve_symbol` tool |
+
+Both routes take a `q` query constrained to 1–100 characters, and both normalize the query text
+(trim, lowercase, collapse internal whitespace) before it becomes a cache key. Beyond the provider
+split they differ in three ways that matter:
+
+- The user-facing handler calls the gateway **synchronously inside the async handler**
+  (`gateway.search(q)`), and the EODHD gateway performs a blocking `requests.get` there; the
+  data-plane handler bridges `gateway.lookup_symbol` through `asyncio.to_thread`.
+- The user-facing route reads `SecuritySearchCache` first and returns on a hit, so a hit skips the
+  provider entirely and performs no second `set`; a miss queries the gateway and writes the cache
+  exactly once. The data-plane route instead goes through the canonical `EndpointResponseCache`
+  (the `market:ep` namespace), and an empty lookup is turned into a structured 404 by the handler.
+- The two cache layers have different lifetimes and key shapes: a 30-day literal-text key on the
+  user-facing side, versus a configured per-data-class TTL (`endpoint_ttl_search_seconds`) on a
+  content-hashed endpoint key.
+
+The data-plane route exists for the MCP gateway, and the only tool that calls it is `resolve_symbol`
+— whose description tells an agent to **use it first** to look up or verify a ticker before calling
+the price, fundamentals or options tools. It ranks candidates (exact symbol on the requested
+exchange, exact symbol anywhere, first result on that exchange, otherwise the first result) and
+returns `best_match` plus up to 10 alternatives; an empty candidate list becomes the successful
+"no data" result rather than an error. The route contract, provider routing and cache classes belong
+to [Market Data Plane](../architecture/market-data-plane.md), and the tool surface, ranking and
+error classes to [MCP Gateway](../integrations/mcp-gateway.md). The user-facing route's provider and
+cache details are in [Market Data & Indicators](./market-data-and-indicators.md).
+
 ## Presentation: global search
 
 `GlobalSearch` is a `Command.Dialog` rendered once by the layout with `bind:open` and
-`bind:targetWatchlist`. Any page can open it: the sidebar's Search entry uses the
-`toggleGlobalSearch` context callback, `/` toggles it from the keyboard, and `/watchlists`'s `+`
-buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
+`bind:targetWatchlist`; the layout owns `globalSearchOpen` / `globalSearchTargetWatchlist` and
+publishes them to descendants through the string-keyed `toggleGlobalSearch` and
+`openGlobalSearch(watchlist)` context callbacks. Any page can open it: the sidebar's Search entry
+uses `toggleGlobalSearch`, `/` toggles it from the keyboard, and `/watchlists`'s `+` buttons call
+`openGlobalSearch(watchlist)` to open it pre-targeted. The component reads watchlist state through
+`getWatchlistService()` but calls the module-level `marketService` singleton directly rather than
+`getMarketService()`.
 
-- **Search** is a `debounce(..., 300)` wrapper around `marketService.search(query)`, driven by an
-  `$effect` on `query`. An empty query clears the results without a request. The endpoint is
-  `GET /market/search?q=...` (aliased at `/market/securities/search`), with `q` constrained to
-  1–100 characters, and it reads a `SecuritySearchCache` first and only calls the EODHD gateway on
-  a miss — a hit skips the gateway entirely and no second `set` happens. The cache key is the
-  normalized (trimmed, lowercased, whitespace-collapsed) query and the default TTL is 30 days.
+- **Search** is the shared `debounce` helper with a 300 ms wait around `marketService.search(query)`,
+  driven by an `$effect` on `query`; an empty query clears the results without any request, and
+  `isSearching` stays true for the duration of the request. The route it calls is the user-facing
+  `GET /market/search?q=...` described under **Two symbol-search surfaces** above — not the
+  service-token data-plane lookup.
+- **Keyboard navigation** belongs to the primitive rather than this component: the list is a
+  `Command` root with `shouldFilter={false}` because the server already searched, so `Command.Item`s
+  are traversed with ArrowUp/ArrowDown and Enter runs the highlighted item's `onSelect` — the same
+  path a click takes. Escape or an overlay click closes the dialog, which fires the reset effect
+  below. Because `isSearching` replaces the whole list with a single `Command.Loading` row, there is
+  nothing to traverse until the debounced search resolves, and the previous results are gone while
+  it is in flight.
 - **Grouping** reduces the flat result array into `Record<security_type, results>`, defaulting the
-  group key to `'other'` when the field is empty, and renders one `Command.Group` per type. The
-  dialog is `shouldFilter={false}` because the server already searched; items are keyed and valued
-  by `code.exchange` + name.
+  group key to `'other'` when the field is empty, and renders one `Command.Group` per type, with each
+  item keyed and valued by `code.exchange` + name.
 - **Resolve-or-create before adding.** `handleWatchlistToggle` resolves the result against the
   active target list (or the default list) by symbol + exchange. With a target, a match calls
   `removeSecurityFromWatchlist(target.id, existing.id)` and a miss calls
@@ -563,7 +629,8 @@ buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
 |---|---|
 | `tests/repositories/test_repository_sqlalchemy.py` | create + duplicate rejection with a usable session after rollback; rename ownership and uniqueness; delete cascading membership; append-order positions and tz-aware `added_at`, idempotent re-add, re-add after removal; `sort` and position-ordered metadata on every read path; `update_sort` persistence and ownership; `set_security_order` rewriting to `0..n-1`, idempotence and the empty list; four bad payloads each raising `WatchlistOrderIdentityError` with the stored positions unchanged; the full price-enrichment matrix (0/1/2/3+ closes, zero previous close, batched) |
 | `tests/routers/test_market.py` | the ten routes: empty and populated lists, `sort` in the payload, cross-user invisibility, idempotent add, no-op remove, 404 for unknown security and foreign watchlist, create 201, rename 409 and 404, sort 200 / invalid 422 storing nothing / combined / empty payload, reorder 200 with persisted positions and four rejected payloads at 422, delete 204, and 401 for all CRUD without auth |
-| `tests/market/test_search_router.py` | the search cache hit skipping the gateway and the miss querying it once then caching |
+| `tests/market/test_search_router.py` | the search cache hit skipping the gateway and the miss querying it once then caching, for both the `/market/search` and `/market/securities/search` aliases |
+| `tests/market/test_security_search_cache.py` | query normalization and cache-key symmetry, the empty/whitespace no-ops on `get` and `set`, TTL selection (default, instance, explicit override), and the failure modes that must degrade to a miss (Redis errors, corrupted, non-list and schema-invalid payloads) |
 | `frontend/src/lib/components/watchlist/watchlistService.test.ts` | load and its returned error, `replaceWatchlist` isolation, the resync-then-record behaviour of the three resync methods, `reorderSecurities`' optimistic order and rewritten positions before the PUT settles plus server-payload reconciliation and failure rollback, the default-list-only `hasSecurity`/`toggleSecurity` pair, `addSecurity`'s dedupe / id-reuse / resolve paths, and that every mutator clears a stale error |
 | `frontend/src/routes/watchlists/page.svelte.test.ts` | the shell-first skeleton with exactly one `getWatchlists` call, order from the preference applied to asynchronously loaded sections, create/rename/delete, the six sort options and each mode's persisted call, the reorder toggle restricted to custom lists, drag and arrow-key moves with focus restoration across a direction switch, boundary no-ops, and the preference-failure rollback of both order snapshots |
 | `frontend/src/lib/components/global-search.test.ts` | the targeted versus generic placeholder, the star's membership state, add-to-target versus toggle-default behaviour, remove-from-target, and the reset of query/results/target on close |
@@ -588,3 +655,9 @@ buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
 - **Changing a model column.** Ship the Alembic revision in the same change, following
   `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py`: add nullable with a
   server default, backfill deterministically, then enforce `NOT NULL`.
+- **Changing a search path.** Decide which surface you are on first. The dialog only calls the
+  user-facing `GET /market/search`, so a provider or cache change there goes through `MarketGateway`
+  and `SecuritySearchCache`. The data-plane `symbols/search` route is the frozen contract the MCP
+  gateway's `resolve_symbol` tool consumes — renaming its path or `q` parameter requires regenerating
+  the committed OpenAPI snapshot and updating the Go client in the same change, as described in
+  [Market Data Plane](../architecture/market-data-plane.md).

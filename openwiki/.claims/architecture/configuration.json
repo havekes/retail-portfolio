@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:526236c16086132680f9b3a9001e8f7ddd5ed065c46095f0df0bd5ee9aee19bd",
+  "pageVersion": "sha256:319542b24c1124e1cdc8a79832d4e032d435e58e8075050ae2d28fd84c4e1517",
   "claims": [
     {
       "id": "claim_03a8b76baaa440d0a4a424a251d668ce",
       "statement": "The tracked root .env.example is the single configuration source shared by the backend, the Huey worker, Docker Compose interpolation and the frontend service; docker-compose.yml loads it via env_file for backend and worker, interpolates ports/URLs from it, and forwards VITE_* values plus JWT_SECRET to the frontend service.",
       "evidence": [
         {
-          "resource": "repo://.env.example#L1-L60",
-          "version": "repo-lines-v1:sha256:861f6696ac0c3612cb238b58ac76c78529b066a159cfe9eebf8159ba2161e495:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMTAxMTY0NTlhNDc0M2U4MWYwZWE5NWNlNmI0ZWE5NmI2YTlkNGYxZTIzMTQwYmFkMDNiOWU1NDhjODI1NzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiM2Y0NjM2ZDdmYjgxNzg3NTEyM2JmNDhiOWMyZTY4ZGJjOGVhODgzNTVlMGQ1ODE4MTQxNWIyNmE5N2NlYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://.env.example#L1-L65",
+          "version": "repo-lines-v1:sha256:a53dd1f83328ee934486eefa88d3401071e0853005d225ddb7d8e651ed2e86dd:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMTAxMTY0NTlhNDc0M2U4MWYwZWE5NWNlNmI0ZWE5NmI2YTlkNGYxZTIzMTQwYmFkMDNiOWU1NDhjODI1NzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiM2Y0NjM2ZDdmYjgxNzg3NTEyM2JmNDhiOWMyZTY4ZGJjOGVhODgzNTVlMGQ1ODE4MTQxNWIyNmE5N2NlYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://docker-compose.yml#L30-L31",
@@ -29,8 +29,8 @@
       "statement": "docker-compose.yml derives the frontend SSR guard secret from the root .env by mapping SECRET_KEY to JWT_SECRET with a required-variable assertion, so frontend/src/hooks.server.ts verifies the auth_token cookie with the same HS256 key the backend signs with and no separate secret is configured.",
       "evidence": [
         {
-          "resource": "repo://.env.example#L48-L50",
-          "version": "repo-lines-v1:sha256:4c504f9a32812c84cd0b1bf7615b998aec07a052139f4ebd204c98728adf8d93:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzllZTExYTQ5YTAzYzdhZTg4Yzk3MTlmYjI5Y2ZiNzY4YjBiMWQwNDMwMjcwZDA0NTBjYzVlNmI4Y2RmYWMxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5ZjBiMGE0OGM5ZWU4YzcxMDRkYTdiNWUxNzVjYzA0ZGUwM2ZmOTJhNjA1ZWJiODVkZmVjZDVlMWFmM2NmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZiYTRmMTQyYWY0ODMyNjU1NTAzNjVkNGQzMWEwY2JiNTY5MjBhZDU5OTdlYjVmNDljMWI0NzgxNWZmZGMxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDllMmMxZTc3YzRmNDM4MzhlZDM2NDFmMjgzYjY0MzRiYzViMGE0MWEzN2QzY2MyMjc0MDgwNjg0N2M5NjA2MSJ9"
+          "resource": "repo://.env.example#L5-L8",
+          "version": "repo-lines-v1:sha256:3534af7e076fd73473d7a122259804e9ceef82be0b215fe1abc3857b297d0e31:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2JlODJiYmQ5NTBiNWVkZWMwZjA0ZDhiMDliNTU2MjkxY2QwOGNhNDdkMWM1Y2FiMzJhMDFhODgyNjMzNDM2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZmZTJhMzRiMmNlYzI3MmE2MjlkYjg2ZjdlNzUyNTEzNTQ2ZWE4ODkzYzQzZTIwZDBmMjI0OThkYTE2MDBkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzc0OGFlYjkxYTIwOTFmZmI1YTQ2NzFmNDViYWNlNDljNzE5MWUyZjBlYWU2ODU2Yjg0MTVkYjE3YmIxYzNhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzYzMTU3YmE5YmEzZmRkNTNmODRkYmI5ZWE5YWY5M2QwNmY5NzJjZWIwODJkYTVkODU1NTgzZTFlZGI1MzgyNCJ9"
         },
         {
           "resource": "repo://docker-compose.yml#L83-L86",
@@ -41,7 +41,7 @@
           "version": "repo-lines-v1:sha256:363a303cbde4b69f315430151f4323196f8be0bfc78253d2cce6ec00533cffa3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMzhkNjA3ZDZjNWFkMTQ2YzViZjQ3YzdlZTI0OWZkZjg3ZjliYzMwNjk0NTM5ZDRiM2E4NDBlZWYwZTQzZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZWEwYjE5Zjg3YzY1OGEwYzBlZDFkMTMzMzJjMDZhYjc2NWVlMzVlYmExM2M1MjRmYTk4MmQ3ZjdjZTQwMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMzIyNWY0MDAzYzllNjA1ODU2ZWU2YTNmNDJjYjc2MzY1OGFlMTM2OGUzYWNkMmQzYTAzNWY5NzYzMGNmZTgifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L107-L111",
+          "resource": "repo://src/auth/api.py#L108-L112",
           "version": "repo-lines-v1:sha256:8ea0887d3f1cc55c811304fa27371e624cf689b3573be413ebb2e17b55ccff19:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDRkOTcxY2UyMmZmNTBmYWQzYmRlMzM4NzE5ZGYyZWQ2ZDg0OWIyMmYzODhkNmNhOWM2NGYwNzM4YjU3OGIyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjVkYjRhNjMwODkwNzlhMWJmODMwYWFkNTZhZjdhYjY3MjI2YTM1Y2MyMWIyNDNjOTc2ZGQ5MDBmOGQ4MDU5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDg0OTcxZjM1Yjg5YTBkN2VlZjBlMDIwMWQzMjMwOWZiNjc3YjlhYzdhZTg0ODI1YTgyN2I3OWVjNTZkMDFkMSJ9"
         }
       ]
@@ -69,7 +69,7 @@
           "version": "repo-lines-v1:sha256:a9aa87a0db8b1cf9cbf1444a98f2e84225387b981ff8ca1f0558619e83ca5b4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhYTg3YTBkYjhiMWNmOWNiZjE0NDRhOThmMmU4NDIyNTM4N2I5ODFmZjhjYTFmMDU1ODYxOWU4M2NhNWI0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhYTg3YTBkYjhiMWNmOWNiZjE0NDRhOThmMmU4NDIyNTM4N2I5ODFmZjhjYTFmMDU1ODYxOWU4M2NhNWI0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWUyYzdiODliNzk1YmVlY2NjMjg3NDJmZDU0MjAyYTMwNDY4N2E4ZWQwY2Y0N2U0ZDEzOGM0NGM4NDc4YjkyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzcyYzc2ZDUyZmU1OTk3YTliZTY5NDM2MjA4NmM3MDFhMWQ1NTEyZjBkYmU4ODFiNDFiOTVlYzg1ZDRkNzhmZSJ9"
         },
         {
-          "resource": "repo://src/config/settings.py#L76-L88",
+          "resource": "repo://src/config/settings.py#L96-L108",
           "version": "repo-lines-v1:sha256:6e7d2ee3553f028b1edf5ba2e3e5dc3cb419b0209ffeb12ac9705842b070fbac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNzM2ZjJiZWUwMGVkY2U5MGUyMjU3M2M3ZmIxNmRlNmZiZmZmYzQ0MThhMDBjNThmYTdjMWQ1MGE4Y2U5NTAifQ"
         },
         {
@@ -83,7 +83,7 @@
       "statement": "Settings applies a before-field validator to smtp_sender_email that substitutes noreply@retail-portfolio.local when the configured value is missing or blank.",
       "evidence": [
         {
-          "resource": "repo://src/config/settings.py#L69-L74",
+          "resource": "repo://src/config/settings.py#L89-L94",
           "version": "repo-lines-v1:sha256:4861806acfd838e6de31f2eaa120ceedfa209c4ca36fb656cf8955a53bc17b0f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI5ODU5MTgzODNjYzhhZjA3YzA5MWNmMTliMWUxNDg0ODQwY2M4ODViY2VmMmYxMGNkZmQ3OWNjYWNjNmI4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc4MTVlYjZiODViNjlkMjIzMGE1MmJhNmZmZDgxNmJlMWYwZWI4NGYzZjAxY2RkYjE5MjAxYWE4MDZjMjY0MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUxNWM5ZGI2ODJjOTE5ZDA3MDg1OWI3Yzc0OTg5MzNhZmMwYTEwM2Y4ZDI3Y2E4MTFjNmY3ODIxMjVlYmUwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMzNGUwZjBmMzk2NmVkMTk2NzRmOGJjNDdjOTc4Yjk1MDBiYWJjZTg3OGZjMjE2Nzk5MGM2NDk2MTBjZmM4OCJ9"
         },
         {
@@ -97,7 +97,7 @@
       "statement": "settings is a module-level Settings() singleton instantiated at import time, and consumers read it as an object (call-time attribute access) rather than re-instantiating Settings, which is why tests monkeypatch attributes on the singleton.",
       "evidence": [
         {
-          "resource": "repo://src/config/settings.py#L91-L91",
+          "resource": "repo://src/config/settings.py#L156-L156",
           "version": "repo-lines-v1:sha256:a8f4bf18761602d3b590b37d398fa99779730a77b68138fdd14073492e3766ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYThmNGJmMTg3NjE2MDJkM2I1OTBiMzdkMzk4ZmE5OTc3OTczMGE3N2I2ODEzOGZkZDE0MDczNDkyZTM3NjZlZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYThmNGJmMTg3NjE2MDJkM2I1OTBiMzdkMzk4ZmE5OTc3OTczMGE3N2I2ODEzOGZkZDE0MDczNDkyZTM3NjZlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGI1MzBlZGU0ZjNlODgyZDZlODVlOWU2YTc3YmJhMjk1OTk5OTcxZTY1OTk0ZTRlMDQxYmMwMDNiMTU3OGQyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
@@ -145,16 +145,16 @@
           "version": "repo-lines-v1:sha256:7dcf09e70a47c705e71ea74a4b8b45a799a1e3edf117ad002b51c941e1693a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODg2ZDA4ZjgxN2Y3ZWUwYTE4MWI4NzU4Yjg1MTc1N2U2OTY2OGYyYzk1MzkwNWI1MGIzZGNkYzk4OWNlM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMTgyMDQ0ZjEzMzdhNWUxZTQ0ZWVlOGU3MWY2NDkyOWJlNTNiY2UwMmRiY2ZkZTRiZGI0NDc0MDAzNjJjZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZWRlNDg3YmFjMGFjN2VhMzcwZWMzNzRhYjQ2MTQ1ZmU1YjBkZjc1MzYzZThjMjY0Yzk0M2QyNDg0YTJiMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YjA2NTFkMWVmMzFiNTBmNzAyOTRhNmI1ODA2YzY1ZTllYzYwYTk1MzQ0YWYyM2UxYTRiMmQyMWUwNzg0MDAifQ"
         },
         {
-          "resource": "repo://src/config/services.py#L65-L156",
-          "version": "repo-lines-v1:sha256:ae3cee7ae5bd20529ef597c2b4f9fca6a7e553cb369605d0a7bbfc6769dcbecb:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiN2I2Y2YyODM5NGRlY2NiZWY1YTllMTA2NmZiOTgyZDUxMTg0MGU1MzZhN2ZjMTQ0NTNmMDI4Y2FmZjMxZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMTNiMzI5NGQwNTUzNTZjNjYyNWM0NGJjYTM0NWQ4MmY3YTIwM2ExY2JmYzMzYTAzZWY5ZTA2NGZhOGMxMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/config/services.py#L65-L176",
+          "version": "repo-lines-v1:sha256:a7cff8a487ea496c78295a338d90c5bf042997cf07c3ddf21acfd7b8b14bf67d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYjdiNmNmMjgzOTRkZWNjYmVmNWE5ZTEwNjZmYjk4MmQ1MTE4NDBlNTM2YTdmYzE0NDUzZjAyOGNhZmYzMWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNDk2ZWFlZDQzNWNkYjkyMGI3ODQ0NzVjNjAyZDg5NjU3Y2JkZDhjZGQ5NzMyYzE2MWY5N2I0MTk1Y2M5ZTM5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3YTEzYjMyOTRkMDU1MzU2YzY2MjVjNDRiY2EzNDVkODJmN2EyMDNhMWNiZmMzM2EwM2VmOWUwNjRmYThjMTIzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
           "resource": "repo://src/integration/registry.py#L23-L30",
           "version": "repo-lines-v1:sha256:fcdf0b1de9d34f949e4680d52a7459bb2391617ba99fd649d7316d7a71eb5250:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2MwODU3YmUzY2M5MWQ4YzVmNTA0MmJjN2MwNzk4NTlmMjU5YWYyYTNhOGE4NWYzOTdiYWEwOGU0YjdmNDJjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjMxODIwNDRmMTMzN2E1ZTFlNDRlZWU4ZTcxZjY0OTI5YmU1M2JjZTAyZGJjZmRlNGJkYjQ0NzQwMDM2MmNkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk4YjA2M2Q5YjQ3ZTY1Mzc5NjI1NTcyY2NlMTk3NjY5ZDU3NjdlMTJjMThiZTA3NTY1MmI4Y2Q5ODFjZThkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
-          "resource": "repo://src/market/__init__.py#L60-L97",
-          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/market/__init__.py#L68-L109",
+          "version": "repo-lines-v1:sha256:5f9090748a716f0143a044d50cc0353faafaeed37ddbc46756ef9e17fada2e0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -163,7 +163,7 @@
       "statement": "src/market/eodhd.py::eodhd_gateway_factory independently re-checks settings.stub_external_api and returns StubEodhdGateway instead of EodhdGateway, so the live market registration path still yields a stub gateway when stub mode is on; the registry-level and factory-level switches must stay consistent.",
       "evidence": [
         {
-          "resource": "repo://src/config/services.py#L120-L120",
+          "resource": "repo://src/config/services.py#L136-L136",
           "version": "repo-lines-v1:sha256:29818590a2492019d4b1619ca84756aab2e994eadade400f4006366789050b0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk5MWI3NWY5NjM0ZmUwZDRlMzBhYWNiM2E1OTQwYjQ4NzllMjhlODBlOWMyNTMxOTNlODU4YmU4MDY1ZDg5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
         },
         {
@@ -177,12 +177,16 @@
       "statement": "A new repository, service or domain API is only resolvable if it is registered in its domain's register_*_services function; the API process attaches the resulting registry to app.state.svcs_registry and route handlers receive a request-scoped svcs.fastapi.DepContainer for aget calls.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L56-L75",
-          "version": "repo-lines-v1:sha256:d2e53889fca48bd47ad116fc2b026d91d7b2e669fff8238846d91115f781557d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OTU2NjU4OWEyMDJlNmM3MzM3ZDQ0ZWI5ZDExNzc3OGJhMmZlZDE3OWE1YzY2NTkxYjI5ZWEzOTRhZDk5NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjODM5NTBlMDM1NTg5OWRiZDU3MjVmNmQxMDA0ZjNlMTZhZDljOTViMGUwYTAxODllODY4M2M2ZGFkNjFlODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMjM5ZTM0MzIzYWEzMDNkZDZmYTNlYjEwN2RjNmZlNGM5MDVkOWVjMTYzYTMyYmRiYmUyODgwN2U0OGNmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGE0NWVlMDUyYTU5MDBhNzAwNTA2NGJkYmQyMzNkZWYzM2QxZmZjMDNjYWEyMzdjNmIyNDYyZWJlOWNmMTcifQ"
+          "resource": "repo://src/main.py#L52-L82",
+          "version": "repo-lines-v1:sha256:7a65ae301a6ffd9760a9de8b51606a7a3d9302dc0cf1858831d3217b5819acf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjODM5NTBlMDM1NTg5OWRiZDU3MjVmNmQxMDA0ZjNlMTZhZDljOTViMGUwYTAxODllODY4M2M2ZGFkNjFlODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGE0NWVlMDUyYTU5MDBhNzAwNTA2NGJkYmQyMzNkZWYzM2QxZmZjMDNjYWEyMzdjNmIyNDYyZWJlOWNmMTcifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L11-L11",
+          "resource": "repo://src/market/router.py#L12-L12",
           "version": "repo-lines-v1:sha256:23fce58607b52d133c2937c66bd4020daa2fe048bf1bfb060b831ebc699a889c:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNmY2U1ODYwN2I1MmQxMzNjMjkzN2M2NmJkNDAyMGRhYTJmZTA0OGJmMWJmYjA2MGI4MzFlYmM2OTlhODg5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNmY2U1ODYwN2I1MmQxMzNjMjkzN2M2NmJkNDAyMGRhYTJmZTA0OGJmMWJmYjA2MGI4MzFlYmM2OTlhODg5YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YxNWY2MmM4NDU3NzI2YTUzMGIwNTljMDUzYmQyY2Y5NTJiYWM2Y2EzNzAzYzgzM2I4NTkzZGE5NTU1MTcyYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODBlYjdmMzNiMjZkYTJkMTNiZTdiODAyYWZkZDFiMGNlN2UxNDRjMDQyZTgzMzhjMjNkMGZlNDJlYzc0Y2Y3NCJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L148-L148",
+          "version": "repo-lines-v1:sha256:e068ff55902935ac923bdecc56a2ff3db5ed0f2ae6524ad4603afd1570acfd88:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA2OGZmNTU5MDI5MzVhYzkyM2JkZWNjNTZhMmZmM2RiNWVkMGYyYWU2NTI0YWQ0NjAzYWZkMTU3MGFjZmQ4OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA2OGZmNTU5MDI5MzVhYzkyM2JkZWNjNTZhMmZmM2RiNWVkMGYyYWU2NTI0YWQ0NjAzYWZkMTU3MGFjZmQ4OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWMzNmY5MTI5Zjk1YzczNjczYTM1Y2I1OTlhZDU3MGJiOThmMjAwOTg0YTU3NGQ2YWI1OGQwNmNhMDM5MGNjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTAzYTZjNzk1ZDJkZGJhOGJjZjM0NmU2MmFlZjc0NjAyMzU2ZmRmNTYyODc0OWY2ZTQ3ODI0NjA5YzRlOGNhMCJ9"
         },
         {
           "resource": "repo://src/worker_dashboard/router.py#L51-L56",
@@ -213,11 +217,11 @@
           "version": "repo-lines-v1:sha256:970e678cc8c71f8acfa2028c2a9533fec60eb092e9fa3e2851bb684f2784f39d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzgzNWIxOTZjZWMyZmJlNmVhM2IwNTliYTdhYzg1Yjk5MWJmMGIyYzBjNjgwOTFlZjEzZTM3OWZiMzk4YmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MGFhNjk2ZTA2ZTk3YTY0OTUyZDhmYjkyNzdkNmFiNWZiNzc1MmIwOWY4NmVmNGFiOTlmYTAzN2UzMjhlZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxYWY5ODQ2M2E4OGYxZGFkNDJhNGE3MWQwMTc4M2Y0YWRlYzg4OGJjMjU3NzVkZDM3ZTFhY2I4MDU3ZDRmMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYTcyMGMwYjBkMTdlZWM4MTM0ZDk3NTVlZTk5MmRjZWYwMjhlZTE0NzU5ODUzM2M5MjI5MDllYTBhY2MwMmMifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L32-L55",
+          "resource": "repo://src/market/task.py#L35-L58",
           "version": "repo-lines-v1:sha256:7f869a189f4fd6c943aae431e28c1291650bb7d6b27f9da033e817f8292ab80d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMzk5NzAzYWZjN2JlMjZlNWFmODdkMTg0ZjgxODcwMTA5MzZmNjhjYTAwZDAwYjliMzI4YWU0YzM3ZmQ5NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhM2U3ZjU1MmE5OTU4OWZjYTBlYmYwZGZiNTcwOTUzYjAwYTYxZjAwNWE5NDQ1ZmUxN2Q2NmFiNGJhZTU4MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMDEzODc3OTU0ZjYzNzVlMGVjNmYyZWQ5N2I1Zjg3ZDFmOTM1ZjdjNjc2MTg3MThmMjk3MWViMmJhMjFjOTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4NzI4NTJlMDEwNjQ2ZTRkZTU5MGU2YjlkY2UyZDVmN2U5MjFmYzcxMjEwNjY0YzdmMGQ0YjMxYTRmMDZiMmMifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L68-L75",
+          "resource": "repo://src/market/task.py#L71-L78",
           "version": "repo-lines-v1:sha256:cda1562b613c6d2d656c3dd7dd19d7ce2e4132f11e7cf74ade910b07ba8dc572:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmJmYjIxNzQ1MTBjZGQ4MWUxOTQzYTY5NGY0YmRjZDdlMzdlZDViYzYwM2ZhNmZlNmU1MzBkY2ExZGE0NDllNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE1M2JkMTVjOWJmNWMwNGMxODM1NDQ4ZjAwODdmZmU2Y2RkYjc3YTljZjAwNWQ2NTI3ODA3YmYwZDczY2NjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNlOWQ4OWM4NDVhOTE3YWVhZmZlMzI4MWI1YTU4MmNhZTNkMTY4NGRkZDBiMzlmNmIzYmQ5ZGExM2EyMmRjNiJ9"
         }
       ]
@@ -269,7 +273,7 @@
       "statement": "Alembic migrations run automatically at API startup through run_migrations(), which calls alembic.command.upgrade to head inside asyncio.to_thread; the step is skipped when environment is \"test\".",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L43-L54",
+          "resource": "repo://src/main.py#L45-L56",
           "version": "repo-lines-v1:sha256:9cda8e1e1f1524c48a044f399244c90ee91b0f8a4cc11e1938416fdedd71bf10:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2U4N2JlNmU0OTU1ZTRlNjAzZGYxMTMzM2FiMDQzYTU0MGFiOWQxYTM3NTFmODEwMzhhZTMzNzU1YzI4ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYzY2ODlhODllMzdkMTNjMGFhZWY5ZDQzNGIwYTczYzZjNjk2MTZhMWEzNGM5MzIzNWE5MjM2NGVlODUwY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYzRjMGI2NzdjMzQwMTlhOGFkN2Q0ODkwYWI1NDA1NDMwZDliYjQ4Zjk2YzZiMzZkZTk1MGExODlhNjA3OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0ZDFmYzQ1NDU2MjcwMjViY2U0ZGViOWMwNDJmODgwZjE5ODQzMmYxYzE3MzVhYmMwMWQ0YmE0NjYyZWRlYTcifQ"
         }
       ]
@@ -290,11 +294,11 @@
     },
     {
       "id": "claim_b50e5d41151c447da138772ec9ee8e02",
-      "statement": "RedisManager keeps one redis.asyncio client per running event loop in a dictionary guarded by a threading.Lock: client() prunes and closes clients whose loop has closed, then lazily creates a decode_responses=True client for the current loop, which lets the single redis_manager singleton serve the request loop, the WebSocket listener and asyncio.run() task loops.",
+      "statement": "RedisManager keeps one redis.asyncio client per running event loop in a dictionary guarded by a threading.Lock: client() prunes and closes clients whose loop has closed, then lazily creates a decode_responses=True client for the current loop, which lets the single redis_manager singleton serve the request loop, the WebSocket listener and asyncio.run() task loops; every client is also built with bounded DEFAULT_SOCKET_TIMEOUT and DEFAULT_SOCKET_CONNECT_TIMEOUT of 5.0 seconds so a stalled server fails fast, and close() clears the dictionary and closes the remaining clients.",
       "evidence": [
         {
-          "resource": "repo://src/core/redis.py#L14-L63",
-          "version": "repo-lines-v1:sha256:25f59dd4af27dc3884a427d71028f3dac6b8bb35fab247607c1e8682431d83c0:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OTgzNTQ2OWNiODgyYTE2Mjk2OGJiMmZlNTY4ZTU2ODg0YWQ0ZDlkYWFmMGM1ZDEzMDJiYmJhNDM5OWYzYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxMmM1M2I1NWQ0MTUzNDEzMDA0YTA4YWQzYWY5MTczMWMxOTYwZWFiNjNiYjk1ZmFkYzExZGRmOGQ3YzM2MDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZGM4MjViMzdlMzVhNTI0ZGI1MWQ4MzY2YWM1ZjQ0OWVkOTQxOTE3MTQzZThlMjZkN2YyM2I1MGVmNzNhZjgifQ"
+          "resource": "repo://src/core/redis.py#L13-L85",
+          "version": "repo-lines-v1:sha256:e44dde27366b7c41858a5b87284493ed1a500fd82b3c34bdab92c41aff9032b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzA1NzcxMzAzNWJhMzg0OTRiMTIwZjM2MWU1ZTBlN2ZkNWI3Yzc5MzAwNGIxMWVhOWRmYTEzNTNkNmRjNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MzczMWM0ZWQ1ODhhODZiMzZhZjk3MjVmYzJkODUzMDI0OTIwNDliMjgwMWQxZWQ3MDEwYjI5YWIzYWZkNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -303,7 +307,7 @@
       "statement": "The redis_manager singleton is constructed from settings.redis_url and is the shared Redis access point for the auth token denylist, TOTP/passkey challenges, account sync status, the market security search cache and WebSocket fan-out; IndicatorCache instead builds its own client from settings.redis_url with decode_responses=False.",
       "evidence": [
         {
-          "resource": "repo://src/core/redis.py#L66-L66",
+          "resource": "repo://src/core/redis.py#L85-L85",
           "version": "repo-lines-v1:sha256:a83731c4ed588a86b36af9725fc2d85302492049b2801d1ed7010b29ab3afd4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTgzNzMxYzRlZDU4OGE4NmIzNmFmOTcyNWZjMmQ4NTMwMjQ5MjA0OWIyODAxZDFlZDcwMTBiMjlhYjNhZmQ0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTgzNzMxYzRlZDU4OGE4NmIzNmFmOTcyNWZjMmQ4NTMwMjQ5MjA0OWIyODAxZDFlZDcwMTBiMjlhYjNhZmQ0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ0MjcyNDc2YTg1Nzk0NGU4NmYzZGFlMzE0NTgyNDQ5MTIxNDIxNjc2ZDQwM2ZmNjQ3ZWVmMzk5MzJhYzliZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
@@ -311,11 +315,11 @@
           "version": "repo-lines-v1:sha256:835146a959d727cb6238be4799aff89e881fdab7f653d49de1f3bdd0c64c20ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYTlhY2NhMzEzODU5NjdiZDBlNjM2ZTJmOGZkNTEzMTFjYmFiYTNmNGU5ZTU2MWFkNzFjZjM4ZDFhODZmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0ZTU5YWFmZTJlZGE3YzIwY2I5MTdkNjI2YmI5YjY3ODAwMjUxODFkZmI2MjAzZDE5YjExNzlkYTQzOWZkN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjM2U5OGFkZDQ0ZTIyZTNjNzQ5Y2UyYTg1Njg0NjE4M2M2YmJjMjE4Y2RmNTgwYWE2ODc1NGYxYzA0MjAzM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlYmU4MDViY2ViZjc3NjU5OTQwY2JkODAyNDNlNDcyZGIxODUyNjQ5NjkzZTBlMzBlYjMwOTZmYTkyNGRlNTgifQ"
         },
         {
-          "resource": "repo://src/market/cache.py#L260-L265",
+          "resource": "repo://src/market/cache.py#L265-L270",
           "version": "repo-lines-v1:sha256:67cb01cd7f7b926d3777ea80bdd277d08f2625c47ddbb7fc2cdd2e76c18557c9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhNjgyZDQwODY1N2RmZDZmNjg3YTk3ODM5MzI0NzIxNmFjM2IyZGU1MmI1N2Q5YTViYTk0ODM4M2ZkM2I2NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRkMzBhMzUxNGRkNjQwZDJjZWExNTQwZWNhOTZkNTM2NWY4MWY3YmYxNDAyYzA2NDQ0YWI0ZmIyYWY3MmE3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTFlMzI0YWQxZmNlMTk4YjNlZDhkMjFjOGQ5NTNmMWUzN2ViMTA5NmY0NDhkMmZjNTMwOGZiOGJjMDdhMTI1MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGZjMzcwYmIxOWVkZGEzODZmOGZkMGQwZWVkYjZmYjA3ODhlNmVhZDgwODU4N2E0MTRhZWEwZmM4ODliMTY5YSJ9"
         },
         {
-          "resource": "repo://src/market/cache.py#L368-L370",
+          "resource": "repo://src/market/cache.py#L373-L375",
           "version": "repo-lines-v1:sha256:852e33cd006b06bc7c1ca2bdff92134b5ff7d0352fd26f180197ea8c6dacde4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTg1YmZjYjA2OTkzZTdjMTE2Y2MwNzhlMDAyNTIyNzk0YjIzZGMyMDBlMTM3MzE2NjAwNTU0MjZkMzc3ZTA4MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmVkMmRjYzZkN2Y5N2YxMWJjY2UxMmJiZjVhZTU3NGYyN2Y4ZDQ0ZThhNmQ5NWE5MWNiNzVhNDU2MjI0N2E2YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODI0ZGYzOGQwMDg0ZmIxNmIwMTFhMzI0NzgzODFiNjQ5ODYxOWE4YjU4NmVkNDM4MTQ0OGEwZGY0NmQxMWJhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
@@ -325,11 +329,11 @@
       "statement": "Tests never depend on a real Redis server: the autouse fake_redis_manager fixture replaces the shared redis_manager singleton's client (and the redis_manager aliases imported by src.auth.api and src.auth.service) with an in-memory FakeRedis, and mock_redis_storage exposes the backing store for assertions.",
       "evidence": [
         {
-          "resource": "repo://tests/conftest.py#L39-L51",
+          "resource": "repo://tests/conftest.py#L46-L58",
           "version": "repo-lines-v1:sha256:7b5ed6713219da739e7307e59a672c12766833daaafe772f38fbe7f9cb7b4851:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ODgyNDQ3MDY4YzMzYjJmMzJlNDVmYWM0Y2UxYWZhYzQ5ODNkYzA3MzBlNmZhOWEwMzdlYWM5Y2ZhMjM3NzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlZDUxMWVlN2I4MjJkNjNhZTk0YTk0OGVlMGU4NTBmYWMxNDI5ZDRhZTE5YjE2Y2Y3OWJjNTRjZDYwMDU3NTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhYjU0NTk3YTU4Y2FiYmE0OTJkNWZlMTM3ODZkMWU5NjUxM2FiMzNlZWJmYTA5YjgyOTQ3NThmOGE0OGEzNmUifQ"
         },
         {
-          "resource": "repo://tests/fixtures/redis.py#L119-L142",
+          "resource": "repo://tests/fixtures/redis.py#L125-L148",
           "version": "repo-lines-v1:sha256:f09eefb4252e3fb315488105fab41eae10eeb6b45c9583f2ee2ae3ab7e2f0fe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMDg2NmY0MDExZTU4NWZmYzA5MDkyZWRmMDgzMmUxN2I1MmY0YzkwYzRjYTBiNDJkY2ZhMDUwZmEzNzViNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYWM5MTM5ODYzZTdjNjFlM2JiNTRlNTgzYmQyNGM3MDU4MGJlNDAyOWI2YjQ4ODAwMmRlYWU1YWFmZTU3NzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyNDhkY2Q3MzE3MTBjODBlMjgzYjVkMGNiNzVmY2Q5Mjk2NmJhM2EyYTkyOWM3ZjY5MjI5Y2EyMGRkNThjYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhMTNkYjM3MDJkYzljOGRmMGRmZTI1NGNiYTdjY2FiMjUyNzAwZDZlYTU1M2FlMzhjNjg0ZDRiZTk2ZjU1Y2YifQ"
         }
       ]
@@ -343,7 +347,7 @@
           "version": "repo-lines-v1:sha256:5a52e9e8f01361cca74c2738bd8ce81d5ba75f070fbfe7939e998af25d5b9034:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTljNmU2MTc1ZDZhN2M2YjI3YWNkYmI2ZDQ0NDNmNGYzY2UzYjFlODU1MzYxYjRlMTUwZjRlMDY2MjhhYzM1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTkzNDQ3NTQ4MDE2N2FjZGRjNmYzMTM3NDFkZDllNGYyZDgzYzZiNjM5YmI3ZDFlMGE0Y2Y2NjJlNmRhZTE2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
-          "resource": "repo://src/main.py#L100-L103",
+          "resource": "repo://src/main.py#L107-L110",
           "version": "repo-lines-v1:sha256:f182ad29b7d53ea107f4865ab39008ea1b3ccf580059d2208f395c49e96e3d08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2YzYjQ1YmNkMmNiMGM5OGU0ZGRkMjI1YzkyZGQwOWY3ZjYxNjM5MzMwYjA1MmRiODcxYmRlYjU5NDMzNjk3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU3NjM1M2QwZjVjMTI1NThjMDRiY2M4NzAxNWE1ZWUzMGJlZmI5YjM5ZTYyNWFkYTI0MTRmNjI0ZWRiZDkxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY0MmM1MDE2MTk3MGYyYWJlZTVjNTAyM2RiYjdhZGE4ODI4MGM1ODY3MTg4ZDNkNjYxMmRiMjM1YmU5ZThhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTI5MGIyZmI3MWUyOGEwYTIwYzU4ZWRlZTE1ZjZmNzVjNzI1NzMyMTgwMTBiNGNiYWEwYTg5MTE1Mjk5OWU5OCJ9"
         }
       ]
@@ -360,23 +364,43 @@
     },
     {
       "id": "claim_82453881965c42b684cb31acffbcc496",
-      "statement": "Rate limits are applied per route with @limiter.limit decorators, for example 5/minute on auth login, 3/minute on account import and integration connect routes, and 5/minute on the AI market endpoints.",
+      "statement": "Rate limits are applied per route with @limiter.limit decorators: 5/minute on POST /auth/signup, 10/minute on /auth/login, /auth/2fa/login-verify and both passkey-authenticate routes, 3/minute on POST /auth/resend-verification, POST /accounts/{account_id}/sync, POST /integration/accounts/import and POST /integration/positions/import, and 5/minute on each of the three AI endpoints under /securities/{security_id}/ai/*.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L528-L528",
-          "version": "repo-lines-v1:sha256:18789fc4c88fc08d641452f493681847922e9dd645e77f5d6a9ed140b1c0fa7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGYzMjE0Y2U5YTg5ZmE4MWVlMzYzODQ1MGUzNDg1OWZjMzBlYjIzNjk4ZGZlNGMzMjcwYTJkMjA4NzBlNTM4MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTZkMzkzYjkzMjkxOTc4ZjIyOTQ5Nzg4NzkyM2U1NWM1NDdlYzMyMDMyYzBlMTFjMDdkYjE2OGVhOThjMmU5MiJ9"
+          "resource": "repo://src/account/router.py#L596-L597",
+          "version": "repo-lines-v1:sha256:735168281033ee83268be236c03325f2eaaec5954b2bd411f0dcac9bfb6376eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1OGZlN2JkNGYyYjJhNzM0YzRkOTVmZjZkMTlhOThiNTAxZDQzOGYxYmU0Y2FmOTllMTAxOTJiYjQ4YmNlMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTZkMzkzYjkzMjkxOTc4ZjIyOTQ5Nzg4NzkyM2U1NWM1NDdlYzMyMDMyYzBlMTFjMDdkYjE2OGVhOThjMmU5MiJ9"
         },
         {
-          "resource": "repo://src/auth/router.py#L55-L55",
-          "version": "repo-lines-v1:sha256:f25ec04066e5859607249ccff0d11a4d9d9b2ea7a2dd284cb6b5380abe3c483d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjVkN2NkMjc4Y2U3Njc1ZjE3OGJiZmI3OWEyMzUyZDZhMWUxMDY1ODA1ZWY3ODJkMzlkNzE0NWFjMGY2OGRjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjljOTMwM2FhNjA4YTI2NjM2ZDAzNzBlYTFhNjI1ZDUzNGMxMjk1ZGQ5Mzc3N2U0MGM0ZjJjMzFkM2E1M2YyZiJ9"
+          "resource": "repo://src/auth/router.py#L123-L124",
+          "version": "repo-lines-v1:sha256:2b904528c2e8e3bc07986f200b767302a075b0be224850183d70225fcc50c915:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDJlMDcwMDY4YTk1NmVhYTM3ZDE3YzgwYTdlZjI5NTA5MGZmZWE4YWRkN2M1ODI0YzRlYmU3YTA1MDliOWFiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ5Yzg3MGMzMTViNjFlOGRiM2IzNzUxNDMxOGY1NTlmNDQ3YTIwZGE4NGRjYmM0NTYxY2QxNDczNGY5OTYwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGYyM2NiMGQzNzEzODM3MmVmZjdiZmQ1NGRmODlmYzM4NjRhYThlODRlZWRmMWRhMzljNDZmMzEwMDE3ZWU0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTcyZTU5MGMzNGMyZGM2MWQwYjUwOTQ4NmZlNTE2MGI3NDYxZTE4Yjk1ZjZiMjNlY2VjYzVjYjA5MzE1ZmViMiJ9"
         },
         {
-          "resource": "repo://src/integration/router.py#L159-L159",
-          "version": "repo-lines-v1:sha256:18789fc4c88fc08d641452f493681847922e9dd645e77f5d6a9ed140b1c0fa7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWJhNWE3YjQ0MmRmZTllNzM2NjQzN2JiMWZjZGNhMTNhZTExMDliNjI4ZDdkN2Q2ZmI4MDNlY2E1ZWY5YTBhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDYyMTUwOTYxOWQ1ODI1MGY0YjM1MGZkMTgyMjJiNDZmMGJjOTgxYTllZmZmZGU4MTdlNzQ0ZWQ0MDJkYjgxZiJ9"
+          "resource": "repo://src/auth/router.py#L203-L204",
+          "version": "repo-lines-v1:sha256:00897ec9a2743df1172aa2dbdddc042265ba928923b52c6985ea6d135d69bf54:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGNkNDY1MGYxYmYxNDI0ZjQ5ZmUxN2NlNTQ0OTMwMWNmZTQwZTZkMjVhZDA1YmQyNzg0ZTMzZjFhNTM1YTU4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTQ0NWFiMWJhNzdjZDA3MzUxZDlmOTc3NzkyZmZmNTYxNzA5ODFlNThlZDkyZWQ4MjhjMGIzOWViNzkxMDNjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzY4YmM3ZGNjNGE4MjM4Y2Q1MGE4NWFmOWQzYzY0YjYxMWVmNTVlOWVmMDJmZGRiYzliZGQxMTUxZDllY2Y0YSJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L1032-L1032",
-          "version": "repo-lines-v1:sha256:f25ec04066e5859607249ccff0d11a4d9d9b2ea7a2dd284cb6b5380abe3c483d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThmN2ExN2JhNjhiYmNhMTRjMjZiOTIyZTFhMTc4YTE2NjJkNjRkYzYzMmQzNTEzNjRiNjcyZTM2MjI5NTM0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVkNzZmMWNiNDlmMTYxZjE4OGJmODc5MTEwMDJmMDk5NzgwZmNmM2IxYzNjOGU1YzNiMmFhNjM4YzI4NzAwZSJ9"
+          "resource": "repo://src/auth/router.py#L362-L376",
+          "version": "repo-lines-v1:sha256:8ef7f06ffa54591e6123d7d98a0388a732f228948fd443501f8c41249d9ac45a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZDc0YTJhMTRiNDdiMzUzZjE0YjkyN2VmMjZkNjQzZGRkODc0NGYyZGExM2M5YzM2ZDVlN2ZlZmE3M2QyYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkOWM4NzBjMzE1YjYxZThkYjNiMzc1MTQzMThmNTU5ZjQ0N2EyMGRhODRkY2JjNDU2MWNkMTQ3MzRmOTk2MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiOTBkNTk3ZGRlNTgyMzYwY2Q2OGU0YTZlNDhiMTcxZmYyNGUwMzI3MGE4N2RhMzZhMjZkOTEwMTMwYTU1MDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyZTZhODVlN2NjMmQ1MWU1NGFiMDJlM2JjNzhjYTVkNWM0NmU2MDZjZDBmNDdlODA2M2JhMzI0NDM1NTc4ZTkifQ"
+        },
+        {
+          "resource": "repo://src/auth/router.py#L54-L55",
+          "version": "repo-lines-v1:sha256:a352bf1f8e5aaaadff2c5ed181f497531109d4c87db3d23728e4781db3157b44:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzY1ZjUzNDg3ZTY0M2I3Njg3MTEwNWE5ZDI3YTllMjFhMWM3NTc5ZDdiZTZiM2QwMWQ0OWNjZWRiOTQ1MzEwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDEwODA0NGI1OTZhNzZmMjVhZDM0NzBiMzRiZTNlYjVjMDY3ODllYzI3ZTY4NDlkMjc1NTk0YWRhZGY1Yjg1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjljOTMwM2FhNjA4YTI2NjM2ZDAzNzBlYTFhNjI1ZDUzNGMxMjk1ZGQ5Mzc3N2U0MGM0ZjJjMzFkM2E1M2YyZiJ9"
+        },
+        {
+          "resource": "repo://src/auth/router.py#L78-L79",
+          "version": "repo-lines-v1:sha256:4eef1bb53cd1752eb1ba9c7c5387d56c0d4d50873977024573d9d41cce7e5d15:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJlNDIzNjZkY2E5OGRmNTAyMjI2MGUwMDU3ZWE4ZTI5YmVjMzhlNGViYTNlZTI3ZGNiYTliZTViZDMyZTM3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ5Yzg3MGMzMTViNjFlOGRiM2IzNzUxNDMxOGY1NTlmNDQ3YTIwZGE4NGRjYmM0NTYxY2QxNDczNGY5OTYwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTlhN2MzNWVmOGRlNTMzOGI5ZTIyMDEwN2FmNGQwY2Q3Y2NiNDhmYTU4NWIzZjNkNmU1NTgzMzQxZDU4OGUyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTc4MTVjZDU3NzI5MjRkYzA0MGU4ODFiZTlmY2U0Yzg2YjViNTUwM2NiYmZmMWM1ZTYzYTc5NjNiMDdjMzlkYSJ9"
+        },
+        {
+          "resource": "repo://src/integration/router.py#L158-L159",
+          "version": "repo-lines-v1:sha256:ebc95ff04c1baa1184b7f7a9ae56701dca0b3da1410a32e666067e3d9526a1ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2EzYzViNzg5MTM0MzY5NjM3OWJkYmU4OWRjZjQ2NzM2MmRhYTQxNjk3MTIwMGUwZDliNjhiOGVjMTg4OWUzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2YxM2YwYmU4MGI0ZTU1OTE4YzE4ODdmNTdjNzk4NmE4NGZjNjAxYjA1MDc5YmEzZjM4MzYxYzlhNDMyOGI2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDYyMTUwOTYxOWQ1ODI1MGY0YjM1MGZkMTgyMjJiNDZmMGJjOTgxYTllZmZmZGU4MTdlNzQ0ZWQ0MDJkYjgxZiJ9"
+        },
+        {
+          "resource": "repo://src/integration/router.py#L212-L213",
+          "version": "repo-lines-v1:sha256:b714d6d38f00eb209ea7c2b7ca0669dfb16e8efed1c4e6d2f181a17e60b51e56:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM4Y2Y4ZjE5ZTQwOWQ4ZmJkNDY0NWNhYjIxZmU2N2Q3YTAyODc0ODczNTQyNTlkNjdhNzBiZWI4NzhkNjRkMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTg3ODlmYzRjODhmYzA4ZDY0MTQ1MmY0OTM2ODE4NDc5MjJlOWRkNjQ1ZTc3ZjVkNmE5ZWQxNDBiMWMwZmE3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTU0NWM2ZTk0YzNhODBiYjZjNWMxYzQzNTc0YTA5YzA4MTI3ODVhOWVlZWE4Y2UwYzdlNmQ1ZTQxMzFhZWM5NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzMyZGU5ZDdlN2Q1YjBmNWQ3OTliNWZmMzlmYTcyZTc4M2UzMDRkODE1ZTA4NGI5MjI3MTM4Y2I4ODgyNGVhYiJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1175-L1226",
+          "version": "repo-lines-v1:sha256:028f155c0213d4f49aaf8f96bda05254ab20b12558828077d12f9c182e34073a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMGY4N2IzMDA4MmNlZjI1YmVjMjE5MDE4ZTQyODA3NWRiZTZkNjRjNzJhNjgxYzkwY2I1OGQyNzcxMWJhOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNzA0YTlhMzNjNDFiNDQ0MmFmZGRkMDkwYzA3NjFmZGEwNDY2NDgzOWZjNWRlZjNmZGQzY2EwOTgwMmJjYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiNGFhZGFjMDUxOWU4ZWM3NmExZDdmNWJiNTg0NzQyNDA3NjhmY2I4N2IxN2EyYjJhMWQ0NDlmZGEzYjQwZTMifQ"
         }
       ]
     },
@@ -389,11 +413,11 @@
           "version": "repo-lines-v1:sha256:96632adab956a684ff25faee00397b66cd0c537ae6f67e328559944571a28db9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5Y2JjODc0YjE1Y2I2OGRmZjUxODQ4YjY1M2Y4NzY0ODdlNTFjZWQwMGM5YzNhYjA2ZTVhNzk0ZDk3NjdkMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNTg2OGU3ZjI5MGY3NmY5ZWIyOTEwZmI1MmJlNTNiMDJiYTQ3Zjk0MzFkYzA2YzRmNWUxMTZhZjE1NmI5MDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L23-L36",
+          "resource": "repo://src/market/task.py#L26-L39",
           "version": "repo-lines-v1:sha256:b98485a27ac2e6e5f7f99cd06fd09fb67c241cdd70f506edd168178eb56ca360:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjODk4MjU2ZjUwYjA5NDQ3MjIwNzEzODE1ZDQ1YzdhNWVhMTdjOGM3OWNhNWEzZWU1ZmVjN2IzZTc5ZjAwODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1NmEyYWNhMzNjZjk2ZWEwMDAyNDkxZjc0YWZmZmIwODFkNmY3ZDliNDZiYWEyODZkZWZiMWNkMDU2MmQ2YmQifQ"
         },
         {
-          "resource": "repo://src/market/task.py#L53-L55",
+          "resource": "repo://src/market/task.py#L56-L58",
           "version": "repo-lines-v1:sha256:afdf42eede6dc3c869383a9b0510d234234de6f2e44b8b6c5929bab26f5d8fe1:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTcwZGEwMzJmYmZkYmQxYjQyNGU4MTRjMjEyYWU1ODQ4NGU3NmY1N2RjNTZkYmZkMTNiZjgwMzczNmQzMjRiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEzZTdmNTUyYTk5NTg5ZmNhMGViZjBkZmI1NzA5NTNiMDBhNjFmMDA1YTk0NDVmZTE3ZDY2YWI0YmFlNTgxMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDg5YzBlM2JkOGU5OTA2ODAyN2E4YTM0MTc2ZjNjYWM0MDgyYmQ4NzM5Nzk1NmIyZTA4MTI2YzQxMDk1ZTljOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTg3Mjg1MmUwMTA2NDZlNGRlNTkwZTZiOWRjZTJkNWY3ZTkyMWZjNzEyMTA2NjRjN2YwZDRiMzFhNGYwNmIyYyJ9"
         }
       ]
@@ -459,11 +483,11 @@
           "version": "repo-lines-v1:sha256:98ce515714b7228f7c267b68c04586ba511166ce3558cdeb3c9f04d8c2b9df2e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODMyYWU1Zjk5ZmMzN2YyZGNkZWZiMTkyNjM5ZWU2ZjBhODZjZjRkMDM4MGVjMmFjNjg3NDBlY2Q5NmJlZmM4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWU4ZDllMmNhMTZhYmFkZDBhNDJkNzczNTg2OTI1MGMwY2QzMGRkOWU4Nzc4OWY3MTk1ODkzMGYxNmYyM2M0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGEwN2Y3ZmUzMTAzZTFmNjRjOGFhMzJlMTQ5ODBkM2UyY2EwNTljMzkwNzA0N2Q0MWIxNjk1MzAzNDM5Yzc5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDM4M2ExZWI5MTQ4Y2ExZGZlNWJhZWJlZmM4ZDgzMDI2ZmE4MGRiNWYxYWZmYjIxZTcwZGNkMWViYTNkMjg2MSJ9"
         },
         {
-          "resource": "repo://src/main.py#L156-L161",
+          "resource": "repo://src/main.py#L163-L168",
           "version": "repo-lines-v1:sha256:e8328807cb4afc0ce2626c26a978b5b08ce5881c9cc18eb94617675e1090eb38:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjk1YmM1NTZhMjJjYzIwMTA4MWY1YmM4ODFkZjYyMWU0ZWNiYWU0ZDYzM2NlNTM4NzU0ODIwY2RlZWRiMWIzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2M5YjA3YzlkOGY0NWU2NDgxYzc5OGE5ODIyMDg4ZDRkNzQ4MDgzM2Y5MzgxNWU2ZTc4NDdhYzU0YjFmNDQzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWE0MjM5YWNhNzU2YmY0MmI4ZTVhOGY4MjlmZTkzZTk3OGZjZGI0YWYyMThiZjEyNzY5YzQyMDE1ODlkNWY0ZiJ9"
         },
         {
-          "resource": "repo://src/main.py#L86-L98",
+          "resource": "repo://src/main.py#L93-L105",
           "version": "repo-lines-v1:sha256:5b782fe1ef7d79a9c582186872c42049c9f171b8c469bc6137e748a091fe974a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlZjJiZWU5YmI1YzFhNjdiODk2NDNlODdkYzRhNTFhMjM0ZmM1Nzc1ZTdhNDJjNTY1MzI2NmQ1ZmMwMTBmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZDAwYWIxZjE4MWQ5N2M3MWQ4Y2MxYTMwN2FlNTdlMmJiOTBlYjcyYWFiNjM0OWVjNzY5NjVjYzAzMjUyMDQifQ"
         },
         {
@@ -477,7 +501,7 @@
       "statement": "The /health/ready endpoint resolves an AsyncSession from the svcs container, executes select(1), pings Redis through redis_manager.client(), and returns 200 when both report ok or 503 with status \"degraded\" otherwise.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L185-L206",
+          "resource": "repo://src/main.py#L193-L214",
           "version": "repo-lines-v1:sha256:a9655f3fb27216f9e23b2a6a50df174ee3b2086e2256a1ab5310faa510270542:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljY2NmZmMxYzkyZjIyOGFjZDg3NjQzYTZhOTRlMWYzZDM2ZmEzOTY3NWViNWQ5YmM3ZjZmYjdhYTFkMWZiZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MDgxMmEwMThiZDc0NzZmYWRjNWZkYzNkNzJkNjdlNWQ3OTI2MzNkMGU2NjQ2NmZjNmZhZWQxNjZjY2Y5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
         },
         {
@@ -491,7 +515,7 @@
       "statement": "The market document upload route reads settings.upload_path at request time, creates the directory with mkdir(parents=True, exist_ok=True), and writes each upload under a generated UUID filename.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L672-L689",
+          "resource": "repo://src/market/router.py#L817-L834",
           "version": "repo-lines-v1:sha256:6b4d857f3e2cb30d1c83ca3ab00fcc693d8b68615dd5da73768af717fa6cf943:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MDM4ZjZkNGY1MzE5ZDNiODRiNjUxNzNjNTFhMzc1NDc0ODViOGZmMGQwN2ZiZWE5YWE2MzlkODM4NjE3M2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YWU0ZDEyMjAyNzQ5NzRmNWUyNzQ3NTgyOTNhYmM0ODc2NDZmZjMxN2I1NmEwMWU4ZWU2MDRlMDMxZjRkNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1NmZhYmVjMWNjNzc4MzJiZWNjM2Q3NzBkYWYwYWZkZDJkM2Y4ZWExZGJiNTdiNzE2NjI3YzE1NjVlMDJjYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhNjc3NjI1MDA4ZGVlOWMzMzU0NWY5OGY5NzBiZmI0NDk0NjVmZTkzMmEyODY0NTA3ZTFlOGI4NjMyYzk0N2MifQ"
         }
       ]
@@ -562,37 +586,57 @@
     },
     {
       "id": "claim_aa5c7e1bcd014b2599c369019e0c5322",
-      "statement": "Settings defines the orchestrator subprocess URL and several remaining dev-stack defaults (frontend_url, database_url, cors_allow_origins, upload_path, redis_url, indicator_service_url, ai_api_endpoint) that mirror docker-compose.yml, so missing variables degrade to dev values instead of failing startup.",
+      "statement": "Settings defines local dev defaults for the whole dev stack (frontend_url, database_url, cors_allow_origins, upload_path, redis_url, indicator_service_url, ai_api_endpoint) so a missing variable degrades to a working single-machine value instead of failing startup, while .env.example supplies the Compose-network values such as the postgres/redis/mailcrab hostnames and http://backend:8000 that take precedence over those defaults.",
       "evidence": [
         {
-          "resource": "repo://docker-compose.yml#L1-L124",
-          "version": "repo-lines-v1:sha256:2d1dc9e343d03415bf65406b0927f43639b831bb571f31fdb83323d4137c2d18:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTczZmNjZGM5OWVhODM1OTY3YzdkZWU3ZWZiZWQxZjNjYTg3MjYwZDkyOTMxODUwZmRkNjZkYThjYjEyZjFkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODUxZTcwODI5MjYxYzljZGJkZjFjN2EwYmRlYjkzNTcwZmY5YzZmNTJlOGJhZjBjMWQwODljMTQxMTlmMzE2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://.env.example#L9-L39",
+          "version": "repo-lines-v1:sha256:47396c3955404d12ce8087b75bed21d85e03d1836fdef5b0991d99702326fff4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYTBmZjNkYjdiNjcyZGQ4ZGY5NGM0ZTk5Yjc2MmRiYzQ2MzVlNTYxYTZjZDU1NmI3Y2U1MzI3Mjg2MDJkMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNTk3YmUzZmQxYzE4MmI5YzkwMzdmZTE3MGZhNjgwYmMwMDY2MTgyZDUyNTA4Y2FhMDhhMjNmYzk5NmYzYWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmZjQ3ZWI3NTk1NTBkN2NkMjJhODcyZTNkZWRiNDJlNmNkZmIwMTRhYmE5NmE3MDdjZjgxZTVmZTc1MTljZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyZmM3MTU1MTk1NDNiZmYzZmIxNTQ4NDMxNjkwOGI4NTZlYzkxNzQ5MTc4NjY0ZTcyYmI5ODgwNGM3ODFkYmEifQ"
         },
         {
-          "resource": "repo://src/config/settings.py#L13-L48",
-          "version": "repo-lines-v1:sha256:7f5256c17535ec821a33194a409f244b396dc20f760ed66f6d51259720b32fde:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2NjgzYzU0OGJjY2Q4NTBjM2Y2ZTc1Yjk4ODdlZDA2NTRjMGZhY2RiOTBkZDg5ZjFkNDVhYmZhY2FhZGU3NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlNWQxYjZjMzk4MzFmODhjNDU5Y2VkZTNhNWNiODBiNWUwZTVjYzhlZTYyNmEwMTQ1NTQ0NTM4ODkxNjVmNzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2YmNkNTZhNmI5Njk4NWYyZGY5ZWZiZDdmZWFlZDZjZmNkNTRjMmQ4ZTFiNmEzZTk0NDM5OTA4YTgwOGRiOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZDU5MTM2YTNhNmI0MmI5ZjY5YWQwYjU2OWI3ZjVkNGNiYmNkZTNhYzM5ZDMzNTI1MjYxODdjODg5NjYwZDYifQ"
+          "resource": "repo://docker-compose.yml#L30-L31",
+          "version": "repo-lines-v1:sha256:68df0e011b4007137d6830b482aea861ed4662632737b7bc1a9ede6ac7bbfcbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBmNWIyMjJhMzUxODk1NmRjN2I5ZGY1ODY0ZGE1N2M3YjM2NDYyZTBhZDllMDM2YThmMTgxMDZmZWZiNzhkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE4NTg3NmE3YTUwZDllNGJiMWQ1M2MxNTBlZmVjYWU5MjM2NzgzYjk0YzRjZTY4ZjE3MjE4ZDc3NDEwOGM5OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWFmNDMxMTg1MGUxYmYwZTU0YmQ2ZWU0MGQ0MGU5MzI4NDJiMjE1NTMzNjc3NzNiOWI2OGQ1MTA4ZGE0Y2M2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFlNmU1YmNkNDgwN2ZjYmViMTI5M2ZlMzkxNjhjMGRjMjA1NWI2M2IzY2UyMzFjOWY2OTc5ZmI3ZmM3YmIyMyJ9"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L13-L56",
+          "version": "repo-lines-v1:sha256:9a3f3372ff24d189745a6969fe53f9f5f3dd68ad2d02eaf79b247678355b63ef:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2NjgzYzU0OGJjY2Q4NTBjM2Y2ZTc1Yjk4ODdlZDA2NTRjMGZhY2RiOTBkZDg5ZjFkNDVhYmZhY2FhZGU3NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZWU2NmZkMjFlZDEwYjVlMjgyM2E4MjEzZWJlY2ZhZjI4ZDkxMDRmZDg0ZjMzMGUwOGFjNDk5YTkwYWM0ZWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2YmNkNTZhNmI5Njk4NWYyZGY5ZWZiZDdmZWFlZDZjZmNkNTRjMmQ4ZTFiNmEzZTk0NDM5OTA4YTgwOGRiOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1MDA4ZGExZDU5ODM5MWI0M2U4NDU4YTEwZDVjNTAyMjhhODU0ZjljNjdiMTFkNTFhNWZlZWFkYzg2NzA5YzMifQ"
         }
       ]
     },
     {
       "id": "claim_ed82c2870c834cc5b5cf906435963104",
-      "statement": "register_services, register_integration_services and register_market_services import their symbols at module scope, whereas register_market_stub_services imports every symbol lazily inside its function body; that is what keeps the stub path free of live vendor SDKs, since src/stubs/wealthsimple.py and src/stubs/eodhd.py define their own API-client stand-ins instead of importing ws_api or eodhd.apiclient.",
+      "statement": "Registration import style differs: register_services, register_integration_services and register_market_services import their symbols at module scope, while register_integration_stub_services and register_market_stub_services import every symbol lazily inside the function body; that laziness does not keep vendor SDKs out of a stubbed process, because src/config/services.py imports src.integration.registry and src.market at module scope and those import ws_api and eodhd.apiclient respectively, so both SDKs load regardless of STUB_EXTERNAL_API. What the stub modules guarantee is that the implementations are stand-ins: src/stubs/wealthsimple.py and src/stubs/eodhd.py define their own API-client stand-ins instead of importing ws_api or eodhd.apiclient.",
       "evidence": [
         {
-          "resource": "repo://src/config/services.py#L65-L119",
-          "version": "repo-lines-v1:sha256:f81d34fb037e2fe91ccfc6458c192e2bc31221aea9790fb21bc713672643fa93:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiN2I2Y2YyODM5NGRlY2NiZWY1YTllMTA2NmZiOTgyZDUxMTg0MGU1MzZhN2ZjMTQ0NTNmMDI4Y2FmZjMxZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMTNiMzI5NGQwNTUzNTZjNjYyNWM0NGJjYTM0NWQ4MmY3YTIwM2ExY2JmYzMzYTAzZWY5ZTA2NGZhOGMxMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlYzZjYmQ0MmY4NDVkMTRhZTc1OTc3NmQ0ZGI2YmE3YTkyNDE4YTQxZmVhY2Y0YjFiYjU0ZDQ4NzczZmVkMzEifQ"
+          "resource": "repo://src/config/services.py#L1-L11",
+          "version": "repo-lines-v1:sha256:e88e66ac92b3ec6f5c7d0e5b8e2d78b4706fb648ec2a7ca7303a9821a3124e6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5OWM1ZDE4YWYyZTg4ZWNkOTRjZWQzMjQzZjRhMDk1Mjc4NmZjNDdiZWE5YjI3NWQwNTY1ODU0MDE3NWZhZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNmRkYzIwMGIxM2IyNjMyZjUzMGUyOTI3MzBhOGExMjc5YjRjZjFjNjBhNzQ3NGZiMzJhZjFjNzgwMmQwMTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3ZGQ2ZGJkZmU2YTZiYmIxNTFlNDZlMjZlNmQwZDA1YzJlNGE5MDA0Mzc3YzAyOTk3M2ZjMTNmNjIwNjE5MWQifQ"
         },
         {
-          "resource": "repo://src/market/__init__.py#L1-L57",
-          "version": "repo-lines-v1:sha256:a3feb1d8a03f3be49e1308df5627397cd67096059edeff876ff77cab3ce7432e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZGFjNzJjYTRkMDlhYzQyODgyMDAyZTFmMjk3MDU4Y2Y5YzZlZmJlNDBjNjlhMzhhNjA2YTUwZDIyNjAyMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjMGE1NWY4ZGQxMzEzODkxZmNlNzkyODU2YThjNDM2YmEzNjlkZWJlYmIyNTE3MWZlYjQ1ZDQ1NTk0YmI1M2IifQ"
+          "resource": "repo://src/config/services.py#L36-L62",
+          "version": "repo-lines-v1:sha256:7dcf09e70a47c705e71ea74a4b8b45a799a1e3edf117ad002b51c941e1693a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODg2ZDA4ZjgxN2Y3ZWUwYTE4MWI4NzU4Yjg1MTc1N2U2OTY2OGYyYzk1MzkwNWI1MGIzZGNkYzk4OWNlM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMTgyMDQ0ZjEzMzdhNWUxZTQ0ZWVlOGU3MWY2NDkyOWJlNTNiY2UwMmRiY2ZkZTRiZGI0NDc0MDAzNjJjZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZWRlNDg3YmFjMGFjN2VhMzcwZWMzNzRhYjQ2MTQ1ZmU1YjBkZjc1MzYzZThjMjY0Yzk0M2QyNDg0YTJiMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YjA2NTFkMWVmMzFiNTBmNzAyOTRhNmI1ODA2YzY1ZTllYzYwYTk1MzQ0YWYyM2UxYTRiMmQyMWUwNzg0MDAifQ"
         },
         {
-          "resource": "repo://src/stubs/eodhd.py#L24-L35",
-          "version": "repo-lines-v1:sha256:0fd87c5b76e265854bbe75ef47ec0724146316b353c39b9467a48edf665bf6de:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExZDZkYjVhOTE5ZDU3NDlhODI2MWZmZDhjNTk1OTA2MTcwNmNhMDFhMmNhZjg4OWE1OWY4ZDJkMDI4YjdkMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1ZTI1M2U5MzY3NTliNWZhNmJmZjcwOWZmYmVjZjI5ZWUyNmEzZWI5MWY1ZjI3YmNhNzI0ZTk4Y2I5NjY3YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmMzE0YTQ5YTY1NzZjNDZiNzE0OTE1MGQyZTQwMzY3YzY2MDFjZTJhZjNkOWY0YjlkZWYyYjM4NDMwY2QzNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExZDdlMzk0MjYzNzYwMGQ4MjViYTJmOWNmZjM5MjI0YWFkOWI3MTUzYWI4NTI4MWViYTUyNjg1OWU5NTRmMzAifQ"
+          "resource": "repo://src/config/services.py#L65-L134",
+          "version": "repo-lines-v1:sha256:1f0d7b7578021a8659bcd4e0aa3ed31c8c370c79d38185a929b8f8fde95d8686:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiN2I2Y2YyODM5NGRlY2NiZWY1YTllMTA2NmZiOTgyZDUxMTg0MGU1MzZhN2ZjMTQ0NTNmMDI4Y2FmZjMxZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZDUxOWMzYjliOGY5ZThiNmZlNzU5YjA2ZTg2ZjA1NmFjMjYwMTZiOWQwOWQyOTlkODMwMTE0YmQyZWRiM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMTNiMzI5NGQwNTUzNTZjNjYyNWM0NGJjYTM0NWQ4MmY3YTIwM2ExY2JmYzMzYTAzZWY5ZTA2NGZhOGMxMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNmMwYmRjYjFmNjg5Y2VkMjhlNGFiNzRmNmVhODc2MzYzNmJlNjNlNTczZGNkMGUyNTQwOWQ4M2QyMzZmZDYifQ"
         },
         {
-          "resource": "repo://src/stubs/wealthsimple.py#L1-L14",
-          "version": "repo-lines-v1:sha256:4d7b68563c4ac7e3add6208569884b5fbf1a085766861adb37ad72bd315d8728:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNmFiMWQ2NGE3YmNkZWIxY2VmZTgzNTMyMjJmZTM5MTk2NzUyMTVmNjM1MjBhNTVhY2YwM2ZhYWY5N2QzMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ODU2OGFkNGMwZWI3NGU5MTU1ZmYyNmQ0YjMwZTU5NTc0MDI1NTM4MmJkNjc0MzU4OTQwNjQ2ZDg0MzgxZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2NzZkODBlMmE1NmFhOGY5Y2I2NmI1N2RkYmMzMDU2N2MyYzMyMGFiMTkxMTFmMDlmYWQ0Nzg4NTBiOGE1NTEifQ"
+          "resource": "repo://src/integration/registry.py#L9-L12",
+          "version": "repo-lines-v1:sha256:747f69cb2876e8f5d58bcf0f7a811da2df7e4a803be1730363a3e5e06854db0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhkNjcyMjVkY2YyNjIyOWNhZGJhZjU4MGViYjljZGYzY2U2YTMyN2YzNDY3ODA4ZThkZTAzOWM0NTc5Yzc0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyZjM5M2ZiMzhlNjJjZGNiOTA3ODIyNDc4MjY3ODhlYTMyNDY4NGFiM2UzYmExZWViZDY5NzliZTA3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjBhOTFiMjNkN2M1ODZmYmVjOWM2NGY5ZThjYzk1MmUyOTVmMTdkY2Q1NWM2NTlmYjU4NGY0ODMzNDViZWI5NCJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L28-L28",
+          "version": "repo-lines-v1:sha256:57387633095f9c887e724e8b7190753c63f95e50588362cf5c58664d99be9c62:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTczODc2MzMwOTVmOWM4ODdlNzI0ZThiNzE5MDc1M2M2M2Y5NWU1MDU4ODM2MmNmNWM1ODY2NGQ5OWJlOWM2MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTczODc2MzMwOTVmOWM4ODdlNzI0ZThiNzE5MDc1M2M2M2Y5NWU1MDU4ODM2MmNmNWM1ODY2NGQ5OWJlOWM2MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjU1NGMxNGM0ZDkwMDc0NTY1MjIxM2U5NmE5Njc5NmE0NGFkNWMzZDZhZGVmZjU4MDFkNzI3Njk4MTYxYWU2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzA0NjU0NjA2N2NiODg1NmEzYWQ2MjU5ZjU1ZTBkYTQ3NWYxMjJhZGJkYzQ5YTAyYzYzNTFlOTkyMDU5NGE0YiJ9"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L6-L6",
+          "version": "repo-lines-v1:sha256:2c412819fa45c2d00356ea16e681b452935d8c8fad6bc9efe9af50aa6c3a2780:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM0MTI4MTlmYTQ1YzJkMDAzNTZlYTE2ZTY4MWI0NTI5MzVkOGM4ZmFkNmJjOWVmZTlhZjUwYWE2YzNhMjc4MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM0MTI4MTlmYTQ1YzJkMDAzNTZlYTE2ZTY4MWI0NTI5MzVkOGM4ZmFkNmJjOWVmZTlhZjUwYWE2YzNhMjc4MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDUxMWU5MzA3NTI2MGNhNGIzZjg4NmE2NTQ5OTJjOTFhNWM3MGQ5OGQyZTBkNTMxMjQ3MGY0ZTkxMTc0YmE1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDFjZDYwMWRhMjEzZDk4YjA5MmI0MjExNjkxYTJmZDY2ZjczMWQ2NzcyNGFkN2NlYmU3YTcyMWU0NjAyMTliMSJ9"
+        },
+        {
+          "resource": "repo://src/stubs/eodhd.py#L1-L36",
+          "version": "repo-lines-v1:sha256:f42892c9b0c55ab43e2d80441c386c2055c6c6b34e9a3f4348d8fd73c34e3744:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMTRjMDNmYTAyZDZjNmQ3MDU5MmQxMWNmNGFhNzczYjIxYWU5ZDJlNmFjNzg4NDgzYmQwMDU4ZDhmNzI0YTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2MzJiNTZmODhlZWQ2ZWE3NTM5NDBmN2JkOGY4ODRlNTI2M2RjMmVhYTMwOGE4ZjgwZDMzYmNhZDhjM2M5ZWYifQ"
+        },
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L1-L25",
+          "version": "repo-lines-v1:sha256:0406f292d87ba7cfd37c01cfec659fbc43448b3260a5f0290e5ab755feed1fa9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNmFiMWQ2NGE3YmNkZWIxY2VmZTgzNTMyMjJmZTM5MTk2NzUyMTVmNjM1MjBhNTVhY2YwM2ZhYWY5N2QzMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5Y2QxNTkwNWQwMzMzNDMxZDg1ZGJkZWM4Mzc3NzIzMGJkNWI0MDg1OThjYjkyZTE5OTdlODg1YjZiZjg2YWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwZmJlMTdmMmU4NGYwM2FmNTgyZmNkOTNlYjAyNmM5MTk0YWJmNmRiNGIyNjE0MWE1N2I5NzQzYWYyMmE5YmQifQ"
         }
       ]
     },
@@ -601,30 +645,30 @@
       "statement": "register_market_services in src/market/__init__.py registers the same abstract keys as register_market_stub_services with the same factories, with the single exception of AIService (ai_service_factory versus StubAIService); the two functions have no other factory difference.",
       "evidence": [
         {
-          "resource": "repo://src/config/services.py#L120-L156",
-          "version": "repo-lines-v1:sha256:d99aa29e78f1b4ff62ef4d702f84840a6c66919feb6b860d78e4a03475db3c01:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ODE4NTkwYTI0OTIwMTlkNGIxNjE5Y2E4NDc1NmFhYjJlOTk0ZWFkYWRlNDAwZjQwMDYzNjY3ODkwNTBiMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5OTFiNzVmOTYzNGZlMGQ0ZTMwYWFjYjNhNTk0MGI0ODc5ZTI4ZTgwZTljMjUzMTkzZTg1OGJlODA2NWQ4OTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/config/services.py#L65-L176",
+          "version": "repo-lines-v1:sha256:a7cff8a487ea496c78295a338d90c5bf042997cf07c3ddf21acfd7b8b14bf67d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYjdiNmNmMjgzOTRkZWNjYmVmNWE5ZTEwNjZmYjk4MmQ1MTE4NDBlNTM2YTdmYzE0NDUzZjAyOGNhZmYzMWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNDk2ZWFlZDQzNWNkYjkyMGI3ODQ0NzVjNjAyZDg5NjU3Y2JkZDhjZGQ5NzMyYzE2MWY5N2I0MTk1Y2M5ZTM5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3YTEzYjMyOTRkMDU1MzU2YzY2MjVjNDRiY2EzNDVkODJmN2EyMDNhMWNiZmMzM2EwM2VmOWUwNjRmYThjMTIzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
-          "resource": "repo://src/market/__init__.py#L60-L97",
-          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/market/__init__.py#L68-L109",
+          "version": "repo-lines-v1:sha256:5f9090748a716f0143a044d50cc0353faafaeed37ddbc46756ef9e17fada2e0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
       "id": "claim_2aa47ad76bde4cb3bf6814b6807897d6",
-      "statement": "The market registration list covers the recently added domain surface: SecurityValuationRepository, ChartSnapshotRepository, SecurityDocumentRepository, SecurityNoteRepository and AlertEvaluationService in the market domain, and PortfolioRepository plus PortfolioService in the account domain; a route or service that resolves one of these keys fails at request time if its domain's register function is not updated.",
+      "statement": "The market registration list covers the whole domain surface — MarketGateway, DataPlaneMarketGateway, SecurityValuationRepository, ChartSnapshotRepository, SecurityDocumentRepository, SecurityNoteRepository, LogoCache, FxRateProvider, EndpointResponseCache and AlertEvaluationService — and the account domain registers PortfolioRepository plus PortfolioService in src/account/registry.py; a route, service or task that resolves one of these keys fails at request time if its domain's register function is not updated.",
       "evidence": [
         {
           "resource": "repo://src/account/registry.py#L46-L64",
           "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/config/services.py#L120-L156",
-          "version": "repo-lines-v1:sha256:d99aa29e78f1b4ff62ef4d702f84840a6c66919feb6b860d78e4a03475db3c01:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ODE4NTkwYTI0OTIwMTlkNGIxNjE5Y2E4NDc1NmFhYjJlOTk0ZWFkYWRlNDAwZjQwMDYzNjY3ODkwNTBiMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5OTFiNzVmOTYzNGZlMGQ0ZTMwYWFjYjNhNTk0MGI0ODc5ZTI4ZTgwZTljMjUzMTkzZTg1OGJlODA2NWQ4OTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/config/services.py#L65-L176",
+          "version": "repo-lines-v1:sha256:a7cff8a487ea496c78295a338d90c5bf042997cf07c3ddf21acfd7b8b14bf67d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYjdiNmNmMjgzOTRkZWNjYmVmNWE5ZTEwNjZmYjk4MmQ1MTE4NDBlNTM2YTdmYzE0NDUzZjAyOGNhZmYzMWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhNDk2ZWFlZDQzNWNkYjkyMGI3ODQ0NzVjNjAyZDg5NjU3Y2JkZDhjZGQ5NzMyYzE2MWY5N2I0MTk1Y2M5ZTM5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3YTEzYjMyOTRkMDU1MzU2YzY2MjVjNDRiY2EzNDVkODJmN2EyMDNhMWNiZmMzM2EwM2VmOWUwNjRmYThjMTIzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
-          "resource": "repo://src/market/__init__.py#L60-L97",
-          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/market/__init__.py#L68-L109",
+          "version": "repo-lines-v1:sha256:5f9090748a716f0143a044d50cc0353faafaeed37ddbc46756ef9e17fada2e0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -633,16 +677,16 @@
       "statement": "src/worker.py and src/main.py are the only production callers of register_services; tests that need a registry build one themselves, and WebSocket request flows construct a container from the registry object rather than from a FastAPI dependency: src/ws/router.py uses svcs.Container(websocket.app.state.svcs_registry) for UserApi and src/worker_dashboard/router.py guards on getattr(websocket.app.state, \"svcs_registry\", None) before doing the same.",
       "evidence": [
         {
-          "resource": "repo://src/main.py#L56-L75",
-          "version": "repo-lines-v1:sha256:d2e53889fca48bd47ad116fc2b026d91d7b2e669fff8238846d91115f781557d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OTU2NjU4OWEyMDJlNmM3MzM3ZDQ0ZWI5ZDExNzc3OGJhMmZlZDE3OWE1YzY2NTkxYjI5ZWEzOTRhZDk5NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjODM5NTBlMDM1NTg5OWRiZDU3MjVmNmQxMDA0ZjNlMTZhZDljOTViMGUwYTAxODllODY4M2M2ZGFkNjFlODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMjM5ZTM0MzIzYWEzMDNkZDZmYTNlYjEwN2RjNmZlNGM5MDVkOWVjMTYzYTMyYmRiYmUyODgwN2U0OGNmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGE0NWVlMDUyYTU5MDBhNzAwNTA2NGJkYmQyMzNkZWYzM2QxZmZjMDNjYWEyMzdjNmIyNDYyZWJlOWNmMTcifQ"
+          "resource": "repo://src/main.py#L52-L82",
+          "version": "repo-lines-v1:sha256:7a65ae301a6ffd9760a9de8b51606a7a3d9302dc0cf1858831d3217b5819acf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjODM5NTBlMDM1NTg5OWRiZDU3MjVmNmQxMDA0ZjNlMTZhZDljOTViMGUwYTAxODllODY4M2M2ZGFkNjFlODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGE0NWVlMDUyYTU5MDBhNzAwNTA2NGJkYmQyMzNkZWYzM2QxZmZjMDNjYWEyMzdjNmIyNDYyZWJlOWNmMTcifQ"
         },
         {
-          "resource": "repo://src/worker.py#L48-L50",
-          "version": "repo-lines-v1:sha256:8d2dd086fec4242a2601775bde840aa535999b38a55b4ca4de7a496351144f33:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDI3MjViZDdkNDM0MjAwN2Y1NDlmODRkMjEyY2YyNWVmOTlhNDA0N2NhOTQ3MjEwN2VjOGRiZWNjMGEwNjlkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZjZGFjN2NjOTk5MWVlMDE1MzgwODYyYmVhNTAxNGQ4MDMzNzgyZjJiYWE5ZjhmY2JhYjliODIyNzFkMzA0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzE4YTY5MjQwNTE5OWYxYmM0MTcwN2EwNWZkZjg2Yjk3ZGNhYmU5NDQ4NjlmMmE4ZDQ3Y2E0NDNjYTU0NzdmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTA3MzcyNzM5M2EzYjhiMjI5OGMwNjViMjU1ODgyMDE3ZjEyNDJmNDlmNGY5NTA0ZDVhMjdkZDkwMDc2ZGRjMCJ9"
+          "resource": "repo://src/worker.py#L27-L50",
+          "version": "repo-lines-v1:sha256:84e0997a340e888c697d5b7ee207fd30b8d3c911f5a3ee1817428ef932ea2800:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwM2UyMGU3ZmU1Y2ZlMGYxZGMwMDczYzNkNTU2OTlkZWMzMjY5YTMwZGFmYmJkNGQzMmY2YzU2MDk4N2JkNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmY2RhYzdjYzk5OTFlZTAxNTM4MDg2MmJlYTUwMTRkODAzMzc4MmYyYmFhOWY4ZmNiYWI5YjgyMjcxZDMwNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YjFhNGRiMDg5OTE2ZmY5YjRmZTM4NjFjMmQyYzk4NWI0YTVlMzRmODRiYjI3NTg1MjkzMDIxOGJiNDVmZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwNzM3MjczOTNhM2I4YjIyOThjMDY1YjI1NTg4MjAxN2YxMjQyZjQ5ZjRmOTUwNGQ1YTI3ZGQ5MDA3NmRkYzAifQ"
         },
         {
-          "resource": "repo://src/worker_dashboard/router.py#L46-L56",
-          "version": "repo-lines-v1:sha256:ed2bd7a448c3da0524667bfa297631c5a4b6f39e8c6b2e79746b5f40ed37295d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YmRkZTQxYWRiNDI2NDYzMDdhOWM2NjgxOWY3MDA1NzJiM2UyZTJjNWM3NGI2NTdkOWVlYmRiMDg0OGNmZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwODBiNzFjYWUyNTIwZGVjNDZjMjMyMjZhYWQ5Yzk1YmYyODQ5N2VjODRlMjFjMTBiMWJjZWM3MjNhZDEwMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0NTRiYzdhMDJjYTk1MTExMWYwOTYwMTVhNjlkNzk4MGQwN2E4MTIwYjIzYzkzMTYwNWFjMTU3NTM4YjExNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzZjM5NDk3NTRlYjNkZGUzYWQ5MmM3YTU3YzhkNmVhNTY0Nzk3YzNiM2FhOTdhOTdjNjFmMmZiYjY3ZmY3YjYifQ"
+          "resource": "repo://src/worker_dashboard/router.py#L51-L56",
+          "version": "repo-lines-v1:sha256:f5872cc142a1fb3f7601f7a73439870d47eb7f21c6be2ca5a0f852a571f55055:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTYxOGNkZDk0Mzk0MDg3NTZjODhhMDBkNmUyNmQ3MWRlZGQ4NGVjZGVmZTlkNTVlODRiNGFiYmJjMjRiZDY0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA4MGI3MWNhZTI1MjBkZWM0NmMyMzIyNmFhZDljOTViZjI4NDk3ZWM4NGUyMWMxMGIxYmNlYzcyM2FkMTAxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDllNGE0N2ZmMTdiODNjMjczZTI5YzJlZDc5YjNlYmU1NWZmN2JjNTFlZTBiNWQ4OWJkNjRhZmUyYjMwODY2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDNmMzk0OTc1NGViM2RkZTNhZDkyYzdhNTdjOGQ2ZWE1NjQ3OTdjM2IzYWE5N2E5N2M2MWYyZmJiNjdmZjdiNiJ9"
         },
         {
           "resource": "repo://src/ws/router.py#L71-L80",
@@ -681,7 +725,7 @@
           "version": "repo-lines-v1:sha256:88e2ef1fb2c3e6bfc28bdb93697a0cb9eae49f7b5847057d30e451bc5a0f7bdd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiZTY4NzRhOTA2NTE1YzdkYmM1N2RlZjgyYjFlNjcyOGI1NGU0M2ZmMWMyYmMxN2QzM2MzYTE1NWQ1OGE5ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNzc1YWJkOWVlZGNkYjNjMTI0OGYwM2ZjN2M0NDliYmY2NTE5YzQ2NTNmM2E1ZWM4NmQ1ZjQ0ZWMzZDJiMTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyMjk4YTgxYTJkNDMxNWQ1ZWYyOTNiMmIwNjBlNzkzNGZlOWUxNmM4MmM1NDQ3YzU1YWI4ZDYzNzc3ZTNkNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYTNhMmU4NWU3MzczYTRmNDkxMzE4ZjAxYzdkM2NhNTNkZmQ3NTgzYzg5ZTlkZWY3NGFjNDk2ZjM3OWQ2ZjgifQ"
         },
         {
-          "resource": "repo://src/config/settings.py#L67-L67",
+          "resource": "repo://src/config/settings.py#L87-L87",
           "version": "repo-lines-v1:sha256:e698cb80d1d7aca9b83955d1b19dbb37e307841bdc5ef1bdc6e65b94938286ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTY5OGNiODBkMWQ3YWNhOWI4Mzk1NWQxYjE5ZGJiMzdlMzA3ODQxYmRjNWVmMWJkYzZlNjViOTQ5MzgyODZlZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTY5OGNiODBkMWQ3YWNhOWI4Mzk1NWQxYjE5ZGJiMzdlMzA3ODQxYmRjNWVmMWJkYzZlNjViOTQ5MzgyODZlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWI2ZDI1MjAzYzAxNDBmMDU0NzFlMmY2YjdkMjk3NGRkMzc4NjA2YmIwZmE5YmI3NDhjZDgzNWZjNmU0MjczNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTg0NDk4ZThiODZjNWJkMWZkNzY2NzQ3MzFjNzE3NmQyNjY4ODZhZDhjMmMxNDZhZjJlZjlkMjFjMzY0OTQxNSJ9"
         }
       ]
@@ -713,7 +757,7 @@
           "version": "repo-lines-v1:sha256:e1b92ec7fc8bbc0058aaa915b97aad3afab43dabe367093ffe9d405243787723:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxZGI0ZTg3NWViOWE2YWYxNDU1NjMwNTg2MTk2Zjc0MjIyMzEyOGIzNjI1ODAwOTg0OWE2OGY4MDJjY2Y5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTJlZGQ4NTMxMzZlOWI5NmJiZjg5MjAyNWMzNzc3MmEwNDFlYTY0YWU0ZjczZWJiMTZhMTAzNTU5MjEzZTNkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjI0Nzc5ZjI4MDhiNzgxY2JhOTBlY2Q0NGEzNTg2ZWY5ZWZkZDdlYzRhNWFhNDRmMWQyNjA1NGQ0NzQ1YzVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjMyNDZjZWIxN2RlYzE4YTJiY2UzYWM2OTUyZWQ3ZDRhYmE4OTkxNmQyYmZhNzM3ZjlhZmQ0OTYwMGYxNDA2YiJ9"
         },
         {
-          "resource": "repo://src/main.py#L180-L206",
+          "resource": "repo://src/main.py#L188-L214",
           "version": "repo-lines-v1:sha256:4383df14bf8cfd1508c36be97a95e4995a5d12ded3c728492f6198d7dc7a7a64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjJmNzcxNDkwOWJjNTBiMTUzYjgzNjA5ODhiODA0YWY1MmNjNzA2NTBlMmJmMTVlNjhjMGYwOGU5ZTljM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNTkwMDhkODliOWNjYTQ2ZjJhNGQ3Y2I0YTg5M2VjODcwZTY2YTY4ODZlNGU3MWNjMTAyYjI0YTM2ZmQzNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
         }
       ]
@@ -723,26 +767,234 @@
       "statement": "Task modules are pinned to the same registry contract: src/integration/task.py joins src/account/task.py and src/market/task.py in raising RuntimeError(\"Worker registry not initialized\") when huey.svcs_registry is None before resolving services inside async with Container(huey.svcs_registry), and tests patch src.account.task.huey.svcs_registry, src.market.task.huey.svcs_registry and src.integration.task.huey.svcs_registry with MagicMock and None.",
       "evidence": [
         {
-          "resource": "repo://src/integration/task.py#L221-L239",
-          "version": "repo-lines-v1:sha256:cfbeff729c8a65a582f97dfa17cb8bbc761cf8ad7bd3cbb133dd7ecabddcf17f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMjZlZDhlZjMyNzM2OTQ5YTUyODIyM2I2Yjk3MTgxOWZlMTNiZTBmYmY2MWIwMDhjOGE5N2RiOGY0NjMxYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5ZTIzNDc2ZDYwNGU0M2ViYjQ3YjFiNjg3ZDU4Yjg1ZmM2NWE1OWIwOTk5NjUwZmY2MzczZDM4MGZmODNmMzYifQ"
+          "resource": "repo://src/integration/task.py#L325-L332",
+          "version": "repo-lines-v1:sha256:75d8c73b3c85b9b282e29fd0a3dd0e60d3d114887ecad5831edc907234a88c5a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU0YTZiNGI3OGRmZDIyNmNjNzdmOTIwMzkyM2EwYTQ5ZDdkNDZlMGI4ODgwYTQwYWUyOTUzNjJhYzE0NTBkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQzZGE2ZWY3OTI4MmM0MDQ5NTQ2NzQ5MmFiNDc5Njk0MDRjMWJlMWNlZDVlMTgyNmIxMjBkZWFhOWQ5OGJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjE3Zjk1ZWNkNDM3M2I4ZmFhMzJhYmE1ZGM5YWMxNDkyY2FlMTg1MDE2YmRlNmU1ZGFiM2RlNjQ3ZmZmZmJkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjIxMDEyZGM0NjYyN2E0ODhjOTJhOTZjOWQwY2M3MTcxMjg4OGM3MDNkMGZjMjBlMmMyNGUwZGM0ZDIyN2QyZSJ9"
         },
         {
           "resource": "repo://tests/market/test_alert_email_dispatch_task.py#L42-L53",
           "version": "repo-lines-v1:sha256:34c48195457ce96bdeeea2b9df9529fce00883383713e85ba67d20dd6928e1b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1MDYyNTBjYWRjYTBkNDY5NDY5YmU1MzBhZjY0MzAzYjlhZDU0OTY4MDQwOWE2NWQwZmMyOWFlOTYwMmMwMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhNDZiMGY5OTlmYzlkMjYzNzZiOGNjYzU3ZTI5YWZmNGVhMjViNGY0NDQ1MDhjMzczODgwYWU4OTZlNTI4OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjNGQyZTVhZDFjODRlYzNiOGRjYzU2ZmM5MDY0YWE5YTgwODdiOTg5ZThiZDU0Y2E5MGRhZmMzNTM2ZmQ4ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmM2JhNGVlYTdkMjE1NzZjNjUyMDMzNjM5NGRkOGFkMDdhNTkwNTFjZmFhYWI0MzA0NTY4ZTlhZTNiNjgwMDYifQ"
         },
         {
-          "resource": "repo://tests/tasks/test_account.py#L166-L168",
-          "version": "repo-lines-v1:sha256:a05839dfb992c0afa3d52bb7c2950dc4898226a9c3d61a3698d00532829ded3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc0MjRmNDkxYWYyYTlkMGM5YjNlZWMwNDVhYzAxZjFhMGZmNzVkOTBlZjgxNWEwZjE1OTIyZWU0OWYxMzJmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUyOTM3MjhhOTBiZWRmNWQ3NjZjNjI4MzgwOWE3OTg5NDlmYmNiMWNjMGQ3MmExMWY5ZTcyMDNlZjJiMzNiZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTMxYmNjN2EwMTNiYjllODY2MzhjYTY2MzU3OTUxODEzMDMzMjRjNzBhZWMxODY5NzA1NjY1NTA3ZTJjNDFlMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTUyMmVhNWZkNmNiMmEyZGU2YjJhZWM2YjFlMmM4ZDUxOWQyYzdjOWNiNjVkYmQ1NjBiMmQ4YTE1OGM1YTZkOSJ9"
+          "resource": "repo://tests/tasks/test_account.py#L174-L181",
+          "version": "repo-lines-v1:sha256:ff2cff1a47ad79abe9a386e4f6c5056b0d39f2bbe7cee1ff293946300381e6da:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmQ5OTQyZGViN2RiYWJjMTE0YjFjNDhkMDJkYTQ2Mzg2ZTlhY2E1MTVhNTJmYjdiM2M0MTJkYzYyNzkyMWIwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmYzYjA0ZjY4MWU1NGQ4NWYzMDU2NWFiNTdhYTkyNmY2YjNmZjhlZGVmYjdiZTkwNTI2OTg4OGIyYTI1Nzk5ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTZhZjQzMzlmZDk0NTFiY2FhZWU3YWE0NWJjODQ4NjE2NTA0OTM3MmMzZDU0MzYzYWY4NDljNDI3ZDc1OGY3NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
-          "resource": "repo://tests/tasks/test_integration.py#L135-L166",
-          "version": "repo-lines-v1:sha256:6ed74249cd57ff27d0b28bfc18a0a6b2eae297438ef5a9939b2d55e7eda72a3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMWZlYTNkZGFmZTI0MGRmMjc1Yjk3YTQ0MGMxMThkODkzZWMxM2FhMDQ4Yzg1N2MyZDgwMWZiNmYzZDIyZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZjY4N2Y5ZmEzODFhZjZhZGJmNzQ4YjkxM2M3MjMyNTY4OTgwY2RkNDczNDVlZWM5OWIzY2U1ZTdmMzFlOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhYmE4Y2M3NzcyYmIzNjhmMGE1ZGE1MGNhM2ZlZmE0MmU5MTc5YmYxNjQyYzRhMDdlNDhiZDA0Zjg2MjY5OGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMDU3MWJlYTNjNWVkMWRjMTRhNmZlOTM0ZTVjNDQ0MjA0NGQ4NWU1YWM1ZDVkMjBkMDJiNmRjYWVhMmM0NjAifQ"
+          "resource": "repo://tests/tasks/test_integration.py#L146-L152",
+          "version": "repo-lines-v1:sha256:8399e97f40ee157ae381b51969c3d7eb21914b7d20f7a94e7bd8d95aa2ca6ab6:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGMyM2NiMWNlM2U5NTBkOGY0OWZjMmE0MmM2MTgxZTc3OWVlNjM3MWEwMjIxZjM5MzQyOTczNWM5NjZmMmZmNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzAxNGFlYjAxNWU4YjhlNzEwN2M1NDI2ZmM4NjZkZmY5ZGJhYzI2MGM2ZjExNmFjMzU4NjFiNzA5OTk4YzhmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWM3ZWIyMmNlZTkzY2U0ODkzOWFmN2M3ZDJhYTM2YmQyZTYyOGU2MGNiMjZmODY3NTZjZThiM2UxMjdhZjY3ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGZhOGM4NWY2NzFhYzYwYzcyY2Q4OTRlNTFiMmQ5YTdkZWNjNDc5YWQ0YzFiYjg2ODUxMTM1NjdlMjA5ODI4MSJ9"
+        },
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L268-L274",
+          "version": "repo-lines-v1:sha256:9238fab0c517b25244df0752a4a45cbd6c82905e74b79a46f2a2b163b40a58fa:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmQ5OTQyZGViN2RiYWJjMTE0YjFjNDhkMDJkYTQ2Mzg2ZTlhY2E1MTVhNTJmYjdiM2M0MTJkYzYyNzkyMWIwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTUwMzJlOTY0ZDA5MzIzNTFlNWQxODUyNjkyODFiMTcxYTNhMDliMDhiMjg2ZTY2MWVhNDcwMzIzYzgyZWI0ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNkZjJhY2YwNmU4YzNmMDNjNzEzNWM2ZThhYzVhOWNhNTQzMmFiZTA2YTc0YWNhMGZkZDlhNTNhMDA4Zjk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDEzMGNhNzk4MDU1Mzk0MmMwYWE0ZTU1ODg5MWU5NjlhZDdiYjA4YmE1NmFmMTY5YmZkMTMxM2Y5Y2JjNDM0MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9224a972a32448f8f9572ae6fcef2a2",
+      "statement": "The tracked .env.example is the sample copied to a gitignored root .env with cp .env.example .env, and the README migration note declares src/.env and frontend/.env obsolete: existing checkouts must move backend overrides and VITE_* overrides into the root .env, delete both files, and add MARKET_DATA_SERVICE_TOKEN.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L1-L2",
+          "version": "repo-lines-v1:sha256:a6614b3d18c27b29362a6ae6813f86797de1740deedf9ee32d7c16a3607b60e3:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IxMDExNjQ1OWE0NzQzZTgxZjBlYTk1Y2U2YjRlYTk2YjZhOWQ0ZjFlMjMxNDBiYWQwM2I5ZTU0OGM4MjU3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE4ZmNhOGIwMjIwYjlkZjYwYTE5NjU4NzUzYTY0MWFmM2I4N2U0MGFkMGZlOGYwNmI0NjhmZDhhODdlOWU2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM4YjhiMDYzYjZlYmM1YTc3N2U3ZDMxNDQ1YTQwMDlhOTgxMzI0ODM5YjE5MDI5NDM2Y2NhYTM2MzRlZjIwNCJ9"
+        },
+        {
+          "resource": "repo://README.md#L10-L13",
+          "version": "repo-lines-v1:sha256:792e7bb6a05cfb8f15fcf7ebb49bc4d144cf0417d06675d4dd662315f6be81e5:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdkNjhiYjMwYTE3MTdlNTVjN2FlM2FiYzU5ZTMwOTJmNjRlZmVkMGIyNjUzZDU1OTRlYTc5YjE0NzRjM2I2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjIxMzE0YmVmNzk1NDlhZmZhZDJlNWQ0OGMwNzZlY2JlYWI2YTAxNmM4ZTM3ODJmYjY5NmFlODA3NzgzNzQ1YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQ0YzRmOWZmZmRmOTQ0OGEwMTY4YTUzNTQ4OTEwYWQxM2I5NzM5ZmY1NjE0NDc1Zjc2ZDU0MmU3YzZiYmExOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjhjY2Q1NWUyMjY3MTRlM2VjMjNlOWVmMTMyNzMwYjE5ZTE2NDAwOThiN2UwZjUxYzIwNDk1MDU3ZDkzOWEyYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_549cad1a09074bdb9376cf572e9cb781",
+      "statement": "MARKET_DATA_SERVICE_TOKEN is the shared secret for the MCP gateway to backend data plane: .env.example ships the throwaway dev value dev-market-data-token, docker-compose.yml passes it to the mcp-gateway service together with BACKEND_BASE_URL and DATA_PLANE_PATH (default /api/v1/market/data), and docker-compose.prod.yml asserts it is set with a required-variable expression, so the secret must be rotated on both sides together.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L29-L31",
+          "version": "repo-lines-v1:sha256:250c6be8decf6cb6cd63579b0643263612823c003440168f4fd03583b8e00c5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDk4NmEzY2E3NzY2ZDgxN2FkNjJmZDc4NTFkYTBlZjg1Y2Q4OWYzY2MzNGI0MWFhOTM3NzVkYzIyNDRhZDgwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjFhZjZjOWExYTkyNGQyODdmYjQ2NzFlMzQzNmRiYzBhNjZiZjk2MDNjZGRmMjRlNDA4ZDk1ZTVhNTQzOTRjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzI1YmE5ZTcxNWI4NmNlNWVlN2E5NjYyOWVkMDU1NzkwOTYzNmYzMjk3ZDE5NTNjNmJiMmI0MTE4NmUzMTAzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTA4MGU1ZDgxZTc1YjE4OGI4MjkyY2YyZGRkNjhkMTg5Njg3MjQ1YmRhZWQwNGI2Yjk1MjhlNTFiYjI3NTQ1ZSJ9"
+        },
+        {
+          "resource": "repo://docker-compose.prod.yml#L69-L73",
+          "version": "repo-lines-v1:sha256:bb8b9be1109ac42a49b86bc9382d535c5ce953a6c733d02fe46eb15664c26188:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI3NDYzMzRmZGJkNjUxMzIzOWYxMzI2ZGI4YjYxMjc1N2I1YjMyYzA4MDhiNTA4MWE5OTM3ZjY1MzNiOGRiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzhkYTRiYzBkNjU1M2QyNTU2MzYxZTZmMWZmMTc5MWE5NjNmZDQ0Mjg1YTI0MmZmMTYwMWIxMmFhNjcxM2MzMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjYwMmJjOTcxYjJiOTA5YmE0ZTMwMTVhYjhhMTBjYWY1MjBiOWNiYzkxMGVlZTE2ZDBiOWIxMzdlYzYyMTc4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzkxM2ZlZDY1NjZlODI1YjAzNjVlNjlhMzU3YzgzNTEyYjNhMDVhNTI3M2U4OWM0ZTRjYTYzYjBjNmY3OTEwNCJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L125-L134",
+          "version": "repo-lines-v1:sha256:c9abdd22fbfbcbd2db51c25dd3940cb55d4d29530769f605662bad7066243f61:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZGE0YmMwZDY1NTNkMjU1NjM2MWU2ZjFmZjE3OTFhOTYzZmQ0NDI4NWEyNDJmZjE2MDFiMTJhYTY3MTNjMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTNmZWQ2NTY2ZTgyNWIwMzY1ZTY5YTM1N2M4MzUxMmIzYTA1YTUyNzNlODljNGU0Y2E2M2IwYzZmNzkxMDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bca38af7c58d41f7be68a6f87ce196d8",
+      "statement": "Settings.validate_service_token raises ValueError when MARKET_DATA_SERVICE_TOKEN is empty or whitespace-only and the environment is not dev/test, so a missing service token fails Settings() construction at startup; dev and test are exempt, and tests/test_settings.py covers the prod, staging, whitespace-only, dev and test cases.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L110-L123",
+          "version": "repo-lines-v1:sha256:fb7fb9f9bde3f01414433eab124be818f514c1119a7cbdc0e55beb6c4a605823:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNmFjYTFmMGZhZWJlOWViYmQzNWRhNTdkNGY2NGY0ZGYwYWE1NGQ1NGQ2ZjkyMjFkNjc0YzMzMjg4NWI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMzM0YmNmMTMyMWQ0MGVmY2MwYzllNzA3OTgyOTA2ZGUwOGUxYjI3NTI3OTE3NjhiOGE5YzRiM2U3MTQwMDMifQ"
+        },
+        {
+          "resource": "repo://tests/test_settings.py#L125-L189",
+          "version": "repo-lines-v1:sha256:6aa3f97862d7627f51d3188d9c944edabfed91ebfa89dbb7d87aedd2bdd0f8ba:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwNTY3Y2VhZGU1OTMzYjBmNGYzMzU2OWMyZDA3MzIxNjA3MWI4YjBhNzQzZjQ3MWEyYjYyNzg1YTI1ZjViOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiM2UyZTcwMjlhNGNmNmI1NDYwOWYwNDBjNGE5MDczOTgwYjhhMzYyNTNmMGMzOTgxNGYwOGM1MGZkMTAwYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkOWI1OWZlNGEyNGQ2ZWYzM2RiODJhY2RkYTU5NzJiYzhjNzM4NmE3OWZhNTQ0YzMzM2I2MWUzNDQ4ZDhhYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3NWZmYzRkM2VmOWQyOTE5Mjc1NmYwNjUzMTZjYmEwNzI3NzA2M2Q4MGMwYjExMDNiY2YwYjM4ZGIzYTJiYmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76ffd393c2ad4b97a17bb7cdf6a6713f",
+      "statement": "Settings.validate_market_provider_keys requires FMP_API_KEY and POLYGON_API_KEY to be non-blank outside dev/test unless stub_external_api is true, raising a ValidationError that names every missing variable and points at STUB_EXTERNAL_API=true as the offline alternative; tests cover both keys missing, FMP-only, Polygon-only, the dev/test exemption, the stub-mode bypass and the valid prod case.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L125-L153",
+          "version": "repo-lines-v1:sha256:8909c0d822eedad5beccced1c262af4e38a539c4ec0ba2183258301e632ad8bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNmFjYTFmMGZhZWJlOWViYmQzNWRhNTdkNGY2NGY0ZGYwYWE1NGQ1NGQ2ZjkyMjFkNjc0YzMzMjg4NWI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNzM2ZjJiZWUwMGVkY2U5MGUyMjU3M2M3ZmIxNmRlNmZiZmZmYzQ0MThhMDBjNThmYTdjMWQ1MGE4Y2U5NTAifQ"
+        },
+        {
+          "resource": "repo://tests/test_settings.py#L192-L279",
+          "version": "repo-lines-v1:sha256:192d699472a64491239ba90ef2238dde68d144eef9821fc87d55d36d85a3e794:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OTMyMDM4MDlhZTY4YjJhOTFkMjg1ZDY1MmM5MGRmYzQ0MGNjZmE0MDkwNDQ3NjQ1YjMwMTg2NTk1MjkxZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0MDViM2FkMWNhNGVjZDRmYWRjNDY1OWYxYjcwZTQwNjc2ZTVlZTM0ZDMyZTA0ODc2NjdmNmQxOTQwODA2ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a3f21fa51084595b7fbdc64358029c7",
+      "statement": "Settings defines seven endpoint-cache TTL fields as the per-data-class lifetimes of the data-plane response cache: endpoint_ttl_prices_seconds 3600, endpoint_ttl_statements_seconds 86400, endpoint_ttl_metrics_seconds 86400, endpoint_ttl_options_seconds 1800, endpoint_ttl_search_seconds 3600, endpoint_ttl_quotes_seconds 30 and endpoint_ttl_negative_seconds 300.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L59-L68",
+          "version": "repo-lines-v1:sha256:297d2c5f92a57a577ad6f609faab235036d31c5993bdf2fab918741170db92e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMmNkNjNkZDE0YTQ3NGE5MTI1NzIzNjMyZGViYWZlNzExYjkzNWNlZmNkYTBlODMzMjIzZDgzMDU0M2UxYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0NWIyZDk3YjE2ODQzMjk2YmEwY2NmODNiZDVhNTc2OWI0NGVhZjUxMWRkZjY5ZmE4NTBlNWQyMmQzYzczZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjZjdmYTZiNmQzM2JmYzI2NTUyOTcwYzRkOWUyMTAyZTAxN2QzZmYzOGFhNzBhZmM1MmQ3YWE3NmJjMDU3ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZDU5MTM2YTNhNmI0MmI5ZjY5YWQwYjU2OWI3ZjVkNGNiYmNkZTNhYzM5ZDMzNTI1MjYxODdjODg5NjYwZDYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L271-L301",
+          "version": "repo-lines-v1:sha256:2d3109a27235ca1c64edb7777a17358a4a3fe35eec57a428055134113ca697bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2MGU4ZWY1MmM5NGM3MGFjMDFiYTNmNWU2NWNhM2M2ZmU4ZTI0NGFjZjk3ZmFmMWU5OWUyZWRiOTJhNWRjZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyMGQ0YThhYjQwMGE3MWY3YmZkZDliYjkxNjZkZmRkMmU1ZTEwNTY5NTk4NmUzNDRlMzBiMzFlZmJlMjdkNjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c62e40a777eb42cc85973e6f799459fe",
+      "statement": "EndpointResponseCache resolves a data class's TTL at cache-write time: _TTL_SETTING_FIELDS maps the data-class string to the Settings attribute and _ttl_for reads it with getattr inside _store, while _negative_ttl reads settings.endpoint_ttl_negative_seconds, so a changed setting value applies to the next write without rebuilding the cache; an unconfigured data class logs a warning and falls back to _DEFAULT_TTL_SECONDS = 3600, and an explicit ttl argument overrides the class TTL.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L135-L145",
+          "version": "repo-lines-v1:sha256:d4de8948f458fddfc9717d41b0123743b74a1d8dbcfb077ba97629b113d6f7ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMDhlOTRmZTNlYzNhOGFlNzhhNmUyYzBiOWU3ZGNhNmZhM2FkNjNmM2ViOTNiNWM0NTJiOTNkNjBhZTA0MWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZGIwN2UwZGQ1Nzc4NDcyZWVhZmU5ZDM3ZmUzYjlkZDM0OTdmYzU5ZDFiNDRiNzZlMzFiMTE2N2NlYWY1M2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjNDdmNjhhNmMyMDAxMTJhODMyZjEzOGZiN2ViZTUwZTA4OTNmNWUwMmZhMTM0NWYzMWQxM2JmNmM4NzZhMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjNjYzMTkxZmNmNjI4ZWM1OGNhZmZlOWY1ZDZhMDM0ODk5ZmRkODIyNGQ5NWEyOTI5MTY5ZTk5NmI4MmYxNjIifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L297-L310",
+          "version": "repo-lines-v1:sha256:70b2c12e2b0df589243cca5a64f37bb23bb5159208adb4b1b15c4e351e7f214c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5NzJhMmRlOTI4MjM1NDU1YTU2YmUxNjYyYmJlNjJiZDlmMGYyMWE0ZDk3NzhlZmY2MDhkNDkxNDhlODdlYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZDVkMzhiODAxNDg0YWE4NDliMGY0Nzg1MzkxZWI1YzUyNmE0ZjE3MGRjNWMyYTJkNjRiZjRlMDU1Zjg4ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmNGZiMmE5YmJlMmU1MjU1NGM2ZThiZTk2OGMzNjBmN2MxNmU4MzQzODg5MGQzMGQ2YWRjNmM1MjYwMzBjNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0ZDRjMzhlMTU4MWFjMWU4YTU5MTA5N2VmMDMyOTJhYTg5ZDdkYmE5MThmOGM2MmE1NWIxYTk5YTU5MmVlMTIifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L42-L54",
+          "version": "repo-lines-v1:sha256:20ff894f517d46868fb4fc66a7e394be0f3ef49e1b7d5ecb2e4f6f5f75f41cfe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZjZmMTIxMjk4ZTk2NjVlMTE5YmZjMjA4MzExZDQxMzZkYjE5NDllMGFjYzZjOTVkN2MyZDQxNjgwODVkNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjODhhNmJhZTU3MmFlYjYxMGMzYzg1ZmEyNzVlZGUyMjJjNDAwYTg4MGMyY2VkZWU4NTViZDBhYjQxZWY1NWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYTYxMjk1NGFiOTA1MzlhNWNiOWY5ZWVmNGQ4ZDBmYmY2ZTA4MzU1ZTU2ZGNmMjg4Y2I3M2U3YTYxNDIxMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5NjU0YTBkOWFkZjIwMWI2YWFiYmE2YjhlMDQzYzZhZjY4MWU2YzU3ODQ0MGQ1NjNmNDgxZjIwMjMxYTIyMGQifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L79-L81",
+          "version": "repo-lines-v1:sha256:7da60d8260149a714af17cc1a790dc7b463e13f160713f4ee33619ffe2bd181e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODkyMGMwNjI0Mjc3YzA2MzlkN2IyMTRmMTZjYmY5YWEzNmQxNmJmYjBkYmFjNTU3YjEwNDAwYTUwNjIwYjMwNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzA1MWJlMWQzMmZiMTM0MzAxYjkxZjVmZDgxMjA0Yzc4OWE2MDkxMDM5NDdiOTdiMmMwNDI0ODAwYzNmYjQzZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDcwMTQ5ZTA2OWFkNjdlY2NmNDczNjQ2ZmYxYzc1MDA1MGQzMjlkMTEwMDE4ZGM1NzY2ODc4ZWFmYTFkNjA3ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFmZGU1YzdlMjVjZjI4NDYwYjE1MDliMzNkNjVlMmI4OThmYjE4Mzc4NmUyNTNjYjZhZTE5NjQzMzhiMTI4ZCJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L304-L342",
+          "version": "repo-lines-v1:sha256:95714030afd6fbed108ea63f5321a6b06db69858b704cdd385a2649572a41fb3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMjIzYmE3MTk0M2I0ZmI4OTkzMDMxZTUwZjNmMjRlY2Q5Nzk0MmUyYTA4YTNkYmUyNjMyNTk3OTc2OWIwNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYTE5N2VlM2FjNzVkMjIwNDQ3MDJlNmVjYzNhNTYxM2NmZTQxNjNiZDg5ZjQ5NDc5YWM2NjgwZjFiZjFhMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_909fc1daef8243b8b5eccc78fdd3d739",
+      "statement": "Two svcs keys share the MarketGateway ABC: MarketGateway resolves to eodhd_gateway_factory for legacy price fetch, and DataPlaneMarketGateway — a behaviour-free subclass that exists only as a distinct registration key — resolves to composite_market_gateway_factory for the provider-agnostic data plane; both keys are registered in register_market_services (src/market/__init__.py) and in the stub branch register_market_stub_services (src/config/services.py).",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L136-L137",
+          "version": "repo-lines-v1:sha256:621ca4a927b78256f1895fcaacca860ffb21730c2093d44dac94f28579187e86:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM0MTkwZWM3NjhkMDVmNTExYWVkYjc3NjIxMzYyNDk3NjgzODhlZmFkMGVlOWI0N2QzZjhmM2JmYjcxYThkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk5MWI3NWY5NjM0ZmUwZDRlMzBhYWNiM2E1OTQwYjQ4NzllMjhlODBlOWMyNTMxOTNlODU4YmU4MDY1ZDg5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L68-L71",
+          "version": "repo-lines-v1:sha256:26438c3cfef95c0934617c03641c1346d41c8228e1a2e0ddb1929c3c7048768e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmMzNGZiZWZiYTIxZDcyZjk3NDcwMzcyY2FmYzNlYzMwMzM1MGU2YzYwM2E4ZDM5OTc0NzRiZmZiMDNiZGY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBkNjM5MDQxNGRkZGJhYThlODEzOGYxNjc4YzdmOWMxNzUxODA4ODRmZWVmNjQxNjZmYjY2ZDdiNDQ2ZWM1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk4YjA2M2Q5YjQ3ZTY1Mzc5NjI1NTcyY2NlMTk3NjY5ZDU3NjdlMTJjMThiZTA3NTY1MmI4Y2Q5ODFjZThkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGExNWVhMmExMjZhZGQ2ZjAyNDQ2NjZhYjhiOGMwNzRlZmY3YTVmYmI3ZDhmOWM2ZmM5N2ZhZWFmNTUwNzk4NCJ9"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L231-L244",
+          "version": "repo-lines-v1:sha256:3386aa28fdef1ff29b1abc58aaf0a9e5ceae732579d4710eb35c727b9b6e8e29:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNzkzMTg2YTIxYzY0NTgzZTFiZTlmZjZmYTYxMTk2YjcxMmE4MTU4ZmU5MjIwMGZjNTg1NTU0ZGI1MzkzN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjN2I1ZDIxNmY3MWUyNGZmZDg1NTRmM2QyZGE2NGUzMjkzYWZhNzE4NmY5ZmJlNTZlZmNiMmRkNWFmYzFkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L35-L70",
+          "version": "repo-lines-v1:sha256:36f03133e3c1644c38ef8476e8361880c6fab9bf53d74fd1439ea098586fed49:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1MDVkZDQxZTg3ZjZkOWUzMjk4MTVkN2YyMzczOTJjNjg3MGVkMGY4N2RhZDY5OWM0ZjM5ZmUwMDQxZWZjNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZGFlMzdhOWE0N2FjNDhmOWNjMTczNGZmNWIwMGY3OGUyM2ZkMWU4MTIwMWMwNTRhZDI4MjZjNzNlMzk3MDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyMTEyNTI3NDkwZTRjNjYzZDdmNzBhODc5NzA0NzliMmM1NTExZTI3OTkxZGQzNWZkNDViOGRjYWIxODljM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4Zjc4ZDlhNGMxYjU5Y2Y3MTNkMTY2NzBkOTI3ZjhiMzc2ZTAzMDUyNTQ5YjRkODhjNmExNjdkZDBkYmI3N2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bdd312c80e4a4bca9d9be367dac8c744",
+      "statement": "CompositeMarketGateway routes prices, search, symbol lookup, fundamentals and quotes to the FMP gateway and options chains and expirations to the Polygon gateway, and adds no caching of its own because data-plane caching happens one layer above in EndpointResponseCache.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L208-L237",
+          "version": "repo-lines-v1:sha256:2e7ace2048cc82f47115eac1f18a299b8cb9eadafade1946255b33bdfef8a55d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NDcwNWRkMDZmM2ZmNzNmYTJlM2UwYzcyMmMzYWNkZmZkMjdiYTM3ZGJhZGUzMDYyNTQyOGQwZTQ4N2Y5MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkZjA1NjYzODQ4M2U0MjAwNzgwZWZjYmJhMTIxN2NkYmFkZDY5YmY5ODA1MmE2NTQ2ZWNkNmNhZWVmYzg3ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0YTliNmJjNGFmZTA4MWI5YmY4NWViZTI1YWFlNGE0OWRhYmY2NTFhNWIwM2Y3ODViY2NhZTc2NzM4MzQ2ZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3ZGQ1MjNlZWFhZDBhODhiNzgyYjQyNjY4YmJmZjVmYmZjNWU3NTFiZWFhY2RiYTljNDA4Y2YzNDc4ODM2MjAifQ"
+        },
+        {
+          "resource": "repo://src/market/composite.py#L59-L83",
+          "version": "repo-lines-v1:sha256:bd0159462c505498185fea3fed9cd9f2e8d9af4069a65badf470189ddff046ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2OGJiNjljNTA2MTY4NTA3ZjgxMDZiNjMxMzExN2JhZDYzOGJiMzFhNjYwMTJiMTI1ZGIxZTAzNjIxYWMwY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YzJiMjE3ZWNkNGI0YjFlOTcyZjA1NWFlMGEyMGY2NjAxNWEzMjAxYjdlYTgzMWZjMWJlZWJhNDUwOGNhMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxMjhhYjA0YWI2ZDcyYmI5ZDdjZDE3YzdjMThhZGVkNzMzOWM4OTM2YWE4YjQ2NmJkMDg2OTBmNTBmOWE5NDAifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L85-L105",
+          "version": "repo-lines-v1:sha256:3a1c86923f71aba483dd91f4fa69ec945cbc6bf489c8b2bb0f803a6ecf7b9b87:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyZDkyZmYxMTQ2ODIwMTQ2OTU4OWRjMDY5MjVmYzgyZTcyOWU2MmE5MzgwZmFhYzJhZTliOTg0ZjhiMmY3YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NjA4NzMzNGNhOGI3MDU0OGZmOTk0ODFmMjhiM2FmYzA4ZGNmMzNjYTI1YTI4YWI4ZDJhMTRjMzI4OTY0ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyMjAyMzkxYzQ0ODZiZTk2ZTE1ZDQwYWM4NDdjMjY2ODY3MTlhNGQ2ODY2YWFiNzAwYmRkYzg5YWQ2N2RkNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c74ef65dc1e94fb2b4fef1a08ac77cd3",
+      "statement": "composite_market_gateway_factory is a sync closeable generator factory: it builds both provider gateways, yields the composite, and its finally calls CompositeMarketGateway.close(), which invokes each provider's optional close() hook, so svcs container teardown releases the FMP HTTP client and the Polygon session; it is sync because data_router resolves the key with the sync services.get, and a failed Polygon construction closes the already-built FMP client before re-raising.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L240-L277",
+          "version": "repo-lines-v1:sha256:d01e586f810550491b55e40cb0c447bee06af9bfa1bfdd37d7c3166e3ace7c37:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4YzExMTFhNDRjNjJkNzA1ZGZkZmZmY2Q2Y2I3YTU0MDE2OGY0YjFhMTUwOTEzZWY4NGQzNThlMWI0YzMzODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlMjk2NjFjOTM1Y2UyNzU0MGZhYjFhYmVlZGQ2NDY1MGIyNDgxMzM4MGE3NWFhNWI4NWVhMmE3MmE2ZDg5NjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxOTJjYWIxMTQzNWNmNThiZjhhYzE4ZTVmMjIwNmRmMzIxOTNmOTgxNzllMzRlNGZlMjZjODEwZTFlZDVhZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L108-L191",
+          "version": "repo-lines-v1:sha256:1db778bd5081a7c8ec1028f66a6c1e04da0b8946c08bdb742742d54ea716342c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YjY3ZWMxODMxZTkwNWU1MGQ2OGVmZWY2MjE4NDM4YWYxYTlhOTcyZTFhYjM0MGM3YjU5ZDczNDMyOTk1MGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NjA0MmE3YTQ3Y2QxYzNhNDZhYTI4NDVkMThjYzhiZDVjZTE1MTZhZWIyNGYxODAzMmY5NmQ3NTIxMzRlNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a183c3ae33534a6fb5de733722fd2014",
+      "statement": "lifespan_context resolves DataPlaneMarketGateway eagerly in a throwaway svcs container before serving requests, so a missing provider key or a broken gateway registration fails at boot rather than on the first data-plane request, and each later request-scoped DepContainer builds and closes its own composite.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L52-L82",
+          "version": "repo-lines-v1:sha256:7a65ae301a6ffd9760a9de8b51606a7a3d9302dc0cf1858831d3217b5819acf5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjODM5NTBlMDM1NTg5OWRiZDU3MjVmNmQxMDA0ZjNlMTZhZDljOTViMGUwYTAxODllODY4M2M2ZGFkNjFlODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkNGE0NWVlMDUyYTU5MDBhNzAwNTA2NGJkYmQyMzNkZWYzM2QxZmZjMDNjYWEyMzdjNmIyNDYyZWJlOWNmMTcifQ"
+        },
+        {
+          "resource": "repo://src/market/composite.py#L251-L261",
+          "version": "repo-lines-v1:sha256:18dfc8b28ff4e7dbdb9ee2a3aa0c2d785c62b01851dd03bea0f6a71a67c052b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDcxMWVlMTI4ZGIzMDZkY2Q2ZDYwOGVmY2IyYjg5MDZkMzJkZGJiOWY4ODFlOTk1MmRkMzZhNjhlNmFkYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViYjc0Y2NlMDBkZjEyZGJkMWVhNDdkN2U0NzNjMDlkN2YyMjJkMTMyZjQ5MGRiNTMyMjEwYzNlMDM3NDM4ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4OTRmYTU1OGI0OWU2OGY3YzNkYmJhZjdmMDNmOGQ5MGNiM2JjZDA4YzZkNzllMDdhZjQwZmI0YjFjMTJkMWIifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L145-L152",
+          "version": "repo-lines-v1:sha256:09f45560ad6290c28c6cc7a9fa670051e518ebb1bdcbd99906b8f09f241a6e97:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzAzZGE2NTY3ZmFkMWM0MmQ4ZWUyYTQyOGY2NWNhMWI2MjQwYTEwNDRhYTdiNzI0NmM0ZmE0NWZhYWRhY2I5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjgzYzcwZmQwYmE4NmQ4NWZmMGZiNDdmYWFiZjk3Zjg0ODc0OTk1ZjZmMzk2MWM2NDNhNWRhMmY4MzcwZGEwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWE4YzU1NjU4YmM1YjAzMzViOGNiMTAzZTMyZjM3ZTFkZDQ2NWE5NmYxZmM2ZDVlZGE0ZjZhZDIwODFiOWQwNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGY5MTQ0YmI0NDhlYzkzM2Y1MTc2MTlhMmJlY2NjNmJjNDMyYWMzMDYwMjdiZDM1YWVmNjQzODdjNmQ3ZGRlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2f48f884ec443fabd573361d21d32cc",
+      "statement": "Stub mode is enforced at both the registry and the factory level for the market domain: eodhd_gateway_factory, fmp_gateway_factory and polygon_gateway_factory each return their Stub*Gateway when settings.stub_external_api is true, so the live registration path still yields an offline composite; the integration domain has no factory-level guard and relies on the registry branch alone.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/registry.py#L23-L30",
+          "version": "repo-lines-v1:sha256:fcdf0b1de9d34f949e4680d52a7459bb2391617ba99fd649d7316d7a71eb5250:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2MwODU3YmUzY2M5MWQ4YzVmNTA0MmJjN2MwNzk4NTlmMjU5YWYyYTNhOGE4NWYzOTdiYWEwOGU0YjdmNDJjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjMxODIwNDRmMTMzN2E1ZTFlNDRlZWU4ZTcxZjY0OTI5YmU1M2JjZTAyZGJjZmRlNGJkYjQ0NzQwMDM2MmNkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk4YjA2M2Q5YjQ3ZTY1Mzc5NjI1NTcyY2NlMTk3NjY5ZDU3NjdlMTJjMThiZTA3NTY1MmI4Y2Q5ODFjZThkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L218-L223",
+          "version": "repo-lines-v1:sha256:f4db17284a8b3242f357cc49287e20039c46867435c8d3fbdb50886c19370bb6:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTMyMDExNzI3ZDlmNWIxMDgzMDJkN2Q3OTE3YzM5YmY5YjM3Mjc3NzdkN2I1NzdhZWM1ZjFkNDkwZDQwMjA0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzk1NmI1MmYzOGQ4MDBiYzM5NjVjOTBlYWQyNTY4MDgxODA3OGMzYWRjNzJiZDQwYzYxYzMyM2FjZDA3ZWJjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTcxMzFjZDViYTNiYmZlNzgxMGVmYjgxYWVkZjE0Y2FkOTAyYmExODBjZmUwMDU1OGY5Mzg0ZjdiNzkxMDk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/market/fmp.py#L1214-L1219",
+          "version": "repo-lines-v1:sha256:9b2ac71890641eafe4db3d11669825df157c7de27578871510f9b9f4c3990858:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmJhN2UxZmMyMDM1MzBhZjRkYzk2ZDc0NzM5NzBhZDBlNmIyMmM0MjZhYjhhMmY2YTU2YWE4NWY2MjUxODgxNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQwYjkxYmQ2OGMyODRjMWFmOTMxNTA4NTBhMThmOGUwYzFhMzAzN2JhNmUxNjkyZjBkZjkyYmE0YWM4NTc1YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjIwYzI5MGY1ZjRkMTE3ZDU1NjYzNzdkNTc5YjVkY2VkNjlkMDFjYjE0MjFkZTUwZTlkODc1ODAyNmRhNDljNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/market/polygon.py#L499-L510",
+          "version": "repo-lines-v1:sha256:3ebff597227d189e7f69617f99ffe860d3f3fe67c121af795f3d0169f21dcabf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ODAxYThmZjIzNzE1MTZjZWFlOGYxOGVkZDc2NjFmYmNjMzIyMDE5OWRkOGVmMWFjZDY5NmZkNzQ5YzVlMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwM2VlZTgyYzk4NzY0Yjc0MmQ4YjVlYzY3NGE5NGJlZDcxN2E1MTIxNWM3YmI2ZTI4NDcxNGMwMmJjNzZlOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjN2I1ZDIxNmY3MWUyNGZmZDg1NTRmM2QyZGE2NGUzMjkzYWZhNzE4NmY5ZmJlNTZlZmNiMmRkNWFmYzFkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a82993c63781448fbcaf0b352e912713",
+      "statement": "cors_exception_middleware in src/main.py is a safety net around the FastAPI handlers: on an unhandled exception it returns 500 with CORS headers re-attached for an allowed origin and includes str(exc) in the body outside prod while returning the generic Internal Error in prod.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L120-L158",
+          "version": "repo-lines-v1:sha256:dcebbac556ae491e4889202e1e7332d736e517209c93b6561c2b6f80f848b49c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YzBhNzhiYjZlMzQzNDljN2Y1NjlhNDRiYzk5NmFlNWIzZTQxOGNmNTIyNDNmNTllYTg3NTFhZDNmMjhiYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhODQ5NmVlOTY0MjcyZmM5MTFhMmMyMmVlNDFkYTBmY2U3Zjg0OWJmYWRlMzQwNjUxMmJlMWQyYzgxODhjZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1ZDkzNGRmNjU4NGU3NGZhOTMxYmFhMjQ4OGQxOGExNGE5N2U1ZmUyYjlkMDEwMDg4MDIwMzBjNDMwOTMxNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzN2I0YzBlNzYxNmE0NjJlY2NlMmZhNmVkNGQzYTExOGY1M2RjZjA2NjM1YmQ1NWZhOWE5ZjNiYmNkMmQ0YjUifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T20:12:35.821Z"
   }
 }

@@ -1,6 +1,8 @@
 ---
 type: "Reference"
 title: "Testing & Verification"
+description: "How the repository is verified: the backend pytest layout and fixtures, testcontainers-only infrastructure, the frontend Vitest/jsdom setup, the Go module suites for indicator-service and mcp-gateway, the cross-repo data-plane OpenAPI contract snapshot, and the CI matrix."
+tags: ["testing", "verification", "pytest", "vitest", "go", "contract-testing", "ci"]
 openwiki_generated: true
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
@@ -43,14 +45,52 @@ sources:
     resource: repo://frontend/svelte.config.js
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
+  - id: openwiki-source-c59fe4336a371ea1052a01dd
+    resource: repo://justfile
   - id: openwiki-source-05ccef8d4cf1698187f20464
     resource: repo://pyproject.toml
   - id: openwiki-source-b1543404abfc927178353273
     resource: repo://scripts/agent-test
+  - id: openwiki-source-0b80d8cf9af5ddf159382f9b
+    resource: repo://services/indicator-service/internal/config/config_test.go
+  - id: openwiki-source-1f20cd90eabc625721481d92
+    resource: repo://services/indicator-service/internal/httpapi/handlers_test.go
+  - id: openwiki-source-b5b0d93fcf9b63fd0786bf37
+    resource: repo://services/indicator-service/internal/httpapi/middleware_test.go
+  - id: openwiki-source-55b7d5881accc0a2691c2b7a
+    resource: repo://services/indicator-service/internal/indicators/calculator_test.go
+  - id: openwiki-source-a87880c597d9aec36b5eed0c
+    resource: repo://services/indicator-service/internal/indicators/timeframe_test.go
+  - id: openwiki-source-abb5c44c8909f33e303eb1f5
+    resource: repo://services/indicator-service/internal/logging/logger_test.go
+  - id: openwiki-source-74d379d29abcac40defea0b2
+    resource: repo://services/mcp-gateway/internal/backend/contract_test.go
+  - id: openwiki-source-93a0ac26c3492c00de6f8341
+    resource: repo://services/mcp-gateway/internal/backend/market_test.go
+  - id: openwiki-source-adfe5dc6ece78fd0886f5dd3
+    resource: repo://services/mcp-gateway/internal/backend/transport_test.go
+  - id: openwiki-source-b108c688512f703d6979de5d
+    resource: repo://services/mcp-gateway/internal/config/config_test.go
+  - id: openwiki-source-6c8b101cbc6f5ac646d9ce61
+    resource: repo://services/mcp-gateway/internal/logging/logger_test.go
+  - id: openwiki-source-647ba1358369b80ede2bb193
+    resource: repo://services/mcp-gateway/internal/logging/middleware_test.go
+  - id: openwiki-source-4263de9565ed0586e68b4b70
+    resource: repo://services/mcp-gateway/internal/server/server_test.go
+  - id: openwiki-source-eff63eb059c549d221f5c56e
+    resource: repo://services/mcp-gateway/internal/tools/fundamentals_test.go
+  - id: openwiki-source-41220b797897cd4809a2bc7d
+    resource: repo://services/mcp-gateway/internal/tools/prices_test.go
+  - id: openwiki-source-34a919ee9cb0b7d0c5280d86
+    resource: repo://services/mcp-gateway/internal/tools/registry_test.go
+  - id: openwiki-source-97c3790ed761dcf7f2921ea9
+    resource: repo://services/mcp-gateway/internal/tools/symbols_test.go
+  - id: openwiki-source-6b872fad076bdb4aa43f0fc9
+    resource: repo://services/mcp-gateway/README.md
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
-  - id: openwiki-source-8a673764df1ebbb3a306a4f9
-    resource: repo://tests/commands/test_seed.py
+  - id: openwiki-source-8a84fcdf5931e37b8813afcd
+    resource: repo://src/commands/export_data_plane_contract.py
   - id: openwiki-source-f0a6e7dc03522b2682f88655
     resource: repo://tests/conftest.py
   - id: openwiki-source-eb90d18c3483a2892215101e
@@ -69,6 +109,12 @@ sources:
     resource: repo://tests/integration/brokers/test_wealthsimple.py
   - id: openwiki-source-3fc8ae58de9c48599e06465d
     resource: repo://tests/market/test_check_and_dispatch_price_alerts.py
+  - id: openwiki-source-0c1847437fde78d8b0db6918
+    resource: repo://tests/market/test_data_plane_contract.py
+  - id: openwiki-source-9d7ba9d51ce348ae0e86192e
+    resource: repo://tests/market/test_data_router.py
+  - id: openwiki-source-73f6e8db718a5ca257b8806a
+    resource: repo://tests/market/test_endpoint_cache.py
   - id: openwiki-source-aac020a8d896b587762e3998
     resource: repo://tests/market/test_indicator_cache.py
   - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
@@ -81,6 +127,8 @@ sources:
     resource: repo://tests/market/test_security_search_cache.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
+  - id: openwiki-source-d1793d747b8abce8c0959943
+    resource: repo://tests/tasks/test_integration.py
   - id: openwiki-source-33d5d706a9193e5e20aa44ce
     resource: repo://tests/tasks/test_market.py
   - id: openwiki-source-d59cda026d403e42927334dd
@@ -91,10 +139,10 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-14T20:12:35.821Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-14T20:12:35.821Z
 ---
 
 
@@ -102,9 +150,11 @@ verified:
 
 ## The one non-negotiable rule
 
-Tests must never depend on external services. Redis, HTTP APIs (EODHD, broker APIs), SMTP and DNS are all mocked or stubbed; the ephemeral PostgreSQL instance provided by `testcontainers` (or an explicit `TEST_DATABASE_URL`) is the **only** allowed infrastructure dependency. `src/AGENTS.md` states the rationale: CI runs without a Redis server, so a test that dials `redis://redis:6379/0` only passes inside Docker where the Compose hostname resolves, and otherwise fails with `socket.gaierror`/`ConnectionError` and takes the suite down with it. **A test that performs a real network, Redis or SMTP call is broken by definition** — mock it, never "fix" it by expecting the service to be up.
+Tests must never depend on external services. Redis, HTTP APIs (EODHD, FMP, Polygon, broker APIs), SMTP and DNS are all mocked or stubbed; the ephemeral PostgreSQL instance provided by `testcontainers` (or an explicit `TEST_DATABASE_URL`) is the **only** allowed infrastructure dependency. `src/AGENTS.md` states the rationale: CI runs without a Redis server, so a test that dials `redis://redis:6379/0` only passes inside Docker where the Compose hostname resolves, and otherwise fails with `socket.gaierror`/`ConnectionError` and takes the suite down with it. **A test that performs a real network, Redis or SMTP call is broken by definition** — mock it, never "fix" it by expecting the service to be up.
 
 The same rule applies on the frontend: `frontend/AGENTS.md` requires mocking **all** API calls, because CI runs without a backend and an unmocked `fetch` fails with `ECONNREFUSED`.
+
+The Go services honour the same rule without needing fakes: their tests stand up `net/http/httptest` servers and hand-built clients, so no suite ever dials a real backend, provider or broker.
 
 ## Backend tests (pytest)
 
@@ -128,8 +178,8 @@ The tree is organized by domain **and** by architectural layer, mirroring the DD
 | `tests/routers/` | FastAPI endpoint tests — auth (incl. 2FA/passkey/token revocation), accounts, portfolios, market, chart snapshots, CSV inspect/import endpoints, integration, documents, notes, sync status, rate limiting, worker dashboard, unauthenticated access |
 | `tests/services/` | Service/API-layer behaviour — auth APIs and services, account service and API, position service and API, market service, CSV account service |
 | `tests/repositories/` | SQLAlchemy repository tests (`test_repository_sqlalchemy.py`) |
-| `tests/tasks/` | Huey task tests — account, integration, market, and Redis concurrency |
-| `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, EODHD gateway, security API and search cache, price alerts (repository, evaluation service, dispatch task), plus `tests/market/commands/` for CLI commands |
+| `tests/tasks/` | Huey task tests — account, integration (the broker-sync task with a mocked broker and DI container), market, and Redis concurrency |
+| `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, provider gateways (EODHD, FMP, Polygon, the composite gateway, gateway registration and the provider-agnostic gateway contract), FX rates and currency conversion, security API/search cache/valuation repository, the service-to-service data-plane router and its endpoint response cache, price alerts (repository, evaluation service, dispatch task), the committed OpenAPI contract snapshot under `tests/market/contracts/` plus its parity suite, and `tests/market/commands/` for CLI commands |
 | `tests/account/` | Account model/sync behaviour, plus `tests/account/commands/` and `tests/account/csv/` (CSV parser) |
 | `tests/auth/commands/` | Auth CLI commands (`create_test_user`, `create_test_token`) |
 | `tests/commands/` | Top-level CLI commands — `seed_data` (incl. idempotency) and `flush_market_data` |
@@ -147,6 +197,13 @@ The tree is organized by domain **and** by architectural layer, mirroring the DD
 os.environ["SECRET_KEY"] = "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1dcf562b482f9"
 os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
+# Baseline service token so prod-path settings tests pass the startup validator.
+os.environ["MARKET_DATA_SERVICE_TOKEN"] = "test-market-data-service-token"
+# Baseline data-plane provider keys so prod-path settings tests pass the
+# FMP/Polygon startup validator (stub mode is on, but Settings() in tests may
+# be built with ENVIRONMENT=prod).
+os.environ["FMP_API_KEY"] = "test-fmp-api-key"
+os.environ["POLYGON_API_KEY"] = "test-polygon-api-key"
 ```
 
 It then re-exports the fixture modules with `from tests.fixtures.<module> import *`, which is why `db_session`, `auth_client`, `test_user`, `fake_redis_manager`, and the rest are available suite-wide without an explicit import.
@@ -177,7 +234,7 @@ Database fixture lifecycle: one session-scoped PostgreSQL (reused via `TEST_DATA
 - `test_db_url` simply exposes that URL.
 - `test_engine` (function scope) creates an engine, **rebinds `sessionmanager._engine` and `sessionmanager._sessionmaker`** to it so application code under test shares the same database, runs `BaseModel.metadata.create_all`, and after the test runs `drop_all` and disposes the engine. This is schema-per-test: there is no in-memory or SQLite path anywhere in the fixtures.
 - `db_session` (function scope) yields an `AsyncSession` and `rollback()`s at the end.
-- `seed_reference_data` inserts the reference rows — `AccountTypeModel` (TFSA, RRSP, FHSA, Non-Registered) and `InstitutionModel` (Wealthsimple with `csv_format=WEALTHSIMPLE_CSV_FORMAT`) — and commits them.
+- `seed_reference_data` inserts the reference rows — five `AccountTypeModel` rows (TFSA, RRSP, FHSA, Non-Registered, Spousal RRSP) and the `InstitutionModel` row for Wealthsimple (`csv_import_enabled=True`, `csv_format=WEALTHSIMPLE_CSV_FORMAT`) — and commits them.
 
 ### Global mocks
 
@@ -191,24 +248,26 @@ The docstring records why the `src.main` patches matter: `main.py` binds those n
 
 ### Redis fake
 
-`tests/fixtures/redis.py` provides the autouse `fake_redis_manager` fixture (function scope). It builds a `FakeRedisManager` whose `client()` async context manager yields a `FakeRedis` — a dict-backed async stand-in implementing `get`, `set` (including `nx`/`ex`), `setex`, `getdel`, `delete`, `incr`, `expire`, `scan`, `ping`, `publish`, `sadd`/`srem`/`smembers` and `aclose`. The fixture `monkeypatch.setattr`s the `client` attribute on **three** singletons — `src.core.redis.redis_manager`, `src.auth.api.default_redis_manager` and `src.auth.service.default_redis_manager` — because auth (token denylist, 2FA/passkey challenges), the security search cache and integration sync status all import those same objects. Tests that need to assert on stored state request `mock_redis_storage`, which returns the backing `FakeRedis` (for example `tests/routers/test_auth.py` checks that logout writes a `token:deny:` key). Tests that deliberately exercise the real `RedisManager` construct their own instance — see `tests/tasks/test_redis_concurrency.py`, which also patches `redis.asyncio.from_url` — and are unaffected. Caches that take a client by constructor rather than through the singleton (e.g. `IndicatorCache`, `SecuritySearchCache`) are given their own local fake or `AsyncMock` instead.
+`tests/fixtures/redis.py` provides the autouse `fake_redis_manager` fixture (function scope). It builds a `FakeRedisManager` whose `client()` async context manager yields a `FakeRedis` — a dict-backed async stand-in implementing `get`, `set` (including `nx`/`ex`), `setex`, `mset`, `getdel`, `delete`, `incr`, `expire`, `scan`, `ping`, `publish`, `sadd`/`srem`/`smembers` and `aclose`. The fixture `monkeypatch.setattr`s the `client` attribute on **three** singletons — `src.core.redis.redis_manager`, `src.auth.api.default_redis_manager` and `src.auth.service.default_redis_manager` — because auth (token denylist, 2FA/passkey challenges), the security search cache and integration sync status all import those same objects. Tests that need to assert on stored state request `mock_redis_storage`, which returns the backing `FakeRedis` (for example `tests/routers/test_auth.py` checks that logout writes a `token:deny:` key). Tests that deliberately exercise the real `RedisManager` construct their own instance — see `tests/tasks/test_redis_concurrency.py`, which also patches `redis.asyncio.from_url` — and are unaffected. Caches that take a client by constructor rather than through the singleton (e.g. `IndicatorCache`, `SecuritySearchCache`, `EndpointResponseCache`) are given their own local fake or `AsyncMock` instead.
 
 ### HTTP/clients and email
 
 `tests/fixtures/auth.py` supplies the request-level clients and the outbound stubs:
 
-- `MockEodhdGateway` implements `MarketGateway` (search, `get_price_on_date`, `get_prices`, `get_intraday_prices`) returning fixed payloads and delegating search to `StubEodhdGateway`; `auth_client`/`client` monkeypatch `src.market.eodhd.eodhd_gateway_factory` to return it (patched in the source module because `src/market/__init__.py` imports from there for DI registration).
-- Both clients also patch `EmailService.send_verification_email` to a no-op async function, so router tests never reach SMTP.
-- Both use `LifespanManager(app)` plus `httpx.AsyncClient` over `ASGITransport` against the real FastAPI app with `base_url="http://test"`. `auth_client` additionally carries `Authorization: Bearer <token>` minted through `UserApi.create_access_token`, while the bare `client` is unauthenticated. `test_user` and `other_user` persist verified users (Argon2-hashed via `_password_hasher`) for ownership/authorization tests.
+- `MockEodhdGateway` implements `MarketGateway` (search, `get_price_on_date`, `get_prices`, `get_intraday_prices`) returning fixed payloads and delegating search to `StubEodhdGateway`; the `mock_eodhd_gateway` fixture instantiates it, and `auth_client`/`client` monkeypatch `src.market.eodhd.eodhd_gateway_factory` to return it (patched in the source module because `src/market/__init__.py` imports from there for DI registration).
+- Both clients also patch `EmailService.send_verification_email` on the class to a no-op async function, so router tests never reach SMTP.
+- Both use `LifespanManager(app)` plus `httpx.AsyncClient` over `ASGITransport` against the real FastAPI app with `base_url="http://test"`. `auth_client` builds its repositories on the test `db_session` and mints the bearer token through `UserApi.create_access_token` (with an `EmailVerificationService` wired to an `EmailService`), while the bare `client` is unauthenticated. `test_user` and `other_user` persist verified users (Argon2-hashed via `_password_hasher`) for ownership/authorization tests.
 - `tests/fixtures/account.py` seeds accounts, portfolios, positions, securities and integration users (including `other_user_account`, `other_user_portfolio` and `other_user_external_user` for cross-user denial); `tests/fixtures/market.py` seeds watchlists.
 
 Where the app resolves collaborators through its `svcs` registry instead of a module-level factory, suites override the registry directly: `tests/market/test_search_router.py` registers `AsyncMock`/`MagicMock` replacements for `SecuritySearchCache` and `MarketGateway` on `app.state.svcs_registry`.
 
 SMTP is patched at the transport boundary in `tests/email/test_email_service.py` with `patch("src.core.email.aiosmtplib.SMTP")`; template suites render through `src.core.email.jinja_env` without any transport at all. Broker APIs are exercised through the `src/stubs/wealthsimple.py` stubs in `tests/integration/brokers/test_wealthsimple.py` rather than by network calls.
 
+The data-plane endpoints get the same treatment: `tests/market/test_data_router.py` drives them with a `MagicMock` gateway, the **real** `require_service_token` dependency and the real `EndpointResponseCache` layered over the autouse in-memory Redis fake, so token comparison and cache behaviour are exercised end to end without a provider or a Redis server; `tests/market/test_endpoint_cache.py` covers the cache itself (TTL classes, negative caching, Redis-error fallbacks) against the same fake.
+
 ### Driving worker-owned code
 
-Worker tasks are the one place where the interesting code is an async inner function that a synchronous Huey wrapper schedules with `asyncio.run`. The reference pattern (`tests/tasks/test_market.py`, `tests/tasks/test_alert_email_dispatch_task.py`, `tests/market/test_check_and_dispatch_price_alerts.py`, `tests/routers/test_notes.py`) is to **patch the container rather than the task body**:
+Worker tasks are the one place where the interesting code is an async inner function that a synchronous Huey wrapper schedules with `asyncio.run`. The reference pattern (`tests/tasks/test_market.py`, `tests/tasks/test_integration.py`, `tests/market/test_check_and_dispatch_price_alerts.py`, `tests/routers/test_notes.py`) is to **patch the container rather than the task body**:
 
 ```python
 mock_container = AsyncMock()
@@ -222,7 +281,7 @@ with (
     await _daily_price_update()          # the async inner function, called directly
 ```
 
-Patching `src.market.task.Container` replaces the `svcs` container so `container.aget(MarketService)` hands back an `AsyncMock`, and the `__aenter__` wiring lets the task's `async with Container(...)` block work under a mock. The `huey.svcs_registry` patch is only needed when a code path short-circuits on a missing registry. Tests that must exercise the *synchronous* wrapper instead toggle `huey.immediate = True` (and restore it to `False` afterwards) so the task body runs in-process without a broker, then assert that the wrapper scheduled the coroutine — commonly by patching `src.market.task.asyncio.run`. Toggling `huey.immediate` is also what the session-scoped `global_mocks` fixture does for the whole suite; setting it explicitly is only for tests that assert on that boundary.
+Patching `src.market.task.Container` replaces the `svcs` container so `container.aget(MarketService)` hands back an `AsyncMock`, and the `__aenter__` wiring lets the task's `async with Container(...)` block work under a mock. `tests/tasks/test_integration.py` shows the same shape at a larger scale: it gives the mock container a side-effect lookup for `SecurityApi`, `IntegrationUserRepository`, `PositionApi`, `AccountApi`, `PositionService` and the broker class, and additionally patches `src.integration.task.ws_manager`, `mark_sync_started` and `mark_sync_finished`. The `huey.svcs_registry` patch is only needed when a code path short-circuits on a missing registry. Tests that must exercise the *synchronous* wrapper instead toggle `huey.immediate = True` (and restore it to `False` afterwards) so the task body runs in-process without a broker, then assert that the wrapper scheduled the coroutine — commonly by patching `src.market.task.asyncio.run`. Toggling `huey.immediate` is also what the session-scoped `global_mocks` fixture does for the whole suite; setting it explicitly is only for tests that assert on that boundary.
 
 ### Migration drift test
 
@@ -257,7 +316,8 @@ docker compose exec backend uv run pytest
 | `console.warn` spy that drops only messages containing `derived_inert` | L10-L17 | bits-ui's dismissible layer (Dialog, Popover) schedules `afterSleep` timers that read derived state after the layer's effects are destroyed; Svelte's DEV-only `derived_inert` warning is library-internal noise with no app-side fix, so that one message is swallowed while every other argument is forwarded to the captured original `console.warn`. |
 | `afterAll` that awaits 50 ms | L26-L28 | bits-ui's body-scroll-lock schedules a ~24 ms `setTimeout` to restore the body style when the last lock releases on unmount. If that timer is still pending when vitest destroys the jsdom environment, its callback throws `ReferenceError: document is not defined` and vitest fails the run — a race that shows up on slow CI machines. The wait runs after testing-library cleanup but before teardown. |
 | No-op `Element.prototype.scrollIntoView = vi.fn()` | L36-L38 | jsdom does not implement `scrollIntoView`, but bits-ui's `Command` calls it on the active item and on the closest group heading to keep the highlighted option in view. Those calls happen asynchronously, so the rejection surfaces as `TypeError: closestGroupHeader?.scrollIntoView is not a function` — reported by vitest as unhandled errors for any test rendering a grouped Command. Tests assert on state, not scrolling. |
-| `vi.stubGlobal('location', …)` | L41-L58 | Replaces `window.location` with a `URL('http://localhost/')`-derived object exposing `href`/`origin`/`protocol`/`host`/`hostname`/`port`/`pathname`/`search`/`hash` plus `assign`, `replace`, `reload` and `toString` spies, so navigation is assertable and consistent with `environmentOptions.url`. |
+| No-op `globalThis.ResizeObserver` class (only when undefined) | L44-L50 | jsdom has no `ResizeObserver`, but bits-ui's floating layer (Tooltip, Popover, …) constructs one when content mounts, which would throw `TypeError: ResizeObserver is not a constructor`. Tests assert on content, not layout. |
+| `vi.stubGlobal('location', …)` | L52-L69 | Replaces `window.location` with a `URL('http://localhost/')`-derived object exposing `href`/`origin`/`protocol`/`host`/`hostname`/`port`/`pathname`/`search`/`hash` plus `assign`, `replace`, `reload` and `toString` spies, so navigation is assertable and consistent with `environmentOptions.url`. |
 
 Shims that only some suites need stay in those suites: `Path2D` and `ResizeObserver` polyfills are declared at the top of the chart suites, and `window.matchMedia` is defined inside `src/routes/layout.test.ts`.
 
@@ -268,7 +328,7 @@ Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API 
 Which mocking seam a suite uses follows the shape of the code under test:
 
 - **API clients** mock `global.fetch` (`apiClient`, `accountClient`, `authService`, `indicatorsService`, `snapshotsService`, …) and assert the URL/method/payload plus the error mapping.
-- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape but mocks **two** modules, `$lib/api/accountService` and `$lib/api/marketService`, each as a single-`vi.fn()` factory, then returns a client exposing only the methods `HoldingsService` actually calls (`getUserHoldings`, `getValuationsBatch`). It covers paging until `offset` reaches `total`, the stale-total guard (an empty page stops paging even when the server still reports a bigger `total`), the caught-`ApiError` return so callers can route a 401, batch valuation mapping with numeric bounds and its graceful fallback to empty valuations, and row grouping/filtering (`setGroupBy`, `filterByPortfolio`, `filterByAccount`, `clearFilter`).
+- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape but mocks **three** modules — `$lib/api/accountService`, `$lib/api/accountClient` and `$lib/api/marketService`, each as a single-`vi.fn()` factory — then returns a client exposing only the methods `HoldingsService` actually calls (`getUserHoldings`, `getAccountTotals`, `getValuationsBatch`). It covers paging until `offset` reaches `total`, the stale-total guard (an empty page stops paging even when the server still reports a bigger `total`), the caught-`ApiError` return so callers can route a 401, batch valuation mapping with numeric bounds and its graceful fallback to empty valuations, and row grouping/filtering (`setGroupBy`, `filterByPortfolio`, `filterByAccount`, `clearFilter`).
 - **Service classes that take their collaborators as constructor arguments need no `vi.mock` at all.** `src/lib/services/ChartDrawingsService.test.ts` constructs the service with stubbed `userPreferencesService.patchPreferences`, `snapshotsService.createSnapshot`/`getSnapshots`, a `toast` double and `vi.fn()` callbacks, then asserts on state and on the exact `patchPreferences` payloads — tool mutual exclusion, Delete/Backspace/Escape handling, undo/redo history, drag coalescing (patches deferred during a drag and committed once on `handleDrawingDragEnd`), and legacy anchor normalization that must not trigger a write-back.
 - **Route tests come in pairs.** `src/routes/holdings/page.server.test.ts` mocks every API service module the `load` touches (`$lib/api/accountService`, `$lib/api/userPreferencesService`, `$lib/api/portfolioClient`, `$lib/api/accountClient`) plus `$lib/server/auth-cookie`, then drives `load` with a hand-built `Cookies` (a `Map`-backed store holding `auth_token`) and a hand-built `RequestEvent` carrying `url`, `params`, `route.id` and a stub `fetch`. It asserts the returned key set, that holdings are **never** fetched during the server load (`mockGetUserHoldings` not called — the page loads them after navigation), the graceful fallback to `HOLDINGS_TABLE_DEFAULT_CONFIG` with `group_mode: 'none'` and null `elliott_waves` when preferences reject, and the 401 path that deletes the auth cookie and throws a 303 redirect to `/auth/login?clear_session=true`. Its pair `src/routes/holdings/page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading (`getUserHoldings` called with offsets 0 then 50), per-currency totals, group-mode toggling and persistence, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked.
 - **Third-party and browser APIs are mocked too**: `mode-watcher`, `@simplewebauthn/browser`, `qrcode` and `$env/static/private` all appear in `vi.mock` calls, and `vi.hoisted` is used where a mock must exist before the imports are evaluated. `src/hooks.server.test.ts` is the one suite that opts out of jsdom with a `// @vitest-environment node` pragma so it can verify JWT handling with `jose` against a mocked `JWT_SECRET`.
@@ -281,6 +341,69 @@ docker compose exec frontend npm run test:run
 docker compose exec frontend npm run check     # svelte-kit sync + svelte-check
 docker compose exec frontend npm run lint      # prettier --check . && eslint .
 ```
+
+## Go module tests (indicator-service, mcp-gateway)
+
+Both Go services are independent modules under `services/`, each with its own `go.mod` and a `go test ./...` suite that runs entirely offline on `httptest` servers and hand-built clients. They are verified on the **host Go toolchain** or through `just` — never through `./scripts/agent-test`, whose `BACKEND`/`FRONTEND` constants and `detect_ecosystems` classifier have no third value.
+
+```bash
+just test-indicator-service     # cd services/indicator-service && go test ./...
+just test-mcp-gateway           # cd services/mcp-gateway && go test ./...
+just test-all                   # backend + frontend + both Go modules + node --test scripts/…
+just lint-go                    # gofmt -l over both trees, staticcheck v0.8.1, govulncheck v1.8.0
+```
+
+or directly, per module: `cd services/<service> && go vet ./... && go build ./... && go test ./...`.
+
+### `services/indicator-service`
+
+- `internal/config` — `Load` defaults, custom values and invalid `LOG_LEVEL` errors that name the offending variable.
+- `internal/indicators` — SMA, EMA, Bollinger Bands, MACD, RSI and OBV math, `ComputeIndicator`'s settings fallback and unsupported-type error, and `ScalePeriod` timeframe scaling.
+- `internal/httpapi` — `/health` and `/compute`: method-not-allowed, invalid JSON, unknown indicator, daily-string vs intraday-number timestamp preservation, the full-suite/custom-id path, empty candles, request validation, and the at-limit success case.
+- `internal/logging` and the HTTP middleware — logger setup and level parsing, `X-Request-ID` propagation/generation, status-code and duration access logging, and dev payload logging (with production runs asserting no body dump).
+
+### `services/mcp-gateway`
+
+- `internal/config` — `Load` through an injected `getenv`, defaults, `DATA_PLANE_PATH`/`MARKET_DATA_PATH` precedence and path normalization, and `IsDev`.
+- `internal/logging` — log-level parsing, handler selection per environment, token redaction, and the request middleware (status-derived levels, dev logging, redaction, provider-name compliance).
+- `internal/server` — `/health` plus method rejection, MCP initialize and tool listing through the real streamable handler, the configured session idle timeout, and cross-origin protection.
+- `internal/backend` — `Transport` construction validation, GET/POST with route-group isolation, error taxonomy, the concurrency cap and saturated-semaphore timeout; `MarketClient` endpoint coverage, the `X-Service-Token` header, error taxonomy and validation messages, secret/provider leak checks, and the OpenAPI contract tests described below.
+- `internal/tools` — per-family suites (`prices`, `symbols`, `fundamentals`) plus the registry suites: the tool-surface contract, removed tools staying unregistered, invalid or missing input rejected before any backend call, backend-error mapping, exchange normalization, and dev/error logging. The integration-style helpers wire a stub backend through the real `MarketClient` and the SDK's streamable HTTP handler on an `httptest` server, so tool behaviour is asserted end to end with no network dependency.
+
+## Cross-repo contract parity: the data-plane OpenAPI snapshot
+
+The service-to-service market data plane is the one interface with two independent implementations — the FastAPI routes in `src/market/data_router.py` and the Go `MarketClient` in `services/mcp-gateway/internal/backend/` — so its wire shape is pinned by a single committed artifact:
+
+`tests/market/contracts/data_plane_openapi.json` — an OpenAPI 3.x document titled "Market Data Plane Contract", version `1.0.0`, produced by `src/commands/export_data_plane_contract.py`. That command slices the FastAPI schema down to the routes whose path starts with `/api/v1/market/data` and serializes it with `indent=2, sort_keys=True`; the parity assertion compares exactly that serialization, byte for byte.
+
+```bash
+# Regenerate after an intentional route/parameter change
+uv run python -m src.commands.export_data_plane_contract
+
+# or let the parity test rewrite it before asserting
+UPDATE_CONTRACTS=1 uv run pytest tests/market/test_data_plane_contract.py
+```
+
+**Invariant:** adding or changing a data-plane route, path parameter or query parameter requires updating the snapshot in the same change. Both suites below read that one file, so a route added in FastAPI without regenerating it fails the backend test, and a query parameter added to the Go client without regenerating it fails the gateway test.
+
+### Backend side: `tests/market/test_data_plane_contract.py`
+
+- Byte-for-byte equality between the committed text and the live schema, failing with a unified `committed` → `live` diff and the regeneration hint.
+- The path set equals exactly the eight expected data-plane routes (prices, quote, indicators, symbols/search, options, options/expirations, fundamentals, fundamentals/statements), each exposing a GET operation.
+- Per-route parameter assertions on `in` and `required` for `symbol`, `from`, `to`, `interval`, `exchange`, `indicator`, `period`, `fast`, `slow`, `signal`, `std_dev`, `q`, `expiry`, `option_type`, `strike_min`, `strike_max`, `statement` and `limit`.
+- Provider anonymity: `fmp`, `financialmodelingprep`, `polygon` and `eodhd` must not appear anywhere in the live schema *or* in the committed snapshot.
+- Response-shape guarantees: `currency` is required on `PriceHistoryResponse`, `IndicatorSeriesResponse`, `OptionsChain` and `Quote`, and `OptionsChain` exposes the boolean `truncated` flag.
+
+### Gateway side: `services/mcp-gateway/internal/backend/contract_test.go`
+
+- `findContractPath` locates the same snapshot from any working directory (relative candidates, then upward traversal) and `loadOpenAPIContract` unmarshals it, so `go test ./...` needs no configured path.
+- `TestOpenAPIContractArtifactExistsAndValid` pins the OpenAPI version, title, version and the eight routes, each with a non-empty `operationId`.
+- `TestMarketClientOpenAPIParity` points the real `MarketClient` at an `httptest` stub whose handler validates every request against the contract — rejecting a missing `X-Service-Token` header, a path matching no contract route, an undefined query parameter and a missing required query parameter — then asserts that 100% of the contract routes were exercised by the client's methods.
+- `TestMarketClientOpenAPINegativeDrift` covers those rejection cases individually (unknown route, unknown query parameter on prices/search/options/fundamentals/quote, missing required `q`/`statement`/`expiry`).
+- `TestExchangeVocabularyMatchesContract` requires the `exchange` query enum on the five routes that carry it to equal the Go `supportedExchanges` vocabulary (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE).
+- `TestOptionsChainContractSchema` requires the `expiry` query parameter to be required and `OptionsChain.truncated` to be a boolean.
+
+Provider anonymity is asserted on the gateway side too: the tools suites fail if any tool result, log line or error string mentions an upstream provider brand, and the backend client suites assert errors never leak secrets or provider names.
 
 ## The agent-test harness
 
@@ -310,13 +433,15 @@ The three-gate pipeline: Gate 0 halts before any test runs, Gate 1 is a single t
 
 Both test gates parse machine-readable reports written to `.cache/agent-test/` — JUnit XML (`backend.xml`) for pytest, Vitest's JSON reporter (`frontend.json`) for the frontend — and the process exits 1 if any test failed, errored, or the runner itself failed (including when no report was produced at all).
 
-Flags: `--backend` / `--frontend` (full regression for one ecosystem), `--all`, `--gate0-only` (also exposed as `just check`), `--no-gate0`, `--local`, `--json` (structured output instead of prose), `--max-chars N`. The bare words `backend` and `frontend` are also accepted as positional targets and mean the same thing as the flags, so `./scripts/agent-test backend` and `./scripts/agent-test --backend` are equivalent — while any other positional is treated as a test path (a target beginning with `frontend/` resolves against the frontend root, everything else against the repo root). `just` recipes wrap the common cases: `just test` (auto-detect), `just test-backend`, `just test-frontend`, `just test-all`, `just check`.
+Flags: `--backend` / `--frontend` (full regression for one ecosystem), `--all`, `--gate0-only` (also exposed as `just check`), `--no-gate0`, `--local`, `--json` (structured output instead of prose), `--max-chars N`. The bare words `backend` and `frontend` are also accepted as positional targets and mean the same thing as the flags, so `./scripts/agent-test backend` and `./scripts/agent-test --backend` are equivalent — while any other positional is treated as a test path (a target beginning with `frontend/` resolves against the frontend root, everything else against the repo root). `just` recipes wrap the common cases: `just test` (auto-detect), `just test-backend`, `just test-frontend`, `just test-all`, `just check` (which chains `just lint-go`).
 
-**Scope of the harness:** it covers the backend and frontend only — the two ecosystems are the only values its `BACKEND`/`FRONTEND` constants and `detect_ecosystems` classifier know about. The Go indicator service under `services/indicator-service` is exercised by its own CI job (`go vet`, `go build`, `go test ./...` over `calculator_test.go`, `handlers_test.go`, `timeframe_test.go`) and is never run by the harness. The backend reaches that sidecar only through stubbed transports: `tests/market/test_indicator_client.py` builds an `IndicatorServiceClient` on top of an `httpx.MockTransport` handler (and patches `httpx.AsyncClient.post` for the client-reuse case), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` with an `AsyncMock` — so the compute endpoint's candle aggregation, interval handling and error mapping are asserted without a single HTTP call.
+**Scope of the harness:** it covers the backend and frontend only — the two ecosystems are the only values its `BACKEND`/`FRONTEND` constants and `detect_ecosystems` classifier know about. The Go services are deliberately outside it: `just test-indicator-service`, `just test-mcp-gateway` and `just test-all` (or a direct `go test ./...` per module) run them, and `just lint-go` supplies the Go half of the pre-flight gate.
+
+The backend reaches the indicator sidecar only through stubbed transports: `tests/market/test_indicator_client.py` builds an `IndicatorServiceClient` on top of an `httpx.MockTransport` handler (and patches `httpx.AsyncClient.post` for the client-reuse case), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` with an `AsyncMock` — so the compute endpoint's candle aggregation, interval handling and error mapping are asserted without a single HTTP call.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on push to `main` and on pull request opened/synchronize/reopened, with three independent jobs.
+`.github/workflows/ci.yml` runs on push to `main` and on pull request opened/synchronize/reopened, with four independent jobs.
 
 ### `backend`
 
@@ -330,15 +455,25 @@ No Redis service and no database service are declared: Redis is replaced by the 
 
 ### `frontend`
 
-Node 25, `npm install` inside `frontend/`, with job-level env `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS` and `JWT_SECRET`, then `npm run check`, `npm run lint`, `npm run test:run`.
+Node 25, `npm install` inside `frontend/`, with job-level env `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS` and `JWT_SECRET`, then `npm run check`, `npm run lint`, `npm run test:run`, and finally `node --test scripts/opencode-go-session-fetch.test.mjs` for the repository's Node script.
 
-### `indicator-service`
+### `indicator-service` and `mcp-gateway`
 
-Go 1.27, `go mod download`, `go vet ./...`, `go build ./...`, `go test ./...` in `services/indicator-service`.
+Two separate Go 1.27.1 jobs, each cached on its own module's `go.sum`, running in `services/<service>`:
+
+1. `go mod download`
+2. `go vet ./...`
+3. a `gofmt -l` check that fails on any unformatted file
+4. `go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...`
+5. `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...` — the step tolerates a scan whose findings are *only* in the Go standard library (the pinned Go 1.27.1 has stdlib CVEs fixed in 1.27.2) but fails on any module vulnerability
+6. `go build ./...`
+7. `go test ./...`
+
+`just lint-go` and `just test-all` mirror this locally.
 
 ## Before committing
 
-The area guides mark linting, type checks, tests and formatting as mandatory before submitting, and model edits must ship an Alembic migration.
+The area guides mark linting, type checks, tests and formatting as mandatory before submitting, and model edits must ship an Alembic migration. Backend and frontend commands must run inside Docker (`docker compose exec <backend|frontend> …`); Go checks run on the host toolchain or through `just`.
 
 For backend changes:
 
@@ -359,11 +494,21 @@ npm run lint
 npm run test:run
 ```
 
-Prefer the narrowest quiet validation that proves the changed behaviour — `./scripts/agent-test <path>` while iterating, and `./scripts/agent-test` (or `just test`) before finishing. The raw `docker compose exec … pytest` / `vitest` commands remain the fallback for when the harness itself is broken.
+For Go changes:
+
+```bash
+just lint-go                 # gofmt -l, staticcheck, govulncheck for both modules
+just test-mcp-gateway        # or: just test-indicator-service / just test-all
+```
+
+Prefer the narrowest quiet validation that proves the changed behaviour — `./scripts/agent-test <path>` while iterating, and `./scripts/agent-test` (or `just test`) before finishing; add `just test-indicator-service` / `just test-mcp-gateway` when a Go service changed. The raw `docker compose exec … pytest` / `vitest` commands remain the fallback for when the harness itself is broken.
 
 ## Related pages
 
-- [External Services](../integrations/external-services.md) — the outbound clients (EODHD, brokers, SMTP, Redis, the indicator sidecar) whose test doubles are described above.
+- [Market Data Plane](../architecture/market-data-plane.md) — the FastAPI data-plane routes and providers whose wire contract the committed snapshot pins.
+- [MCP Gateway](../integrations/mcp-gateway.md) — the Go client that consumes that contract and the tools its suites cover.
+- [External Services](../integrations/external-services.md) — the outbound clients (EODHD, FMP, Polygon, brokers, SMTP, Redis, the indicator sidecar) whose test doubles are described above.
 - [Development Workflows](workflows.md) — the Docker-based command surface these tests run inside.
+- [Realtime and Background Jobs](../workflows/realtime-and-background-jobs.md) — the Huey tasks exercised through the container-patching pattern above.
 - [Quickstart](../quickstart.md) — bringing the stack up so the fallback raw commands work.
 - [Accounts and Holdings Views](../workflows/accounts-and-holdings-views.md) — the server-load / client-load split the holdings route tests pin down.
