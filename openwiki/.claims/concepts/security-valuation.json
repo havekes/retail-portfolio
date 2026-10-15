@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ce2a7d8166b47285e1fdb2c37d0f8d66f1b3e622db8c9de315269e1337f8b387",
+  "pageVersion": "sha256:ff39802edbe58e111bd9468e9a451e4e298f93c263dc5e95b5dbfad52a5b4b84",
   "claims": [
     {
       "id": "claim_38dd984daccf45b9b42446121f793ef7",
@@ -69,11 +69,11 @@
       "statement": "The market router exposes exactly four valuation routes, all behind `current_user` and all passing `user.id`: `GET /market/securities/{security_id}/valuation` (which raises `HTTPException(404, detail=\"Valuation not found\")` when the repository returns `None`), `PUT /market/securities/{security_id}/valuation` (delegating straight to `upsert` with no security-existence check), and the two batch routes `GET /market/securities/valuation/batch` (repeated `security_ids` query params, `None` coalesced to `[]`) and `POST /market/securities/valuation/batch` (body `SecurityValuationBatchRequest`), which call the same batch repository method.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L1109-L1150",
+          "resource": "repo://src/market/router.py#L1254-L1295",
           "version": "repo-lines-v1:sha256:a847b5220592929d9bf1e98988bc771364f7c0e52080dd74070108d350e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://tests/routers/test_market.py#L1093-L1151",
+          "resource": "repo://tests/routers/test_market.py#L1094-L1152",
           "version": "repo-lines-v1:sha256:406d2401e08fe63e4867e2693662ced1d7d07732f5329c6321aeed4137362d8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjVjODdhZWVjYjQ3OTc2MTllYTQ2MjJiOTBmNmQ1MGMxZjRlNWI5M2UxYTkxMjlhZjk0YjNkOTM5ZmQ1MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTljYjZmNGRjZmJhNGIwYThmMTM0N2JmOGQ3ZGI3ODdmODdiODI3MzFmYTdmMjNhNTliMjYzOTdkODA5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
         }
       ]
@@ -83,11 +83,11 @@
       "statement": "The valuation payload contract is minimal and there is no server-side ordering rule: `SecurityValuationWrite` carries only `lower_bound` and `upper_bound`, `SecurityValuationRead` echoes `id`, `user_id`, `security_id`, both bounds and both timestamps with `from_attributes=True`, `SecurityValuationHistoryRead` echoes the same minus `updated_at`, and `SecurityValuationBatchRequest` is just `security_ids: list[SecurityId]` -- so `lower_bound <= upper_bound` is enforced only by the frontend modal.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L1129-L1150",
+          "resource": "repo://src/market/router.py#L1274-L1295",
           "version": "repo-lines-v1:sha256:7c9101a1de6fecbbc1e6f2d319cefa45a730ff1b338647cb97a5232c0627f2b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4Y2MxOWFjMmM0MGQxNmExMTRjNTQwNDAwODQxZjgyN2JjZWIyYWY3NWZjYzZjZGUxZTk0MjJiZjkwN2I4MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwZTM1YThiMDc0OGU4OWQwMDU2YWU3NTk3MWQzNjkxYTBlNTlmOWZlMzdjYmI2YjY4YjMyNWZlZmRhNjM4OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/market/schema.py#L343-L372",
+          "resource": "repo://src/market/schema.py#L376-L405",
           "version": "repo-lines-v1:sha256:c633f00b5302b03e8555e07374f19a9be5b1fc042edb37d949e742f66b4e2bbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjYWZmOGRjMDA4ZDdmMTlhMmZiZjljM2JlZjVmMWQ1NjBkM2YyMzkzN2UzNWRhNjdhZTg0Nzc4YzU0MDhkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkODE4YTg3OWEzMmYxM2IxY2QyY2Q1MTU3Yjc1ZDkwMTJkMjZiNTE0ODFhZWUyOGJmMmY1NDBjYjdiZGZkM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZTAyOWU3NmE0ZmVkZDFkOTFjNWNmM2ZlYjE3ZDg5YjhjNWNmZjNmZmY0NGQ3MjYzYjQ5MDkyMzVmZmVmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -97,7 +97,7 @@
       "statement": "`SecurityValuationRepository` is wired into dependency injection by `sqlalchemy_security_valuation_repository_factory`, registered against the ABC key in `register_market_services` (`src/market/__init__.py`), which is how the router resolves it with `services.aget(SecurityValuationRepository)`.",
       "evidence": [
         {
-          "resource": "repo://src/market/__init__.py#L72-L74",
+          "resource": "repo://src/market/__init__.py#L81-L83",
           "version": "repo-lines-v1:sha256:aede68e4000c81ad7eebc14a54f777c87b4b214d78eaf4a6d19b485e809b7254:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3YjgyMjNlOTg1OGM0NDExYzIzMzVkYWZiZTllZjVhZGM2ZDFkYWRkMDU3YjhlZGFhMjU1OWFkNjUzNDcwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzkwYjIxYzQzMTllOWY4ZTBjMGY4MmRhYzIzNTE2YWQzZWE4N2YwYzJiODFmZGQ0MWVjOGViNDQ4NjNiMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTRjN2RhMmIyY2JjMWFlOWJjZTJhZGE2Yjc5MTA4OWNmOTBlZTI3YmM0NjA1NTljMWFlNGIxZDQzMzJmMzBlMCJ9"
         },
         {
@@ -126,19 +126,35 @@
     },
     {
       "id": "claim_b52d07b2eb794b72b382d8bffc07c157",
-      "statement": "`FundamentalsGroup` is the editing surface on the security detail page: it fetches the range via `valuationClient.getValuation(securityId)` inside an untracked `$effect` gated on `expanded && securityId`, renders a skeleton while loading, treats `null` as the \"Fair value range not set.\" empty state (a genuine error instead renders `SidebarError` with a retry bound to `fetchValuation`), and otherwise shows both bounds currency-formatted with an en dash, an Edit affordance, the \"Show on chart\" checkbox and the `valuation-updated-at` date; it passes the range into `ValuationModal` whose `onSaved` writes the returned row straight back into the two-way-bound `valuation` (and thus the chart) without a refetch.",
+      "statement": "`FundamentalsGroup` is the security page's editing surface for the fair-value range: it receives `securityId`, `currency`, an optional `symbol`, the two-way `valuation`/`showOverlay` bindings and an `onSaved` callback, and on one untracked `$effect` gated on `expanded && securityId` assigns `valuation = await valuationClient.getValuation(securityId)`; while `isLoading` it renders a skeleton, a `null` (the mapped 404) renders the \"Fair value range not set.\" empty state with a **Set Valuation Range** button, a thrown error sets `error` (\"Failed to load valuation\") and renders `SidebarError` with a Retry bound to `fetchValuation`, and on success it shows both bounds currency-formatted with `Intl.NumberFormat('en-US', { style: 'currency', currency })` joined by an en dash, an **Edit** affordance, the \"Show on chart\" checkbox bound to `showOverlay`, and the `data-testid=\"valuation-updated-at\"` date when a timestamp is present; the `GroupTitle` icon switches between `Pencil` and `Plus` and opens `ValuationModal` through a `ModalState` carrying `securityId` and the current range, whose `onSaved` writes the returned row straight into the two-way-bound `valuation` and forwards it to the component's own `onSaved`, so the page state (and the chart) updates without a refetch.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L108-L156",
-          "version": "repo-lines-v1:sha256:980f763c69ea4cdfd8e1996b1d5c91169da977b902fce25917d4980f16ec4e8c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxZjI3MjdhZjBhYzA0ODcwMjYyYTgyYzI2MmM1MTY3MTdjNDNhZTg1N2M4MGUzOTFkZDUyZDZhYjE5YjVkZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkNzNmOGJjM2M5NGE2NzU3YmI5ZDdjMzBlMGQwNTNmMzk0NGNiZTIxYmI5ODYzODhjYmNlNTE0YjY5NGQ3NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmYjk1YWE2YTcyNDAzODgzNzhlZGZmY2MzNmUzMjc3NDRlYzJkY2YxZDE1OGU2Zjc1ZTNhYzJlNzgzZThiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiMzYwMjJkYTJhZGJkM2I5OGM1ZTNlMzhmZGY4ZmZmZmNmMWFkMDhiMGVhNzVkNmI5YzhlMDU0MDgyYjlkYTkifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L100-L107",
+          "version": "repo-lines-v1:sha256:701f1fc348d272fb8d1c482a27e6100a68aeb623591e036bc07f664fd8bc2d40:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDE5MzIyNTgwZDlmMWYwMTlmNmJhMTcyZDAxZTliMzI0OWJkMDdlMDU1NmQ3MzQ0MWE2YTA0Y2I4ZDE5MjZjMCJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L49-L95",
-          "version": "repo-lines-v1:sha256:99652e89a22b034c7dc8b4e2d592978a522df63813b717d0451ac2a23a8c39a0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxODVhN2U3Y2VkZTE0YTE1YTk2Yjc0MWQ5MjhhMzcwN2ZlMmQ2ZmVjNjc4N2YwY2VhY2I4Zjg0NjczYzg2YWIifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L109-L124",
+          "version": "repo-lines-v1:sha256:a797b463c4f1fa75fbbd7be6c15e6be7b22237246caf81cd7939d860b774e697:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZDY5NGE1NzhmZDFmZTg2NDQ2OTMzM2JlZDI4NzNjMDczMzkwYTFiZTU0YjZlMTlhZGI2MTY3MTFjNzg0MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwOWQ2NTIwY2U0MmUwODYxY2U5NDQzZDYyYWJjY2M1NGJkNjkyZTdhODEwNGMzNjE3OWQwNTZlYzIyY2Q3YmYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L28-L104",
-          "version": "repo-lines-v1:sha256:868e2d6c5765a07a94bb40caaf9ab59f5bb70ab19459c2b1f3a5e25c83255b37:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NzI2OTBhM2I0YWYzMTQxODY3YTgwOGRiOWZjMjI4OWNkYzk0ZTRkNTdiOGM1MTI1OWY3NmExYTNkNThiM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNWJhZmM2NWQwNDUzMjYxMjQ5ODcwNWUyZWMwODk1YzdkNWVjOGYyMTI1OTJkZDJmNDUzNWI4ZGI2MDVhNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlZDQzZWE1MzkyZjY2NGUwMTJhMDZjOTgyNDVmYzJiZTQzMjUxZTNlMjQ1YzhiNTEzYTI3YzBjODkyN2NjMzQifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L127-L133",
+          "version": "repo-lines-v1:sha256:ac0f8c88b17212abff9283ec2b883217f677fdfbcd789c2763faa6ad2f3716c7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDAyMzA0NWU3NGMwNTBmZTg0M2E5ZjQyYjQyODdlOWNlYTg5Nzc2MjkzZjhjMjUwY2IwODVkZDVlMzdhZDA4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzA5ODk3ODRiOTEwNzgwZTI0MzdjNmU3YTllNTA4NjUzM2E4NDhjZTExNTJjMDgxNzE5MmM3NTkzZmI2MzI2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzZmNjMxMzA1N2U4ODNkZDkxZmExOGRjN2QwMTY4MDJjZWFlZGZmNzM3NzRlMjRkZWZkNGE4NWY5NWRmZTdjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjFkNzA4ZTQ1YTYxNmY2NWQwOTlkMjY2OTViN2I5Mjg1YTQyNjA3MTFiOWU0ZWNjYTExNzYxYzg2MzFmNDRkNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L137-L197",
+          "version": "repo-lines-v1:sha256:a37273bbca7db82440062ae185fa8acb3bffc8503644f6a613bcc1eb11c5f69a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTMzNWFiM2Y0ZGZlMTNmOWFkYjFlNDA5YmVmMTVkOGEyZTA3OTY2NTdlMmUzNDZhOGViOTZmMTg0NWE3NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0YjE4ZDgyM2IwZDNlOGM2YjM1YmRiNTA1OTZjNTZmYTM4ZWE1ZjhhZTY0NmY2MmYxOGY4OWRhYTNhNTU5OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxZDcwOGU0NWE2MTZmNjVkMDk5ZDI2Njk1YjdiOTI4NWE0MjYwNzExYjllNGVjY2ExMTc2MWM4NjMxZjQ0ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NzJmYWFiNThmMTFiMGYxODA2ODE4MDRkNGYwYTM3NmE2MTA0YTk4MjM3NTJkYzAyMjkyMDE2NzVjYjJhNjkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L21-L37",
+          "version": "repo-lines-v1:sha256:85d48b385485af1f2aa8739afa103f5c6e87adb3d2a7614c91305e409cc7409f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2OGQ1NTBjYTA1NGFkN2UwNTZhYzc1OTVjNzkzMGVhZWJiOWM4NTU1ZjE2MDJiOWEwZDJmOTc1NWUwZDIxNmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlMDI1ZWYxZTE2ODdkYzk2MTc3ODVkM2M2OWVmMzA0MWRjNmJmMmZhOGNiNjRmNWNlMTJmODExZjhiYzk3ZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZjM5NWJmNTBhZjY5MzI3NzNlMjRkZTgxNzY1NDZhMWQ4MzAzOGM0MGI3NDlmNjlmYmRiMzdmMjAzMjFlMGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L73-L85",
+          "version": "repo-lines-v1:sha256:fd34385e957e126f95b004657bd3e56c82650003c12a7abc7f5b0a352e890caa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNGZjZGVjMGQzOWI1MWJmM2VkOGI1OGYwZmIwMWJkYjRkMmIzODE2YmI0N2ZiZGFkY2Q1NjlmNGRjMTZlYmIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L36-L80",
+          "version": "repo-lines-v1:sha256:e47ade55c5eadec018510942b017a61552bf77e99fa74c36cc388ee2894c45db:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NzI2OTBhM2I0YWYzMTQxODY3YTgwOGRiOWZjMjI4OWNkYzk0ZTRkNTdiOGM1MTI1OWY3NmExYTNkNThiM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2ZjQzM2VmNGViMTM3ZmZjZDU1ZmIyNmM1ZjA0NmU5ODI1YTE1ZDkwYzgxNmUxZjdiMWEyZWVmY2U0ZTRjYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OGM0Yjc5OGU1YmY2YTJmNmM2ZmNjNTY3MzVjYmYzYzVjYjM0Mjg0NjBiMjE0MzA2YzBhZGE4ZTc5NDk1YWEifQ"
         }
       ]
     },
@@ -161,19 +177,19 @@
       "statement": "Whether the band is drawn is a separate preference from whether a range is stored: the security page seeds `showValuationOverlay` from `prefs.show_valuation_band` in `onPreferencesLoaded` and in its init-chain preferences fetch (each guarded by an explicit undefined/null check), the fundamentals group's \"Show on chart\" checkbox persists it with `userPreferencesService.patchPreferences({ show_valuation_band: val })` and only logs a failure, and the page forwards the same flag into the chart as both `showValuation` and `showValuationBand`.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L78-L86",
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L116-L124",
           "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L74-L103",
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L82-L111",
           "version": "repo-lines-v1:sha256:d5294b831185f5bc15c738569e772c912c6f7e9cc32d05d537cced3fe0e53314:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZGRlNjA2OGNhZGYxMmEzNjJkMGNjZWI3OGQ0N2NhZWYyZWFmOWZlZWEzMGFkMTA3YjYwYjZiMzJmZmFkOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlNzRjODY4ZDMxYjQyMDFjNDhlY2QwMTNjYmE2ZjZlYjI4N2MwOTVlMzc4N2I3NGJiNjVlM2Y0NWVjOGNkZDkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L675-L679",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L676-L680",
           "version": "repo-lines-v1:sha256:cf594ac075d0e8627c53e3e20bd6ceafd104bdaef80a90d8fee1e6c2c8840a48:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTAyOTI4ZjJhNGJmYzZmNzcxZGFkOWY3NWI0OWZhYzQwZTEzZTcwMWZiNDRkOWVkOThjNTRkNzVkZDJmNTI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGMxN2M5MGZmMWQxMzZhZWFlZWYwODNiZjJkZDNkZTk4OGU5NzJmNTU3ZmE1ZjQxODUzYjNkMTEyOGYyNGQ3MiJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L749-L758",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L750-L759",
           "version": "repo-lines-v1:sha256:9aa8ac669ef7e099eda9fd2b69f40e916e703a9676b71d9232d7fb06f5cc6b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjkyZWVkMzhkNjE0ZDdkNDk5N2NjN2EzN2JjMmE4MWRjNjAxYzRlYzI5ZTlmNWVmNDVhNDNjMzNhYjc2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDE3YzU5N2E1YmFiYjFlODUwN2QyYjA5MWY1MTA4OTkxYzVhOWQ1NWY3ZmI2OGUyYTVhOTk5Y2QxNWU0NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZmFlMDljOWViNTgyNmMxMTUyN2NjNjExNjQ3MzcwMDBhZjQ1NWRhNTUxMThjMThmZWQyMTdjN2U2ZTkyZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNDNmMDhmZTI2MDAwZmY5ZWEyOTllNTMxMzFhZGZlZWMwYjZmZjFmZTFjMWJkOGYzZDRiODlmZDRhMDgxODUifQ"
         }
       ]
@@ -219,11 +235,11 @@
           "version": "repo-lines-v1:sha256:11d56a3198694ee400463b4980f040dc22d19e70ca39334bfc1e5e1f1749839a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyNmI1NTg5NTZhYTEyYTM0MjhkMmRlMTliMzY2ZDU1NWI3OGZjM2NjYzQ2YWIxZTFmZjNhMGQ1NjA1YzYzYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiODcxMzE5YzJlODM2ZjUxZDRhMmI3NTlhNzdhYzU1YTZmYjFiY2FiZGIzZmIxZGY1YzcwNjBjYTAzOTYzZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2MjdiMmU2MjkxNzBiNzFkN2NjZjExNzM5MmM1MTdlMjVhZTVmZDAxODRjNDY5MzkyNzkxMzU3MDQzYmYxYzQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L96-L126",
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L100-L130",
           "version": "repo-lines-v1:sha256:e60466e120417e29f7ad1fcac7ebc5c85b934fdb720ecfb614f143577bbe4e73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjFhYzI5NzkyMTdkNDU0NGZmYzc1ZGJiYzFhMDFmODNlMDBkNzAxNDIyMTgzZjNkMTJjY2I2OWY2YTFmN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ODQxZGVkODMwNmE4YTI2Y2RhNWFhZmIxMmMzYjgwZWE1Y2IwYTEyYWE3ZTM1OWJkZjBmZjRlZWE2MzdhN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiYmUxOTY0YWJiNjVkNTA5OTA4ZTIyZDQ1MWRkN2U0OTJjMTgyNDM3OWQ3MjA2NmE4MzQ0NjIwYjFmODNkNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5Nzg2NjFmOWVlYTVmNGMwNDRhYTU4ODEyMzcwNDNmNDU1NzQwMGM3NzcyN2RmYjJhZDYxODQ3NTQyNDBiNGUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L250-L312",
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L275-L337",
           "version": "repo-lines-v1:sha256:56a31af1413b6e9ce45f348aa9ef54b36ef3be8d86ba7a806c3d89ed2bff423c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhZmIxNWJkZGI5NTRhZTgyYjVkOTAyNjYwNDE4NTIwNjdiZjg0NzI4MTc2NmM3NDQxNDM4NzQ2MjBkM2JmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzhjZjczNDFmMjk4YWVmNmFkYWUxMWQ1NWZiOWI3NzY5MGVjN2NiMWEwNWJjYTMxN2QwYjUzZDk5ZjFiMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
         },
         {
@@ -237,7 +253,7 @@
       "statement": "Range display falls back to an em dash rather than a fabricated value: `formatValuationRange` in `$lib/utils/finance/valuation.ts` formats both bounds to two decimals with an `en-CA` formatter and an en-dash separator and returns `—` when either bound is missing or non-finite, while `formatValuationRange` in `watchlist-utils.ts` takes the valuation object and also returns `—` when absent or blank; the holdings table additionally sorts the Valuation Range column by the midpoint of the two bounds, with null cells sorted last.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L308-L313",
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L344-L349",
           "version": "repo-lines-v1:sha256:851fab7f7260f21c9f981396784fb406117456de92cf0d4cda70221d2fadb3f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDI1YzczMjFlNDYzMjA0ZjNlODA3MGU1N2U0MzNmZTExODkyYmJkOGVkOWRiYzc1ZGFjOTNjODkxZDMzNzAyYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDAwZTllZDhjM2ZkZDM4ZGIwMWIwMjNiMmUzM2FkZjNlMTI3M2IwN2Q2YTVjZDM1YjIxYjIzZTUxMjg2OWUwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGI3MjkwM2RiYjRjODE2ZTViNDY2OWFhZjExMjRiNjI2N2FmMGI4Y2EyNGFkZTYyYzU0ZTk4OGQ4OGQyN2Q4OSJ9"
         },
         {
@@ -256,23 +272,27 @@
     },
     {
       "id": "claim_6ca76a4894bc49c1900fd0f384f22ed6",
-      "statement": "The valuation feature's focused tests sit at four layers: `tests/market/test_security_valuation_repository.py` (not-found returns `None`, upsert create/update preserving the row id, batch isolation between users, empty list returns `[]`) against the ephemeral Postgres session, `tests/routers/test_market.py` for the 404-before-write plus PUT/GET round trip and both batch forms, `frontend/src/lib/api/valuationClient.test.ts` for the 404-to-null mapping and PUT body, and the component/chart suites (`fundamentals-group.test.ts`, `valuation-modal.test.ts`, `valuation-band.test.ts`, `security-chart.test.ts`) which mock the API clients and `lightweight-charts`.",
+      "statement": "The valuation feature's focused tests sit at four layers: `tests/market/test_security_valuation_repository.py` (not-found returns `None`, upsert create/update preserving the row id, batch isolation between users, empty list returns `[]`, two ordered history revisions) against the ephemeral Postgres session, `tests/routers/test_market.py` for the 404-before-write plus PUT/GET round trip and both batch forms, `frontend/src/lib/api/valuationClient.test.ts` for the 404-to-null mapping and the PUT body, and the component/chart suites that mock the API clients and `lightweight-charts` — `fundamentals-group.test.ts` stubs `valuationClient`, `marketService.getInstitutionalOwnership` (defaulting to `null` in `beforeEach`) and `userPreferencesService`, and covers the range render states plus the ownership card's populated and disabled states but **not** the `SidebarError`/Retry branch, alongside `valuation-modal.test.ts`, `valuation-band.test.ts` and `security-chart.test.ts`.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L6-L17",
-          "version": "repo-lines-v1:sha256:9761f0a30343407483408e143f404af4586ddac165ea53048e28bb495686effc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMTc4YTZjYjY0NzFjMTY0NTkwMGYwOTNlZmVlOWU0OWEzMzI3NDkxOTA2Y2ExZDM2YmE1ODQ4MjA1ZGY1MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQxZDJjMDhlNmY1MTBiN2U5YTI2NGYzNzhmOWNlMDA0OWE1MDRlMGU3ZWY1ZDY3Y2QzZWE4MTNmODU0NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NTNmZTM1ODgzOWY2NjA3OTE3NGM3ZTkzZDEzOWQ2MzRiNmRhY2U4YzViNjEyNTc4ZDk4MDljOTg3MDdmNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNDljMmVkMzU5ZWVjODE5MDJiMmIzNzFhMTc5Yjc2MjYzZmM4NWZmMDZkMmRkOTU4MWRlN2RiM2RmNTc3YzAifQ"
+          "resource": "repo://frontend/src/lib/api/valuationClient.test.ts#L13-L70",
+          "version": "repo-lines-v1:sha256:8d43492f1579ad15783e0ccba24b10e4343f149d7d6e42a59efef9d3a49bebde:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ODM4M2UwZmM5ODgxZmNhYTg4NjQ4NTIxN2MxNTI4MTE3YTdhYjYxOWJiNjQyYTk5YzM1N2M0MzY2N2M2ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiZmYwNTBlMDViY2M3MmUzZmE4MTAyODdkNzQzZjdlNDI5M2RmZDg3MTQyNWE3OGY0Yjg1NzAyZjIzMDY3YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0MDE0NWU2N2UzNmM5YmE1ODJlOTY0NzJhZDcxNTBlNTc2ZGUzN2E1OWJlNGEzMjRlYWVjOGRjM2JjOTY1M2MifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L3340-L3364",
-          "version": "repo-lines-v1:sha256:2c3fe9b6c574c3d086c1e52a02f2b90f1996553e4459f94e5b4369d38953cdd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZTY1NDYyYWQ1ZTBmNGIwMWY3NjY2ZWQwZTIzZWM5MmYzMzA4NjU0MTkzYmIwMGZkMTAzODIyOWMyZGNhZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3Y2IwZjU4NTRiYjRkY2ExY2ZkMzM4MDg2NGU0OWU4ZTU3N2UwODY5ZTNlYmQ2Nzg1ZTg1MjY0ZjBmZWFlMGYifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L36-L218",
+          "version": "repo-lines-v1:sha256:6c0893fcc74f35321f8a0488c917fdf13ebdca7e3008034b59a5cc4e35994765:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkOTcyNjkwYTNiNGFmMzE0MTg2N2E4MDhkYjlmYzIyODljZGM5NGU0ZDU3YjhjNTEyNTlmNzZhMWEzZDU4YjNlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjNmY0MzNlZjRlYjEzN2ZmY2Q1NWZiMjZjNWYwNDZlOTgyNWExNWQ5MGM4MTZlMWY3YjFhMmVlZmNlNGU0Y2IwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
         },
         {
-          "resource": "repo://tests/market/test_security_valuation_repository.py#L54-L154",
-          "version": "repo-lines-v1:sha256:befcd3826b69e203585c547c4ce3ed47429cb4acee495e82cb05d24bbe99c003:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxYTAyODU4YTE2Yjk5YzEyN2U4OGZjNWMwZDcxN2Q3YmViNzBmNGY4NDliZmQ3Y2ZiMTgzZDlmNTM0NGQzNmEyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzMGFjMTIzMjA0OWVkMDcwMmVlYjYzMzRmMTc1YTc5ODM1MzRiYWU1YzQxNjZlYzhmZWE2NWYxMjdmMmRlMTBmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L6-L34",
+          "version": "repo-lines-v1:sha256:ed75a17ef0e7d0369821d1801774333eed74b169cca45e939533cc14f4490c66:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJlYWRjNWNlNDY1ZTE0YzNlMzFkOTFiM2MzZjQ1YTkzZmY2NGJiZTdhYjkzYzQ2MDA2ODdkODUyNzJlNTdmZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0YWUxMDA1MmFlZDk1NDY2ZDhjZGJkMDY4ZjdhMDU1NDRiNDBmMzJiZGU1YjgxMTQ5MGY1NDI3NzE5NWNmZTIifQ"
         },
         {
-          "resource": "repo://tests/routers/test_market.py#L1093-L1151",
-          "version": "repo-lines-v1:sha256:406d2401e08fe63e4867e2693662ced1d7d07732f5329c6321aeed4137362d8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjVjODdhZWVjYjQ3OTc2MTllYTQ2MjJiOTBmNmQ1MGMxZjRlNWI5M2UxYTkxMjlhZjk0YjNkOTM5ZmQ1MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTljYjZmNGRjZmJhNGIwYThmMTM0N2JmOGQ3ZGI3ODdmODdiODI3MzFmYTdmMjNhNTliMjYzOTdkODA5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+          "resource": "repo://tests/market/test_security_valuation_repository.py#L54-L209",
+          "version": "repo-lines-v1:sha256:9ce91f6314a09dd75fa7e99f5d84a4889430e18e99d82f40f0a146a5a9a9d8ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJkMjdiMzQwMWY0ZWY5YzA2YjUxNjAzNGMwM2U0ZWFhNDY0MjY3ODg5YmQ1OGNhYjBmMjUwZjExODkxMjMzNDg5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzMGFjMTIzMjA0OWVkMDcwMmVlYjYzMzRmMTc1YTc5ODM1MzRiYWU1YzQxNjZlYzhmZWE2NWYxMjdmMmRlMTBmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIn0"
+        },
+        {
+          "resource": "repo://tests/routers/test_market.py#L1094-L1188",
+          "version": "repo-lines-v1:sha256:81dd8ee55322f63f1a45ed8242c4812312bb4af55b511b8d244fa7b7c387bd24:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTljYjZmNGRjZmJhNGIwYThmMTM0N2JmOGQ3ZGI3ODdmODdiODI3MzFmYTdmMjNhNTliMjYzOTdkODA5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxOGU5YmM4YWNkNGE2OWU0MjRhNjczYzcxMzYxOTk2YTU3Y2ExNzRiOGZiNzk2YmM0MDIzZThlYmQ3ZjUwMjgifQ"
         }
       ]
     },
@@ -299,7 +319,7 @@
           "version": "repo-lines-v1:sha256:59271c8cae0beb716e262bb8a352bf65f468c3ee01d73abdd0ec5f3516d430b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZDlhMjY0MzUwMDg3NTNkMGY0Mjc0MDhlN2E2YmY4MGJlMjMzZTI1ZTA4NmI5NGQ5MTczNWFiODBiOGEyMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMWMyYmNmOTk0OTIyMjBiYTQ5ZDZjMzk4OWNmYmZmZDM5MTA0ODY0ODFlY2QzMjgyZDMzYzc5ZjU2YzgyN2IifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L1109-L1150",
+          "resource": "repo://src/market/router.py#L1254-L1295",
           "version": "repo-lines-v1:sha256:a847b5220592929d9bf1e98988bc771364f7c0e52080dd74070108d350e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -325,7 +345,7 @@
           "version": "repo-lines-v1:sha256:7dc01ab0fb8c4fadbb7a7082f33cb7e1a2c5f6fbab28c99f9b5fc39ffb57cde6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjOGE4Yjg4ZTU4OWU5ZDdmMzM3YWFkNjA4ZjY5YzVjNzU2Y2Y0YzY4ZWUyN2ZhNTQ5MTg0ZGY1N2M1NzQ0NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2OTJlYTY4YTQ1ZTE1OGE1NWI5ZTI0YWRlYjE5ZDA3ZWY3OTUxYzAyMWRmZDQ5NGFhM2YzOWRkZmIwODA4MzkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L145-L149",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L146-L150",
           "version": "repo-lines-v1:sha256:223606048fb38478b1e6a891be63c227ad867e8353537760737bcf3ee0fb9722:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIxNDYxOTU1NDY4MWQ1MmQ1ZTUwZThmZjQ4ZTQzNzY5ZTRkYTY1ZjhlMGMwN2Q1ODliYTFkNDU1ODkyNTkzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWEzODdlNGFmMDk5MjFjZWU0MWNhNDk3YjUyYjZmMDJmYTAxNTk3OTQ1YTY3MGI2OWYyZWQ3NDMzMWMzNGZiYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWQyYjk3NzQ3M2Q4MGRiYTU5M2VkZjBiYmQ5NTE1ZmM4ZWVhZmMzOTY5ZmZmODZkODM5M2Q3ZWRiMzkwYmI5YyJ9"
         }
       ]
@@ -343,7 +363,7 @@
           "version": "repo-lines-v1:sha256:790314d061506744517c73fa872af4f87b0eff5a4e4df3b46fb905d7b93ad60d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyNzc0M2EwNjhmYTkzODExMjg2ODY3NjY0ODBkNzAxZTY5MWY3MzA3MzhlZTA0ZTEwMGI2N2MxYzY4Njc0MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjZGNhZWNhNzI3ZDRlNDNmNGViZTcyOGZkMzVlZmFhMWVlNjk1ZmJlNDBkZmI5YzNlYjNmZjM0ZjdiOTY1ODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ODBhN2Q0YzY0Mzg5ZDFiMzBkNWViNTc3YTBhNzRlN2I3MTU3NWUzYWExYjFjNzViMWU2YzcwZjgwODc2NTgifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L102-L124",
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L106-L128",
           "version": "repo-lines-v1:sha256:93de6b1fecee453af854d364ba4ac4652e73ed4734c8a0f5e192c512c1af0fde:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmNDg5ZDVhZmE4YmRiYWU5NmE0MjA4ZmIyNmJlNTVlNmMwYzFhMjg1NzRhNTVlNmI1M2U3MGIwYzk2NmExMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ODA2ZjE1NWM1YWMxYWUyNzIyY2EwNmYyYWM5Y2FkY2I4ODFiOTEyM2NiNjI0YTNjMTA0NzViNDQ0OWRjMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmNmU1NWNiNDA4MzRiY2MwMzYwYjdmOWI1NTAwMDI2MGU0NjBlZDlhMmM1N2QzMDMzODgxMzNmNzIyM2NlYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYmYyYzZjNGQ5OGI4ZWYxODA0YTYxMWU3NTI2YzY1YWNjZDVkODkwMjY2ZWVkNjlmMTI3ZDk5ZDFjOGI1NTAifQ"
         },
         {
@@ -369,10 +389,80 @@
           "version": "repo-lines-v1:sha256:a6d1a1cc10a159d3e5303ce97e1a94beefe99845bdbbe2a94377ed60379a1033:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhODM3Njg2MzZiNGQ4MTdhZWNkYWQwMmNlNzMzNDUwZmJjNjliNzQzMDA2ZjdkYTI4MWI5NWQ2NDE3MWRlNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_82f473fe527f4675a55061c3465e7d40",
+      "statement": "Under the same \"Fundamentals\" `GroupTitle`, `FundamentalsGroup` renders a second, independent block for provider fundamentals: an institutional-ownership card fed by `fetchOwnership()` → `marketService.getInstitutionalOwnership(securityId)`. It is a sibling of the range branch inside the expanded content, so it renders even when the valuation fetch failed; `hasOwnershipData` requires a non-null `current_ownership_percent`, in which case the card shows that percentage through `toFixed(2)` as a clickable trigger (plus a **View** affordance) for `InstitutionalOwnershipModal`, it renders its own skeleton while `isOwnershipLoading`, and it degrades to a disabled `N/A` trigger when the fetch failed or the percentage is null — the rejection is caught, `console.error`'d and reduced to `institutionalOwnership = null`, with no message and no retry, so an ownership failure never surfaces as the range error.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L135-L135",
+          "version": "repo-lines-v1:sha256:f862f2d3dd0634c2a2ed01f1eeb08d8abc58f6179594de1b24978423875a5b28:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg2MmYyZDNkZDA2MzRjMmEyZWQwMWYxZWViMDhkOGFiYzU4ZjYxNzk1OTRkZTFiMjQ5Nzg0MjM4NzVhNWIyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg2MmYyZDNkZDA2MzRjMmEyZWQwMWYxZWViMDhkOGFiYzU4ZjYxNzk1OTRkZTFiMjQ5Nzg0MjM4NzVhNWIyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjgyZWRlZmFkNGZkODhmNmRiMTAzMWYwMWE4M2MzZDU5Yjc0ZWQ1MjJjZTA5NTAxZWQwN2M0ZWE5MDZhMzg4MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE4NWE3ZTdjZWRlMTRhMTVhOTZiNzQxZDkyOGEzNzA3ZmUyZDZmZWM2Nzg3ZjBjZWFjYjhmODQ2NzNjODZhYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L199-L240",
+          "version": "repo-lines-v1:sha256:28d889b9e2af6e8008a466c4e0a2f5b357e6989a0d88f4673e2e600d64051686:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYThlMmI2OTNhMzg5M2U1MjQwNDYwOTA2NDFjMTQ3Njg3ZmU3YjkwMDBjMGZiZDhhM2Q4YTlkOTQwNGQ3NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZDUxY2EzZDA0ODA5YTMzNmEyMGUxMzE5MGI4N2JhMTg1ZGUyN2Y4OTNkNTc0OGZjMzI2Y2RiNWNmZTQwMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2MGI3MGI4Njg0OWRlMjYwNDAxYTVlNTExYmI0MDYzYzRlNGYwYTJlNzZmNTA2YjE2YmE3MjBkNzEzZjIwOTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L42-L47",
+          "version": "repo-lines-v1:sha256:bd95cd3cad51f7c3517dc23d48705a203708d3ecbec0a489b92035500db135ca:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTM3Nzg4Yzg4MDhiNzBlMDViMTRlOWFmMTNmYzAxMTFlYjRkNDc3MDVlZjFiOTU3NzhkNDU1ZmU3MGU5NTJiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWEwYzhiZDQ4MDMxNTE0MTRkMjdhMGQ2MDYwMTc3ODMwNGZlZWZmNjAzZWYxZTMxY2EyYTRhNDIwMmE4MjBhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDhhNTdmMTdhMmQ1YjcxYzc0ZDUyNzIxNjc5MmY5NDA3MDM0NTcxZDc2MzFhMTY5NDU5ZTA5ZjE1YjU1ZWI4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjJiMmE5MDRkMjhmODhkOTBmZjA4MTRiNTYyYTY5ZGMyZTM2Y2ZlOWI0MDNmZTlkNDcyYzU0NDMyZmI2ZDA5ZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L64-L71",
+          "version": "repo-lines-v1:sha256:ba6a95d0dd01cad88d7e75fc78b97f87318447b3fe275d25e448b87157c03ed8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWEyZjg1OTFiMjhkNjE4ZjdmNmQ2MmJjY2JlYTBkNmZjMWFkNmFlMzI0M2FiNzJkNzgwYzkwNzMxY2U3NmMyZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjhkYmJiY2ZmMWE3MDA1NzY5YzY2YjEzMGI2MzA5MmY4OGQzMWU1ZDdlOTIyNmFjMmJhYTg5ZTAxZjc0ZDQ2YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTk1NjdmYjFmNzcwNDlmMDA2Yjc3ODc2Y2YxNGU2YjQ1NjRiYzUyYTBlZjIwMzJkZDg1MmRhNmY3NWQ2MGM3MSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L87-L98",
+          "version": "repo-lines-v1:sha256:86d1360e8fd4d5aa69d57419f757db27bd9f448b5c6fb7ef483380bc5edab833:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MDg1NzlkYzMzMTgwMWJlMWIyMWViNjI2MDAyMjgwOTIzMTM0NmQ5OTA3NjQzZGE3OTA4Y2YyZDQzOTIwYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMzgyOTg0YjBhNzdlMjc2NWU2MzBiODU1M2QyOTJmZjA2NjgzODI3OTU4YTY5NzBiN2Y1NmNkY2IzN2NkOTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L136-L218",
+          "version": "repo-lines-v1:sha256:31e1edac4e862d16c524edb81f22451bb3f3392917a390b04bbedad31c4d68b7:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZTk0NDc1ZDhhZjM4OWU5ZjQxZWY0MGY4ODRhOTQ5NmE4NDQzOTMxOTViMTdlOWU5NGFlNDJiNjYzMjc4M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2dae8282d5dd47abacdb98b162d741da",
+      "statement": "The two batch valuation routes exist for bulk page loads: the security detail page needs exactly one range (its `loadValuation` and `FundamentalsGroup` both call the per-security `GET`), whereas `HoldingsService.load` and the `/watchlists` page each collect the distinct security ids they render and issue a single `MarketService.getValuationsBatch` POST (the watchlists effect guards its state write with a `cancelled` flag), so a list page does not cost one request per row. Both batch forms call the same `get_batch_by_user_and_securities` and return only the ranges the caller actually has, there is no batch write endpoint — every mutation stays on the per-security `PUT` — and both frontend clients use the POST form (which carries the id list in the body) while no frontend caller uses the GET form.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/marketService.ts#L296-L309",
+          "version": "repo-lines-v1:sha256:4a7049694e52e6a14cbbc408d63a987d2cf25a794214cdfe27caf67571efea36:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjYWUyOTg0Y2Y2MjkxNTNlY2E2MWUzMjFmMWY4MWMyY2Q2MDMyNWRiMWVlZTE2MTFmOTQzYzM4MDE2NWQ4MDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkZTlkMmE3Y2VjZDI0Mzg2ZmExNDk4MWZkNzJjY2E3YTBiMjQyNzUyOTY2MGM1MzJhZjllMTNkODczMzQ0YmEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/valuationClient.ts#L70-L81",
+          "version": "repo-lines-v1:sha256:8fd09a7bd50ce895f12ed505625ecb5cbdb9959f8761c8283ae95c36c1a89bee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZjI0NDhlOTIxMDA0MGNlY2I3ZDkyZDIwMDgyMDAyYWU3ZDk5NjA3MTNlZTUyY2Y3OTRmYWU3YzUzN2ZlY2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNTEzY2FhMmFmOWE0NTZjNGE5MTdkMmMxYmU1NmNkZTJjOWI2Mzk5MmE1MGRhYjcxNjVjNTY2MWI1MDZjNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ZjczMGE4MzhkODBlZTQ0ZGQxMGYwMGIwYjUyMDcwZGMzOWZmNWJlZWM0NTBjNzJjOGRhMzkwMThiOGQzMGEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L102-L128",
+          "version": "repo-lines-v1:sha256:34eefb62b3df99a03a59c0343ce1c6350646706b75a01ae65e0ace5f5855c6ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMzA0NmQ3MmU2NGE0ZjE1NDg0NDVjZDE2M2VlMjQ4MzZkMDI0MTI3MWMxNGI5MzIzMDBhZjk1ZjBkOWVjOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ODA2ZjE1NWM1YWMxYWUyNzIyY2EwNmYyYWM5Y2FkY2I4ODFiOTEyM2NiNjI0YTNjMTA0NzViNDQ0OWRjMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlN2E3YmU4ZmI2NjE2ZTU2NjY3MzQ0MjI3MTg3YjQ1ZmFkODM5ODc3MTEyZmQ3NDEyNWRlNzljMmM0NGIwNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYmYyYzZjNGQ5OGI4ZWYxODA0YTYxMWU3NTI2YzY1YWNjZDVkODkwMjY2ZWVkNjlmMTI3ZDk5ZDFjOGI1NTAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L94-L125",
+          "version": "repo-lines-v1:sha256:3463d73a5f005e10e0130c53aa29661bab32b9396878fff97ab881af1d9605ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4M2IwM2YwN2E0OWVhMGViM2ViZTk0YjFlNjI0Y2Q0NTA5OTk5MmFhN2ZmMjJhMGQ0MmJlNDg2M2JiZTdiYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlN2I5Njg4MGMzYTA5OGU4ZjJiNmI5ZGM2YWEyMGU3YmM1NGI5MDgxMGM1NzQzMTIwMTNhMmM2OWM0MDQ0NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjOWY1NTk2NTA4ZjkzMWZmNGU1NTk1MjQwYmMzNjdhNjNhNWMxOTEzZTZiZjk3YTVmZmFkYTkyZTBiMWJhNjUifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1254-L1271",
+          "version": "repo-lines-v1:sha256:61409f011dcb3f4d5cc115ecbc708fba2d9b2565ff6b7f480089e432fcc2d69e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwNDQzZjJhYTljY2JiOWY0MDVmOTdkYjRkODdkZDIzMDM2Y2E3NTJkMWMyOTZlOGNjMWJhNzNmNzc3OTI3MGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiYmVmY2MyODQ1ZDMzYjcwZDIzYjY3NjJjN2VhODc1MDllYzg1MmQ0NWQ3MjZiMGQwYTM0YjNiN2JkMzJmOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6bff4e6666a44dd5b1e3b92b74a92d09",
+      "statement": "`market_security_valuation_history` declares no foreign key to `market_security_valuations`: a revision row is correlated to the range it describes only by the shared `(user_id, security_id)` pair, and `get_history` selects on exactly that pair (scoped to `user_id`) ordered by `created_at` then `id` ascending, which is the filter-plus-order its `ix_market_security_valuation_history_user_security_created` index covers.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L270-L291",
+          "version": "repo-lines-v1:sha256:1fbe7a75a84f179910f9d678ac20241f3c90019482f0f332b717cb8e85aa8104:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2ZWUyZTgwNmYxMDNlOGMwOTJlYTc2MDY1MmJkODIzZDU5MTJiNTIxZjM0NDcxMjU5ZWE4ZDMzZTFlNTA5OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1354-L1369",
+          "version": "repo-lines-v1:sha256:59271c8cae0beb716e262bb8a352bf65f468c3ee01d73abdd0ec5f3516d430b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZDlhMjY0MzUwMDg3NTNkMGY0Mjc0MDhlN2E2YmY4MGJlMjMzZTI1ZTA4NmI5NGQ5MTczNWFiODBiOGEyMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMWMyYmNmOTk0OTIyMjBiYTQ5ZDZjMzk4OWNmYmZmZDM5MTA0ODY0ODFlY2QzMjgyZDMzYzc5ZjU2YzgyN2IifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-06T14:42:34.222Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-15T13:03:07.448Z"
   }
 }

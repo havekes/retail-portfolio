@@ -1,8 +1,8 @@
 ---
 type: workflow
 title: CSV Account Import & Sync
-description: The institution-configured CSV flow — how an Institution.csv_format positional template plus header aliases turns a broker export into discovered accounts, the parser's validation error taxonomy, cash-to-free-cash and option filtering, the inspect / import / csv-sync lifecycle that creates or replaces accounts and positions, security resolution, and the Wealthsimple template defined and seeded in src/commands/seed.py.
-tags: [csv-import, account-import, institutions, parser, positions, free-cash, wealthsimple, seed-data, extension-points]
+description: The institution-configured CSV flow — how an Institution.csv_format positional template plus header aliases turns a broker export into discovered accounts, the parser's validation error taxonomy, cash-to-free-cash and option filtering, the inspect / import / csv-sync lifecycle that creates or replaces accounts and positions, the user-supplied net-deposits value that is not in the CSV, security resolution, and the Wealthsimple template defined and seeded in src/commands/seed.py.
+tags: [csv-import, account-import, institutions, parser, positions, free-cash, net-deposits, wealthsimple, seed-data, extension-points]
 sources:
   - id: openwiki-source-f32d819e11ad3b608d268d4d
     resource: repo://frontend/src/lib/api/accountClient.test.ts
@@ -16,6 +16,8 @@ sources:
     resource: repo://frontend/src/lib/components/accounts/import-account-csv-modal.test.ts
   - id: openwiki-source-370c6245b4e5f053ad2a58d6
     resource: repo://frontend/src/lib/components/accounts/update-account-csv-modal.svelte
+  - id: openwiki-source-15dac05551f3a91353d981ce
+    resource: repo://frontend/src/lib/components/accounts/update-account-csv-modal.test.ts
   - id: openwiki-source-09f04a81e512969745c9bc9b
     resource: repo://src/account/api_types.py
   - id: openwiki-source-6ba20f333b1d7e2852467c2c
@@ -56,10 +58,12 @@ sources:
     resource: repo://tests/routers/test_csv_inspect.py
   - id: openwiki-source-bdf80b8c9a7522e0ac30fb12
     resource: repo://tests/services/test_csv_account_service.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+  - id: openwiki-source-352057a2a0d0cce12ede5cdf
+    resource: repo://tests/services/test_position_service.py
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 # CSV Account Import & Sync
@@ -70,7 +74,9 @@ row, one generic parser that never contains broker-specific code, and one servic
 that reuses the same security-resolution and position-replacement machinery the
 broker path uses. The domain catalog is in
 [Backend Domains](../architecture/domains.md), the sibling broker flow in
-[Broker Connect, Import & Position Sync](./broker-sync.md), the money and rounding
+[Broker Connect, Import & Position Sync](./broker-sync.md), the resulting holdings
+and profit/loss views in
+[Accounts & Holdings Views](./accounts-and-holdings-views.md), the money and rounding
 contract in [Money & Currency Handling](../concepts/money-and-currency.md), the
 frontend conventions in [Frontend Architecture](../architecture/frontend.md), and
 the mock-only testing rule in [Testing & Verification](../operations/testing.md).
@@ -78,6 +84,11 @@ the mock-only testing rule in [Testing & Verification](../operations/testing.md)
 There is no per-broker CSV code and no per-broker branch in the parser. Supporting a
 new broker CSV means editing data, not code — see
 [The institution configuration seam](#the-institution-configuration-seam).
+
+The CSV flow moves two kinds of account-level state: **positions** (parsed from the
+file and replaced wholesale on every run) and **cash / net deposits** (one captured
+from cash rows, the other supplied by the user, because it is the one number a broker
+export does not carry).
 
 ## The template contract
 
@@ -99,7 +110,9 @@ Only a subset is actually read by the parser; the rest are documentation for
 mapping a broker export faithfully. The consumed placeholders are `account_number`,
 `account_type`, `account_name`, `currency`, `symbol`, `security_type`, `quantity`,
 `book_value` (with `book_value_market`, `book_value_cad` and the two broker-currency
-currency variants as fallbacks), `exchange` and `name`.
+currency variants as fallbacks), `exchange` and `name`. There is deliberately **no**
+`{net_deposits}` placeholder — see
+[Net deposits: the field the CSV cannot supply](#net-deposits-the-field-the-csv-cannot-supply).
 
 ### Normalization
 
@@ -166,9 +179,9 @@ every label is recognized.
 | `non-registered`, `non_registered`, `non registered`, `personal`, `self_directed_non_registered`, `margin` | `NON_REGISTERED` |
 
 `ACCOUNT_TYPE_DISPLAY_NAMES` maps the enum back to a display label (`Non-Registered`
-for the unregistered case) and falls back to `enum.name` for anything unmapped. An
-unsupported type ("Crypto Account") aborts the whole parse rather than skipping the
-row.
+for the unregistered case, `Spousal RRSP` for the spousal case) and falls back to
+`enum.name` for anything unmapped. An unsupported type ("Crypto Account") aborts the
+whole parse rather than skipping the row.
 
 ### Quantity, book value, and average cost
 
@@ -213,7 +226,8 @@ and builds a `row_dict` keyed by template token, tolerating short rows by substi
 - Accounts are emitted in **first-seen order** (`accounts_order` preserves it), each as
   a `CsvDiscoveredAccount` carrying `account_number`, `account_name`,
   `account_type_id`, `account_type_name`, `currency`, `free_cash`, `positions_count`
-  and the full `positions` list.
+  and the full `positions` list. `net_deposits` and `exists` are emitted as their
+  defaults (`None` / `False`) — the parser knows nothing about either.
 
 ### Row filtering: cash and options
 
@@ -258,11 +272,53 @@ so a Wealthsimple export with a `CAD` currency row and a `sec-c-cad` cash row yi
 The service then persists that number on **every** branch through
 `AccountRepository.update_free_cash` — as an explicit call for an existing account in
 import and for the target of csv-sync, and as the `free_cash` field of the
-`AccountSchema` for a newly created account. Because each call overwrites the column
-outright, cash rows define the account's cash balance on every import or sync rather
-than accumulating across runs. `free_cash` later feeds account and user totals as a
-`Money` amount in the account currency
+`AccountSchema` for a newly created account. That repository method writes the column
+outright (`account_model.free_cash = free_cash`, then commit), so cash rows define the
+account's cash balance on every import or sync rather than accumulating across runs.
+Contrast the neighbouring `update_net_deposits`, which only runs when a value is
+supplied by the user. `free_cash` later feeds account and user totals as a `Money`
+amount in the account currency
 ([Money & Currency Handling](../concepts/money-and-currency.md)).
+
+### Net deposits: the field the CSV cannot supply
+
+`accounts.net_deposits` is the deposited-capital figure that selects the account's
+profit/loss basis: when it is set, totals and holdings report `basis = "net_deposits"`
+and the return percentage divides profit/loss by net deposits instead of by position
+cost ([ProfitLossBasis](../concepts/money-and-currency.md) in
+`src/account/api_types.py`; rendering in
+[Accounts & Holdings Views](./accounts-and-holdings-views.md)). Because a
+broker holdings export has no such column, the CSV flow cannot parse it:
+
+- `csv_format` has no net-deposits placeholder, `_parse_position` never touches it, and
+  every parsed account leaves `CsvDiscoveredAccount.net_deposits` at its default `None`.
+- The value is **typed by the user** in the modal, and what the user sees pre-filled is
+  whatever is *stored*: `inspect_csv` copies `Account.net_deposits` onto the discovered
+  account for account numbers the user already has at that institution (the same loop
+  that sets `exists = True` and overwrites the currency).
+- Import and csv-sync carry that user input separately from the file, in two different
+  shapes, with two different mutation rules.
+
+**Import (`net_deposits` JSON object).** The router parses one strict
+`{account_number: number | null}` JSON object and passes it to
+`import_accounts(..., account_net_deposits=...)`. For each discovered account being
+imported, `update_net_deposits` is called **only if the account number is a key** in
+that map — on both the existing-account and the new-account branch, after the create
+for the latter. Consequences:
+
+- An omitted key leaves the stored value untouched (importing without `net_deposits`
+  never erases what is there).
+- An explicit `null` value clears it: the repository writes `NULL`.
+- Malformed JSON, valid-JSON-but-not-an-object, or non-numeric values are **422**, not
+  silently dropped. The router's docstring states the reason: a dropped amount would
+  quietly change the P/L basis. This is deliberately the opposite of `currencies`,
+  which fails silently — see [Endpoint request shapes](#endpoint-request-shapes).
+
+**csv-sync (`net_deposits` form float).** The endpoint takes a single
+`net_deposits: Annotated[float | None, Form()] = None` for its one target account and
+passes it to `sync_account_from_csv`; the service writes it only when it is not `None`.
+There is no csv-sync path that clears a stored value (the modal cannot express it), and
+a non-numeric value is rejected by FastAPI with 422 before the service runs.
 
 ## Lifecycle: inspect, import, csv-sync
 
@@ -291,20 +347,22 @@ flowchart TD
   Gate -- "not enabled or no format" --> DisabledErr["400 CsvImportDisabledError"]
   Gate -- ok --> Parse["GenericCsvParser.parse with Institution.csv_format"]
 
+  Import -- "bad net_deposits JSON" --> NdErr["422 net_deposits must be a valid JSON object"]
+
   Parse --> ParseErr["CsvParserError family: empty, template, header count, header column, unsupported account type, missing account number, missing account type, invalid quantity"]
   ParseErr --> Bad["400"]
-  Parse -- ok --> InspectMark["Mark exists and overwrite currency for account numbers the user already has at that institution"]
-  InspectMark --> Preview["CsvDiscoveredAccount preview with positions, free_cash and exists flag"]
+  Parse -- ok --> InspectMark["Mark exists, overwrite currency and prefill net_deposits from the stored account"]
+  InspectMark --> Preview["CsvDiscoveredAccount preview with positions, free_cash, net_deposits and exists flag"]
 
   Parse -- ok --> Select["Keep only discovered accounts whose number is requested"]
   Select -- "none match" --> NoMatch["400 NoMatchingAccountsInCsvError"]
   Select -- ok --> Exists{"Account with this external_id already exists"}
-  Exists -- yes --> UpdateCur["Optionally update_currency, write free_cash, then replace positions"]
-  Exists -- no --> Create["Create AccountSchema with api_sync_enabled False and free_cash, then replace positions"]
+  Exists -- yes --> UpdateCur["Optionally update_currency, write free_cash, apply supplied net_deposits, then replace positions"]
+  Exists -- no --> Create["Create AccountSchema with api_sync_enabled False, free_cash and net_deposits, then replace positions"]
 
   Parse -- ok --> Find["Find discovered account whose number equals the account external_id"]
   Find -- "none" --> NotInCsv["400 AccountNotInCsvError"]
-  Find -- ok --> Replace["Write free_cash and replace positions"]
+  Find -- ok --> Replace["Write free_cash, apply net_deposits when supplied, then replace positions"]
 
   UpdateCur --> Resolve
   Create --> Resolve
@@ -315,18 +373,21 @@ flowchart TD
 ```
 
 *The three entrypoints, the shared institution gate, the parser error branches, the
-create-versus-update split, and the free-cash plus position replacement tail.*
+strict net-deposits parse, the create-versus-update split, and the cash plus
+position replacement tail.*
 
 ### inspect — discovery and preview
 
 `inspect_csv` validates the institution, rejects blank content with `CsvFileEmptyError`,
 and parses. When a `user_id` is supplied (the router always does), it loads the user's
 accounts, indexes the ones with a matching `external_id` and `institution_id`, and for
-each match sets `exists = True` and **overwrites** `acc.currency` with the stored
-`Account.currency`. That overwrite is why the modal pre-selects a currency the server
-would actually use, rather than the value from the CSV: an already-imported account
-whose currency the user changed at import time shows the changed currency on
-re-inspection.
+each match sets `exists = True` and **overwrites** the discovered account's `currency`
+with the stored `Account.currency` and its `net_deposits` with the stored value. That
+overwrite is why the modal pre-selects a currency the server would actually use, rather
+than the value from the CSV: an already-imported account whose currency the user
+changed at import time shows the changed currency on re-inspection. The same reasoning
+drives the net-deposits prefill, which is why the import modal labels that field
+`Still correct?` for existing accounts only.
 
 `exists` is what the frontend renders as the per-row `Update holdings` / `Create account`
 badge. Currency overrides happen in two places with different precedence: `exists`
@@ -335,7 +396,7 @@ modal seeds its dropdown from the parsed currency and lets the user change it.
 
 ### import — create or update, selected accounts only
 
-`import_accounts(user_id, institution_id, account_numbers, csv_content, account_currencies)`
+`import_accounts(user_id, institution_id, account_numbers, csv_content, account_currencies, account_net_deposits)`
 parses once and then filters to the requested `account_numbers`; if the intersection is
 empty it raises `NoMatchingAccountsInCsvError` (there is no "import everything" mode).
 `CsvAccountDuplicateError` exists and is mapped to 400 by the router, but the current
@@ -348,9 +409,10 @@ Per matching account:
 - The chosen currency is `account_currencies[number]` (trimmed, uppercased) if
   provided, else the parsed account currency, else `"CAD"`.
 - **Existing account** — if the chosen currency differs from `str(existing.currency)`,
-  `update_currency` is called; `update_free_cash` writes the parsed cash balance; then
-  positions are replaced via `sync_account_csv_positions`; then the account is re-read
-  from the repository and that refreshed row is returned.
+  `update_currency` is called; `update_free_cash` writes the parsed cash balance;
+  `update_net_deposits` runs when the number is a key of the supplied net-deposits map;
+  then positions are replaced via `sync_account_csv_positions`; then the account is
+  re-read from the repository and that refreshed row is returned.
 - **New account** — `AccountSchema` is constructed with a fresh `uuid4()`,
   `external_id = disc_acc.account_number`, `name` and `broker_display_name` both set to
   the CSV `account_name`, `integration_user_id=None`, `free_cash` from the parsed cash
@@ -359,31 +421,32 @@ Per matching account:
   (`POST /accounts/{account_id}/sync` returns 400 `API sync is not enabled for account
   {id}`) and the frontend's refresh control changes meaning — the account-list item
   renders `Sync positions` when `api_sync_enabled` is true and opens the update modal
-  labelled `Update from CSV` when it is false. The account is created, positions are
-  written, and again the refreshed row is returned.
+  labelled `Update from CSV` when it is false. The account is created, supplied net
+  deposits are written, positions are written, and again the refreshed row is returned.
 
 The response is a `list[AccountSchema]`, so the frontend gets the final account rows
-with their server-assigned ids and `last_sync_at`.
+with their server-assigned ids, `free_cash`, `net_deposits` and `last_sync_at`.
 
 ### csv-sync — refresh one existing account
 
-`sync_account_from_csv(account, csv_content)` is the "update holdings" path. It accepts
-either an `AccountSchema` (what the router passes, after
+`sync_account_from_csv(account, csv_content, net_deposits=None)` is the "update
+holdings" path. It accepts either an `AccountSchema` (what the router passes, after
 `authorization_api.check_entity_owned_by_user`) or an `AccountId` (which it resolves
 itself, raising `AccountNotFoundError` if missing). It then validates the account's
 *own* institution — so a CSV-sync is impossible once CSV import is disabled for that
 institution — parses, and looks for a discovered account whose `account_number` equals
 `target_account.external_id`. No match raises `AccountNotInCsvError(external_id)`; the
-match's `free_cash` is written with `update_free_cash`, its positions are written, and
-the refreshed account is fetched and returned, re-raising `AccountNotFoundError` if the
-re-read returns `None`.
+match's `free_cash` is written with `update_free_cash`, the caller's `net_deposits`
+(if any) is written, its positions are written, and the refreshed account is fetched
+and returned, re-raising `AccountNotFoundError` if the re-read returns `None`.
 
-Note the asymmetry with import: csv-sync **never** creates an account, **never** changes
-the currency, and **never** looks at any other discovered account in the file. It is
-also the only one of the three that enforces account ownership, because it is the only
-one addressed by an existing account id. `POST /accounts/{account_id}/csv-sync` returns
-404 (not 403) for an account owned by another user, matching
-`AuthorizationApi.check_entity_owned_by_user`'s deliberate existence-hiding.
+Note the asymmetry with import: csv-sync **never** creates an account, **never**
+changes the currency, **never** considers other discovered accounts in the file, and
+**cannot clear** net deposits. It is also the only one of the three that enforces
+account ownership, because it is the only one addressed by an existing account id.
+`POST /accounts/{account_id}/csv-sync` returns 404 (not 403) for an account owned by
+another user, matching `AuthorizationApi.check_entity_owned_by_user`'s deliberate
+existence-hiding.
 
 ### The shared tail: security resolution and position replacement
 
@@ -405,7 +468,7 @@ semantics:
 4. If the resolved position list is empty (every row filtered or every row an option),
    the service still calls `sync_by_account(account_id, [])`, so an all-cash export
    clears the position rows instead of leaving stale ones — the account's `free_cash`
-   is written separately and survives that clear-out.
+   (and `net_deposits`) are written separately and survive that clear-out.
 5. `update_last_sync_at(account_id)` stamps the account, which is why a freshly imported
    account already reports a non-null `last_sync_at` in the import response.
 
@@ -426,20 +489,30 @@ CAD-denominated account can hold USD-quoted positions; conversion happens later 
 
 `POST /accounts/csv/inspect` requires `institution_id` (422 `"institution_id is required"`
 otherwise); it accepts it as a multipart form field or as a query parameter aliased
-`institution_id`, preferring the form field.
+`institution_id`, preferring the form field. It has no other parameters.
 
 `POST /accounts/csv/import` requires both `institution_id` and `account_numbers`.
 `_normalize_account_numbers` accepts each repeated value as a JSON list string
 (`'["W1","W2"]'`), a comma-separated string (`'W1,W2'`), or a bare value, and
-deduplicates in order with `dict.fromkeys`. Currencies arrive as one `currencies`
-form/query field containing a JSON object; a `JSONDecodeError` or non-dict payload is
-silently ignored (`except json.JSONDecodeError, ValueError: pass`) and the parsed
-currencies are uppercased. The frontend client sends repeated `account_numbers` fields
-and a stringified `currencies` object.
+deduplicates in order with `dict.fromkeys`. Two optional maps then arrive, with
+deliberately different failure semantics:
 
-`POST /accounts/{account_id}/csv-sync` takes only the file; ownership and existence come
-from the path id. None of the three endpoints is rate-limited (unlike
-`POST /accounts/{account_id}/sync`, which is `3/minute`).
+- `currencies` — one `currencies` form/query field containing a JSON object; a
+  `JSONDecodeError` or non-dict payload is **silently ignored** (`except
+  json.JSONDecodeError, ValueError: pass`) and the parsed currencies are uppercased.
+- `net_deposits` — one `net_deposits` form/query field parsed by the strict
+  `_parse_net_deposits`, which raises **422** `"net_deposits must be a valid JSON
+  object"` for malformed JSON or a non-dict, and 422 `"net_deposits value for '<key>'
+  must be a number or null"` for a non-numeric value; booleans are rejected too. The
+  docstring spells out why: a dropped amount would quietly change the P/L basis.
+
+The frontend client sends repeated `account_numbers` fields and stringified
+`currencies` / `net_deposits` objects, each only when non-empty.
+
+`POST /accounts/{account_id}/csv-sync` takes only the file plus an optional
+`net_deposits` form float; ownership and existence come from the path id, and there is
+no query alias for `net_deposits` on this endpoint. None of the three endpoints is
+rate-limited (unlike `POST /accounts/{account_id}/sync`, which is `3/minute`).
 
 HTTP status mapping, per endpoint:
 
@@ -447,6 +520,7 @@ HTTP status mapping, per endpoint:
 |---|---|---|---|
 | Unauthenticated | 401 | 401 | 401 |
 | Missing `institution_id` / `account_numbers` | 422 | 422 | — |
+| Malformed or non-numeric `net_deposits` | — | 422 | 422 |
 | File unreadable or undecodable | 400 | 400 | 400 |
 | Institution missing | 404 | 404 | 404 |
 | Import disabled or `csv_format` absent | 400 | 400 | 400 |
@@ -485,7 +559,8 @@ string that names the offending column, row, symbol, or account type, and the fr
 renders `Error.message` verbatim in a destructive alert. Nothing in this flow fails
 silently except book-value parsing (→ `average_cost = None`), cash rows that carry an
 unparseable amount (→ they contribute `0.0` to `free_cash`), and the ignored malformed
-`currencies` JSON.
+`currencies` JSON. `net_deposits` is the deliberate exception to that leniency, because
+a wrongly dropped amount is not a cosmetic failure.
 
 ## Extension points
 
@@ -509,7 +584,8 @@ header label no alias covers. `src/commands/seed.py` documents that recipe in th
 [Domains](../architecture/domains.md) records the same recipe.
 
 Visually, the seam surfaces through `GET /api/v1/integration/institutions`
-(`InstitutionApi.get_all_enabled_integrations`), which returns `csv_import_enabled` and
+(`InstitutionApi.get_all_enabled_integrations`, consumed as
+`brokerClient.getAvailableInstitutions()`), which returns `csv_import_enabled` and
 `csv_format`; the import modal filters that list to `csv_import_enabled === true` and
 auto-selects the broker when exactly one remains, so adding a second CSV broker makes
 the broker dropdown real without a frontend change.
@@ -519,7 +595,9 @@ normalized tokens**. A template that omits `{account_number}` or `{account_type}
 fail at runtime with `CsvMissingAccountNumberError` / `CsvMissingAccountTypeError` on
 every row, and a template that omits `{quantity}` silently yields zero-quantity
 positions. `csv_import_enabled` cannot express those constraints; only the template
-string does.
+string does. Account-level `net_deposits` sits outside the template entirely: there is
+no placeholder for it and adding one would do nothing, because the value is stored from
+user input rather than parsed.
 
 ### The Wealthsimple template
 
@@ -555,15 +633,27 @@ covers both header variants against `WEALTHSIMPLE_CSV_FORMAT`.
 ## Frontend
 
 `frontend/src/lib/api/accountClient.ts` exposes the three calls —
-`inspectCsv(institutionId, file)`, `importAccountsCsv(institutionId, file, accountNumbers, currencies?)`
-and `syncAccountCsv(accountId, file)` — all as `postFormData`. The
-`importAccountsCsv` signature carries a compatibility quirk worth knowing before
-editing it: the fourth parameter is `currenciesOrToken?: Record<string,string> | string | null`,
-so a caller can pass either the currency map or a token in that slot, and a string is
-routed to `token` while an object becomes the `currencies` JSON field.
-`frontend/src/lib/api/accountClient.test.ts` covers both headers and error propagation.
-`CsvDiscoveredAccount` is mirrored in `frontend/src/lib/types/account.ts` with
-snake_case field names and optional `exists`.
+`inspectCsv(institutionId, file)`, `importAccountsCsv(institutionId, file, accountNumbers, options?)`
+and `syncAccountCsv(accountId, file, options?)` — all as `postFormData`.
+
+Both mutating calls carry the same compatibility quirk worth knowing before editing
+them: the trailing slot is typed `ImportAccountsCsvOptions | string | null` (respectively
+`SyncAccountCsvOptions | string | null`), so a caller can pass either the options object
+or a bearer token in that slot; a string is routed to `token` while an object becomes
+options, and the token argument that follows is only used when no string was passed.
+
+- `ImportAccountsCsvOptions = { currencies?: Record<string, string>; netDeposits?: Record<string, number | null> }`.
+  The client appends `currencies` and `net_deposits` as JSON strings **only when the
+  corresponding map is non-empty**, so an empty `netDeposits` object sends no field at
+  all (and therefore leaves stored values untouched).
+- `SyncAccountCsvOptions = { netDeposits?: number | null }`. A non-null number is
+  appended as `net_deposits` (a plain string, not JSON); `undefined` **and** `null` are
+  both skipped, which is why the update modal cannot clear a stored value.
+
+`frontend/src/lib/api/accountClient.test.ts` covers both headers, the FormData shapes,
+and error propagation. `CsvDiscoveredAccount` is mirrored in
+`frontend/src/lib/types/account.ts` with snake_case field names and optional
+`exists` / `net_deposits`.
 
 ### import-account-csv-modal.svelte
 
@@ -571,7 +661,8 @@ A two-step dialog. Step 1 selects the broker (filtered to `csv_import_enabled`) 
 file; step 2 previews the discovered accounts in a table with per-row checkboxes, a
 select-all/indeterminate header checkbox, an action badge, a currency dropdown seeded
 from the discovered currency (with ~7 common currencies plus the discovered one when it
-is not common), and a holdings count. All discovered accounts start selected.
+is not common), a **`Net deposits` input**, and a holdings count. All discovered
+accounts start selected.
 
 Client-side guards run before any request: the filename must end in `.csv` and the file
 must be at most `10 * 1024 * 1024` bytes, both reported as inline errors with the
@@ -581,6 +672,21 @@ step 1. `Back` returns to step 1 preserving the broker and file. `Enter` submits
 current step. On success the modal closes and calls `onSuccess`, which the accounts list
 uses to refresh.
 
+The net-deposits column is where the inspect prefill pays off:
+
+- On entering step 2 the modal keeps two maps, `netDepositsInput` (the text the user
+  sees) and `initialNetDeposits` (what the server reported). An existing account is
+  pre-filled with `String(acc.net_deposits)` and the input gets a small `Still correct?`
+  hint; a new account gets an empty input with placeholder `Optional`.
+- `buildNetDepositsPayload` sends a number for every selected account whose input is
+  non-blank, sends `{accountNumber: null}` when a *prefilled* value was cleared, and
+  omits the key entirely when a never-set value is left blank — so clearing means
+  "erase the stored amount" while leaving a fresh account blank means "don't touch it".
+- Unselected rows are never included. Negative values are accepted (withdrawals).
+- A non-numeric entry shows an inline `Enter a number` error and disables the
+  `Import selected (n)` button; the render-side `hasInvalidNetDeposits` check is
+  duplicated in `handleImport` as a guard.
+
 The modal is reachable from `accounts-list.svelte`, `brokers-list.svelte` and
 `connect-broker-modal.svelte`, and it accepts either `bind:open` or a `ModalState`.
 `onSuccess` is what the accounts list uses to `fetchAccounts()` after an import.
@@ -588,13 +694,19 @@ The modal is reachable from `accounts-list.svelte`, `brokers-list.svelte` and
 ### update-account-csv-modal.svelte
 
 A single-step dialog for one account: title `Update account from CSV`, description
-naming the account, the same drag/drop + 10 MB + `.csv` validation, and a button that
-calls `syncAccountCsv(account.id, file)`. It never sends an institution or account
-number — the account id in the path is the whole addressing scheme. It is owned by
-`accounts-list-item.svelte` through a `ModalState`, opened from that row's refresh
-control, which renders `Update from CSV` instead of `Sync positions` precisely when
-`account.api_sync_enabled` is false, i.e. for CSV-imported accounts; its `onSuccess`
-invalidates the row's holdings cache and notifies the list.
+naming the account, a `Net deposits` input pre-filled from `account.net_deposits` (again
+with the `Still correct?` hint), the same drag/drop + 10 MB + `.csv` validation, and a
+button that calls `syncAccountCsv(account.id, file, { netDeposits })`.
+
+The number that travels is derived at submit time: a blank (or cleared) input sends
+`netDeposits: undefined`, the client skips the field, and the backend leaves the stored
+value unchanged — the modal has no way to send `null`, so it cannot clear. A non-numeric
+input shows the inline error and disables `Upload CSV`. The modal never sends an
+institution or account number: the account id in the path is the whole addressing
+scheme. It is owned by `accounts-list-item.svelte` through a `ModalState`, opened from
+that row's refresh control, which renders `Update from CSV` instead of `Sync positions`
+precisely when `account.api_sync_enabled` is false, i.e. for CSV-imported accounts; its
+`onSuccess` invalidates the row's holdings cache and notifies the list.
 
 Both modals surface the backend `detail` string verbatim, so the parser messages
 ("Header mismatch at column 1: expected 'account_name', got 'unknown_column'") are what
@@ -604,45 +716,58 @@ users actually read.
 
 - `tests/account/csv/test_parser.py` — the template contract end to end: valid single
   and multi-account parses, cash-row diversion into `free_cash` (including a `CASH`
-  ticker with an ETF security type that must stay a position), real-Wealthsimple header
-  alias acceptance, header count/name mismatches, empty content, the full account-type
-  map including the unsupported case, `calculate_average_cost` edge cases (zero/negative
-  quantity, `None` and zero book value, 4-dp rounding), UTF-8 BOM handling, option
-  symbol/row detection, and option-row filtering.
+  ticker with an ETF security type that must stay a position, and two cash rows
+  accumulating to `2000.75`), real-Wealthsimple header alias acceptance, header
+  count/name mismatches, empty content, the full account-type map including the
+  unsupported case, `calculate_average_cost` edge cases (zero/negative quantity, `None`
+  and zero book value, 4-dp rounding), UTF-8 BOM handling, option symbol/row detection,
+  and option-row filtering.
 - `tests/services/test_csv_account_service.py` — the institution gate (not found,
-  disabled, missing format), empty content, `exists` population, `NoMatchingAccountsInCsvError`,
-  update-in-place versus create, currency override for both new and existing accounts,
-  `update_free_cash` on all three branches, `AccountNotInCsvError`,
-  `SecurityResolutionError`, option skipping in `sync_account_csv_positions`, and the DI
-  factory.
+  disabled, missing format), empty content, `exists` and net-deposits population in
+  inspect, `NoMatchingAccountsInCsvError`, update-in-place versus create, currency
+  override for both new and existing accounts, `update_free_cash` on all three branches
+  (new account via `create`, existing account, csv-sync target), net-deposits
+  set/clear/omit behavior per branch, `AccountNotInCsvError`, `SecurityResolutionError`,
+  option skipping in `sync_account_csv_positions`, and the DI factory.
 - `tests/routers/test_csv_inspect.py` — the inspect endpoint's 401/404/400 responses
-  (a missing `institution_id` reaches the service as `Institution 99999 not found`,
-  since the form field deserializes to `None`), the `WEALTHSIMPLE_CSV_FORMAT` happy path
-  (cash row diverted, per-account currency, derived `average_cost`), `exists` flipping
-  after an import, and the query-parameter `institution_id` fallback.
+  (an unknown institution id yields `Institution 99999 not found`; a request that omits
+  `institution_id` entirely is rejected by the router with 422 `"institution_id is
+  required"` before the service runs), the `WEALTHSIMPLE_CSV_FORMAT` happy path (cash row
+  diverted, per-account currency, derived `average_cost`), `exists` flipping after an
+  import, and the query-parameter `institution_id` fallback.
 - `tests/routers/test_csv_account_endpoints.py` — import and csv-sync: auth, missing
   params (422), disabled institution, empty file, invalid headers, repeat-import update,
   create-with-`api_sync_enabled=False`, database position assertions, position
   replacement via csv-sync, unmatched `external_id`, cross-user 404, missing account
-  404, and the explicit `currencies` map.
+  404, the explicit `currencies` map, and the whole net-deposits matrix (new account,
+  existing account overwrite, omitted leaves `NULL`, `null` clears, malformed /
+  non-numeric / non-object → 422, inspect prefill, csv-sync set, csv-sync omission
+  leaves the value unchanged, csv-sync non-numeric → 422).
 - `tests/commands/test_seed.py` — the seeded `WEALTHSIMPLE_CSV_FORMAT` value (compared
   both against a literal and the imported constant), `csv_import_enabled`, and
   idempotency across repeated runs in `dev` and non-`dev` environments.
 - `frontend/src/lib/components/accounts/import-account-csv-modal.test.ts` — broker
   filtering and auto-select, file type/size rejection, inspect-then-preview rendering,
-  checkbox toggling, import submission with the currency map, back-navigation state
-  retention, API-error display, `bind:open` without `ModalState`, the action badges,
-  and currency overrides; `update-account-csv-modal.test.ts` covers the single-account
-  variant.
+  checkbox toggling, import submission with the currency and net-deposits maps,
+  back-navigation state retention, API-error display, `bind:open` without `ModalState`,
+  the action badges, currency overrides, and the net-deposits behaviors (prefill plus
+  edit, empty-for-new omission, clearing sends `null`, negatives allowed, unselected
+  accounts excluded, non-numeric blocks submit);
+  `update-account-csv-modal.test.ts` covers the single-account variant including
+  prefill, edit, and blank-means-omit.
 
 ## Related pages
 
 - [Backend Domains](../architecture/domains.md) — the account domain, the
   `csv_format` contract summary, and the extension recipes.
 - [Broker Connect, Import & Position Sync](./broker-sync.md) — the API-based sibling
-  flow that shares `SecurityApi` and the position-replacement write.
-- [Money & Currency Handling](../concepts/money-and-currency.md) — the 4-dp average-cost
-  quantize, per-position currency, and conversion-at-aggregation rules.
+  flow that shares `SecurityApi`, the position-replacement write, and the
+  `api_sync_enabled` flag that distinguishes the two.
+- [Accounts & Holdings Views](./accounts-and-holdings-views.md) — where imported
+  positions, `free_cash` and `net_deposits` are rendered and turned into totals.
+- [Money & Currency Handling](../concepts/money-and-currency.md) — the 4-dp
+  average-cost quantize, per-position currency, the P/L basis chosen by net deposits,
+  and conversion-at-aggregation rules.
 - [Frontend Architecture](../architecture/frontend.md) — client, state-class, and
   type conventions the CSV modals follow.
 - [External Services & Adapters](../integrations/external-services.md) — the market

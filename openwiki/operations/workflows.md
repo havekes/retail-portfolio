@@ -1,19 +1,16 @@
 ---
-type: "Reference"
-title: "Development, CI & Change Workflows"
-description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its mirrored tool definitions, and the agent guidance hierarchy that defines how agents work in this repository."
-tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees"]
+type: Reference
+title: Development, CI & Change Workflows
+description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the Docker-only backend/frontend command surface next to the host Go toolchain and the agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, Huey worker operation, the four CI jobs, the deployment surface, the OpenSpec propose/apply/archive workflow with its per-tool mirrors, and the agent pipeline that turns ideas into a reviewed feat/<slug> branch."
+tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees", "go-services"]
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 sources:
-  - id: openwiki-source-2e6dfbf4fd0e1d49ac19e157
-    resource: repo://.agent/skills/architecture-review/SKILL.md
-  - id: openwiki-source-b138950b59d6ada3889304a0
-    resource: repo://.agent/skills/orchestration/SKILL.md
-  - id: openwiki-source-a5de9b27344629c3dcd0b5d2
-    resource: repo://.agent/skills/quality-check/SKILL.md
-  - id: openwiki-source-20647290f1ed688a765f8983
-    resource: repo://.agent/skills/spec-writing/SKILL.md
-  - id: openwiki-source-bb4ad730070d1da1ccb2c08e
-    resource: repo://.agent/skills/ticket-execution/SKILL.md
+  - id: openwiki-source-48c1fde682f223e444370411
+    resource: repo://.agent/agents/implementer.md
+  - id: openwiki-source-64e047c4a7e9c01638ac2dba
+    resource: repo://.agent/agents/spec-writer.md
   - id: openwiki-source-b6d79691ae8158aab326e9d3
     resource: repo://.agent/workflows/opsx-apply.md
   - id: openwiki-source-55872b73dfc0e1388d16ab8f
@@ -22,14 +19,26 @@ sources:
     resource: repo://.agent/workflows/opsx-explore.md
   - id: openwiki-source-cd6a33fc3b74a9a16cc85155
     resource: repo://.agent/workflows/opsx-propose.md
+  - id: openwiki-source-bf29f7a6d4e45d05b38488de
+    resource: repo://.ai/skills/architecture-review/SKILL.md
+  - id: openwiki-source-3a6db86886f562601fc6f108
+    resource: repo://.ai/skills/feature-definition/SKILL.md
+  - id: openwiki-source-894a8d47cf899acdc1b875c0
+    resource: repo://.ai/skills/orchestration/SKILL.md
+  - id: openwiki-source-8c5420ddd5e5033711c01634
+    resource: repo://.ai/skills/pr-review/SKILL.md
+  - id: openwiki-source-fa36b73655655dcd7b28f58c
+    resource: repo://.ai/skills/spec-writing/SKILL.md
+  - id: openwiki-source-b780805c78a034460c53c964
+    resource: repo://.ai/skills/ticket-execution/SKILL.md
+  - id: openwiki-source-741d60254bffee1f54b62b5c
+    resource: repo://.claude/agents/arch-reviewer.md
   - id: openwiki-source-c9c0cef816df9d82e7843f45
     resource: repo://.claude/agents/implementer.md
   - id: openwiki-source-a948e1c3a086ad05474c2761
     resource: repo://.claude/commands/opsx/propose.md
   - id: openwiki-source-c604ac2c75396bb2fed15335
     resource: repo://.claude/skills/openspec-propose/SKILL.md
-  - id: openwiki-source-70b42923e1a6b3cce8f538ae
-    resource: repo://.claude/skills/orchestration/SKILL.md
   - id: openwiki-source-715dace563ef484b6e8bd1e2
     resource: repo://.dockerignore
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
@@ -42,6 +51,10 @@ sources:
     resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-6d4b4e707b8d60b6ccfa3425
     resource: repo://.github/workflows/openwiki-update.yml
+  - id: openwiki-source-ea70eb6c045047448e446296
+    resource: repo://.gitignore
+  - id: openwiki-source-facea83ed4ec0b6d61a76405
+    resource: repo://.opencode/agents/arch-reviewer.md
   - id: openwiki-source-0da5e3993a1543e39156773c
     resource: repo://.opencode/agents/orchestrator.md
   - id: openwiki-source-9a893e0578e12c52c0533ec0
@@ -76,12 +89,18 @@ sources:
     resource: repo://scripts/opencode-go-session-fetch.mjs
   - id: openwiki-source-c347ef400d4d12fd07984865
     resource: repo://scripts/setup-agent-worktree.sh
-  - id: openwiki-source-634b7bac22fbe90060118ce8
-    resource: repo://services/indicator-service/calculator_test.go
   - id: openwiki-source-a53f7eb5e75addb6919a0071
     resource: repo://services/indicator-service/Dockerfile
-  - id: openwiki-source-34cb4ee7457dd79b53e785af
-    resource: repo://services/indicator-service/main.go
+  - id: openwiki-source-9e744972fabdd8b4cf6187c6
+    resource: repo://services/indicator-service/internal/httpapi/router.go
+  - id: openwiki-source-b183623e75076b11d1a8402d
+    resource: repo://services/mcp-gateway/cmd/mcp-gateway/main.go
+  - id: openwiki-source-32ea6746ef753f697d8c4bc1
+    resource: repo://services/mcp-gateway/Dockerfile
+  - id: openwiki-source-c69476e28a0ace808a798ab2
+    resource: repo://services/mcp-gateway/internal/server/router.go
+  - id: openwiki-source-fc76e2092b349ff852ef3b15
+    resource: repo://services/README.md
   - id: openwiki-source-b911aefb4dbb6f043ed2380e
     resource: repo://src/account/task.py
   - id: openwiki-source-230f617cb6d47154ef463034
@@ -104,10 +123,7 @@ sources:
     resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-573b283ce7220c507e717dec
     resource: repo://tests/test_migrations_autogenerate.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 ---
 
 # Development, CI & Change Workflows
@@ -126,25 +142,26 @@ These rules are global; the sections below give the operational detail.
 
 - **Communication style.** `AGENTS.md` asks for sparse, filler-free writing and for asking when
   unsure instead of inferring — surface the uncertainty rather than guess.
-- **Docker-only commands.** Every development command runs inside a container
-  (`docker compose exec <backend|frontend> <command>`). CI runs the same checks, so the host
-  environment is never the reference.
+- **Docker-only for the application.** Backend and frontend commands run inside a container
+  (`docker compose exec <backend|frontend> <command>`). The Go microservices are the exception:
+  they are checked with the **host Go toolchain** (`gofmt`, `staticcheck`, `go vet`, `go test`)
+  or through `just` (`just lint-go`, `just test-indicator-service`, `just test-mcp-gateway`).
+  CI runs the same checks either way.
 - **Model edits require a migration.** Editing a backend model means generating and committing
   an Alembic revision in the same change, named `<hash>_<description>.py`; manual SQL goes
   through `op.execute()` inside a generated revision.
 - **Tests never touch external services.** Redis, HTTP APIs and SMTP are mocked or stubbed;
   the testcontainers PostgreSQL instance is the only allowed infrastructure dependency.
-- **Non-trivial changes go through OpenSpec**, and every OpenSpec stage is mirrored across four
-  tool directories (`.agent/`, `.claude/`, `.opencode/`, `.github/`) that must be updated
-  together.
-- **Never merge to `main` without explicit user permission.** This is stated in `AGENTS.md` and
-  restated by the `orchestration` skill, which requires presenting the PR and waiting for
-  confirmation even when every check passes.
+- **Agents never merge into `main`.** This holds even when a prompt says "merge when done" and
+  even when every check is green. Ticket PRs merge into their `feat/<slug>` integration branch;
+  only the user merges that branch into `main`.
+- **Skills and artifacts are shared, not per-tool.** The skill catalogue lives once in
+  `.ai/skills/`; the per-tool trees reference it rather than holding divergent copies.
 
 ## Local development: Docker Compose only
 
-Docker Compose is the only supported way to run the application (`AGENTS.md`,
-`README.md`):
+Docker Compose is the only supported way to run the application
+(`README.md`: "Using Docker compose is the only supported way to run the application"):
 
 ```bash
 cp .env.example .env
@@ -157,26 +174,35 @@ After startup:
 - Ping: `http://localhost:8001/api/ping`; ReDoc: `http://localhost:8001/redoc`
 - Frontend dev server: `http://localhost:8002` (override with `FRONTEND_PORT`)
 - Mailcrab (dev email sink): `http://localhost:8003`
-- Indicator service: `http://localhost:8085`
+- Indicator service: `http://127.0.0.1:8004` (loopback only)
+- MCP gateway: `http://127.0.0.1:8005` (loopback only)
 
-**All development commands must run inside Docker**: `docker compose exec <backend|frontend> <command>`.
+**Backend and frontend development commands must run inside Docker**:
+`docker compose exec <backend|frontend> <command>`.
 
 ### Dev stack services and ports
 
-`docker-compose.yml` defines seven services. Published ports are Compose-interpolated
+`docker-compose.yml` defines eight services. Published ports are Compose-interpolated
 from the root `.env`, so every port below is overridable:
 
 | Service | Image / build | Published ports | Role |
 |---------|---------------|-----------------|------|
 | `backend` | `ghcr.io/astral-sh/uv:python3.14-bookworm` | `${BACKEND_PORT:-8001}:8000`, `${BACKEND_DEBUG_PORT:-8090}:5678` | `uv sync && uv run uvicorn src.main:app --reload` with debugpy on 5678 |
 | `worker` | same | `${WORKER_DEBUG_PORT:-8091}:5678` | `uv run -m watchfiles "huey_consumer src.worker.huey -w 2 --worker-type thread --periodic" src/` |
-| `frontend` | `node:latest` | `${FRONTEND_PORT:-8002}:8100` | `npm install && npm run dev` (SvelteKit dev server) |
+| `frontend` | `node:latest` | `${FRONTEND_PORT:-8002}:8100` | `npm install && npm run dev` (SvelteKit dev server on 8100) |
 | `postgres` | `postgres:18` | `${POSTGRES_PORT:-5432}:5432` | Primary datastore, named volume `postgres_data` |
 | `redis` | `redis:7-alpine` | — (internal) | Cache, WebSocket fan-out, Huey broker |
 | `mailcrab` | `marlonb/mailcrab:latest` | `${MAILCRAB_PORT:-8003}:1080` | SMTP sink + web UI |
-| `indicator-service` | `build: ./services/indicator-service` | `${INDICATOR_SERVICE_PORT:-8085}:8080` | Go indicator sidecar; healthcheck hits `http://localhost:8080/health` |
+| `indicator-service` | `build: ./services/indicator-service` | `127.0.0.1:${INDICATOR_SERVICE_PORT:-8004}:8080` | Go indicator sidecar; healthcheck hits `http://localhost:8080/health` |
+| `mcp-gateway` | `build: ./services/mcp-gateway` | `127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080` | Go MCP gateway; healthcheck hits `http://localhost:$$PORT/health` |
 
-Two details matter when changing the dev stack:
+Both Go services are built from their own directory (`services/<name>/Dockerfile`, building
+`./cmd/<name>`) and bound to loopback on the host, so the dev stack never publishes them on
+a routable interface. `mcp-gateway` additionally depends on `backend` being healthy and reads
+`BACKEND_BASE_URL` (default `http://backend:8000`), `MARKET_DATA_SERVICE_TOKEN` (dev default
+`dev-market-data-token`) and `DATA_PLANE_PATH` (default `/api/v1/market/data`).
+
+Three details matter when changing the dev stack:
 
 - **The backend mounts the host Docker socket** (`/var/run/docker.sock`) and adds the
   host Docker group via `group_add: ["${DOCKER_GID:-959}"]`, because testcontainers-backed
@@ -185,23 +211,37 @@ Two details matter when changing the dev stack:
   script asks the daemon instead of `stat`ing the host file, because the socket is remounted
   with different ownership. It prints nothing when no socket is mounted, and Compose then
   falls back to `959`.
-- **Both `backend` and `worker` run as uid/gid `1000:1000`** with `UV_CACHE_DIR` and
-  `UV_PROJECT_ENVIRONMENT` pointed into `/app/.cache`, so the bind-mounted repo stays
+- **`backend`, `worker` and `frontend` all run as uid/gid `1000:1000`**, with `UV_CACHE_DIR`
+  and `UV_PROJECT_ENVIRONMENT` pointed into `/app/.cache`, so the bind-mounted repo stays
   writable and the venv survives container recreation.
+- **The backend healthcheck is `GET /health/live`** executed through the container's own Python,
+  not a shell utility, so the check works on the slim image.
 
 ### Root `.env` contract
 
 The tracked `.env.example` at the repository root is the single configuration source;
-`.env` is gitignored and must never be committed. The one file feeds three dev-stack
+`.env` is gitignored and must never be committed. The one file feeds four dev-stack
 consumers:
 
 - `backend` and `worker` load it via `env_file: [./.env]` and re-assert `ENVIRONMENT`.
 - Compose interpolates ports/URLs (`${BACKEND_PORT}`, `${FRONTEND_PORT}`, `${DOCKER_GID}`,
-  `VITE_*`, …) at `docker compose up` time, so port changes need a recreate, not a restart.
+  `MCP_GATEWAY_PORT`, `${SECRET_KEY}` in the frontend service, …) at `docker compose up`
+  time, so port changes need a recreate, not a restart.
 - `frontend` receives `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS`,
   and `JWT_SECRET: "${SECRET_KEY:?SECRET_KEY must be set in the root .env}"` — the SSR route
   guard verifies tokens with exactly the backend signing key, and Compose fails fast if
   `SECRET_KEY` is absent.
+- The Go sidecars get their service configuration from the compose `environment:` block,
+  interpolated from the same file (`MARKET_DATA_SERVICE_TOKEN`, `BACKEND_BASE_URL`,
+  `DATA_PLANE_PATH`, `ENVIRONMENT`).
+
+Beyond secrets and ports, the template carries the provider keys (`EODHD_API_KEY`,
+`FMP_API_KEY`, `POLYGON_API_KEY`, `AI_*`), `DATABASE_URL`, `REDIS_URL`, the SMTP block,
+the in-cluster service URLs (`BACKEND_BASE_URL`, `INDICATOR_SERVICE_URL`,
+`MCP_GATEWAY_URL`) and the `VITE_*` block. The Compose interpolation keys are listed at the
+bottom as commented defaults: `BACKEND_PORT`, `FRONTEND_PORT`, `BACKEND_DEBUG_PORT`,
+`WORKER_DEBUG_PORT`, `POSTGRES_PORT`, `MAILCRAB_PORT`, `INDICATOR_SERVICE_PORT`,
+`MCP_GATEWAY_PORT`, `DOCKER_GID`.
 
 `src/.env` and `frontend/.env` are obsolete; values must live in the root `.env`.
 Variable-by-variable consumption is documented in
@@ -213,19 +253,20 @@ Agents working on several tasks at once **must** isolate with git worktrees, oth
 files and Docker resources collide:
 
 ```bash
-scripts/setup-agent-worktree.sh <worktree-path> <branch-name>
+scripts/setup-agent-worktree.sh <worktree-path> <branch-name> [base-ref]
 cd <worktree-path> && docker compose up -d
 ```
 
-The script creates the worktree (branching from `origin/main` when the branch does not
-exist), discovers free ports with `socket.bind(("", 0))`, seeds the worktree `.env` from
-the main checkout's `.env` (falling back to `.env.example`, and failing when neither
-exists), and then deterministically rewrites `COMPOSE_PROJECT_NAME` (derived from the
-worktree directory name), `DOCKER_GID` and all seven published ports (`BACKEND_PORT`,
-`FRONTEND_PORT`, `BACKEND_DEBUG_PORT`, `WORKER_DEBUG_PORT`, `POSTGRES_PORT`,
-`MAILCRAB_PORT`, `INDICATOR_SERVICE_PORT`) — each key is deleted before being re-appended,
-so re-runs leave no stale entries. Every worktree therefore gets its own Compose project,
-volumes and port set.
+The third argument defaults to `origin/main` and is used **only when the branch does not
+exist yet**; when it does, the script attaches an existing branch (`git worktree add
+<path> <branch>`) instead of branching. It discovers free ports with
+`socket.bind(("", 0))`, seeds the worktree `.env` from the main checkout's `.env`
+(falling back to `.env.example`, and failing when neither exists), and then deterministically
+rewrites `COMPOSE_PROJECT_NAME` (derived from the worktree directory name), `DOCKER_GID` and
+all eight published ports (`BACKEND_PORT`, `FRONTEND_PORT`, `BACKEND_DEBUG_PORT`,
+`WORKER_DEBUG_PORT`, `POSTGRES_PORT`, `MAILCRAB_PORT`, `INDICATOR_SERVICE_PORT`,
+`MCP_GATEWAY_PORT`) — each key is deleted before being re-appended, so re-runs leave no stale
+entries. Every worktree therefore gets its own Compose project, volumes and port set.
 
 The rule is enforced by tooling, not only prose: the orchestration skill instructs the
 orchestrator to run independent tickets in parallel, each inside its own worktree
@@ -234,7 +275,7 @@ orchestrator to run independent tickets in parallel, each inside its own worktre
 command runs *only* inside that worktree — or, if the agent tool supplied its own isolated
 workspace, the script's `.env` logic must still be applied before Compose starts.
 
-## Testing: the agent harness first
+## Testing: the agent harness first, Go recipes alongside
 
 `./scripts/agent-test` is the primary test entrypoint for agents (root `AGENTS.md`); the
 `just` recipes are thin wrappers. It runs on the host and shells through
@@ -242,19 +283,30 @@ workspace, the script's `.env` logic must still be applied before Compose starts
 `/.dockerenv`) or `--local` is passed, sanitizes output (ANSI stripping, vendor-frame
 removal, blank-line collapsing) and hard-caps it at `--max-chars` (default 3000).
 
+`justfile` is the command surface: it wraps the harness for the Python and Node ecosystems and
+runs everything else on the host toolchain.
+
 ```bash
 just test                       # auto-detect ecosystems from the git diff
 just test tests/routers/test_auth.py
 just test frontend/src/lib/api/apiClient.test.ts
 just test-backend               # ./scripts/agent-test backend
 just test-frontend              # ./scripts/agent-test frontend
-just test-all                   # ./scripts/agent-test --all
-just check                      # ./scripts/agent-test --gate0-only
+just test-indicator-service     # cd services/indicator-service && go test ./...
+just test-mcp-gateway           # cd services/mcp-gateway && go test ./...
+just test-scripts               # node --test scripts/opencode-go-session-fetch.test.mjs
+just test-all                   # [parallel] backend + frontend + both Go services + scripts
+just lint-go                    # gofmt + staticcheck + govulncheck over both Go modules
+just check                      # ./scripts/agent-test --gate0-only, then just lint-go
 just up                         # DOCKER_GID=$(./scripts/docker-gid.sh) docker compose up -d
 ```
 
-The harness only knows two ecosystems, `backend` and `frontend`. The Go service under
-`services/indicator-service` is exercised by its own CI job, and the harness's
+`just test-all` is marked `[parallel]`, so the five sub-recipes run concurrently — it is the
+one command that sweeps every ecosystem (Python, Node and both Go modules). `just check` is
+the lint/type gate for all of them.
+
+The harness only knows two ecosystems, `backend` and `frontend`; the Go services have no
+harness support and are verified by `go test ./...` or the `just` recipes above. The harness's
 auto-detection ignore list (documentation, tooling and the harness itself) covers
 `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `.claude/`, `.ai/`,
 `scripts/` and `frontend/node_modules/`.
@@ -302,7 +354,8 @@ Flags: `--backend` / `--frontend`, `--all`, `--gate0-only`, `--no-gate0`, `--loc
 (backend JUnit, parsed for counts and failure identifiers) and
 `frontend/.cache/agent-test/frontend.json` (Vitest JSON); any stale report is deleted first
 so "missing report" stays meaningful, and the exit code is 1 if anything failed, errored, or
-the runner itself failed.
+the runner itself failed. The harness's internals — gate implementations, report parsing, the
+sanitizer — are documented in [Testing & Verification](./testing.md).
 
 ### Raw per-ecosystem commands (fallback)
 
@@ -328,6 +381,15 @@ npm run build
 npm run check
 npm run lint
 npm run test:run
+```
+
+Go services (host toolchain; `services/` is not containerized for development):
+
+```bash
+just lint-go                     # gofmt -l, staticcheck@v0.8.1, govulncheck@v1.8.0
+just test-indicator-service      # cd services/indicator-service && go test ./...
+just test-mcp-gateway            # cd services/mcp-gateway && go test ./...
+go vet ./...                     # from either module directory
 ```
 
 ### Migration rules
@@ -363,7 +425,8 @@ Both admin commands are run inside the backend container and are idempotent-by-l
   when cached indicator/price history must be rebuilt from EODHD.
 
 Neither is a "seed auth test users" helper beyond the single dev user above: there is no
-separate command module for test credentials in `src/commands/`.
+separate command module for test credentials in `src/commands/`. (`export_data_plane_contract.py`
+exists for the MCP gateway contract snapshot, not for local data setup.)
 
 ## Background jobs and the Huey dashboard
 
@@ -397,7 +460,7 @@ the listener and closes the Redis client on shutdown. In dev the `worker` servic
 `HUEY_DASHBOARD_WORKER: 1` so the consumer process emits the signal events the dashboard
 subscribes to.
 
-## CI: three independent jobs
+## CI: four independent jobs
 
 `.github/workflows/ci.yml` runs on push to `main` and on pull request
 opened/synchronize/reopened. The jobs are independent, so a Go failure does not mask a
@@ -406,18 +469,26 @@ backend one:
 | Job | Toolchain | Steps |
 |-----|-----------|-------|
 | `backend` | Python 3.14 + `astral-sh/setup-uv` | `uv sync --dev` → `uv run ty check` → `uv run ruff check && uv run ruff format --check` → `uv run pytest` |
-| `frontend` | Node 25 | `npm install` in `frontend/` → `npm run check` → `npm run lint` → `npm run test:run`, with job-level env `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS`, `JWT_SECRET` |
-| `indicator-service` | Go 1.27 (cache keyed on `services/indicator-service/go.sum`) | `go mod download` → `go vet ./...` → `go build ./...` → `go test ./...` |
+| `frontend` | Node 25 | `npm install` in `frontend/` → `npm run check` → `npm run lint` → `npm run test:run` → `node --test scripts/opencode-go-session-fetch.test.mjs`, with job-level env `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS`, `JWT_SECRET` |
+| `indicator-service` | Go 1.27.1 (cache keyed on `services/indicator-service/go.sum`) | `go mod download` → `go vet ./...` → `gofmt -l` check → `staticcheck@v0.8.1` → `govulncheck@v1.8.0` → `go build ./...` → `go test ./...` |
+| `mcp-gateway` | Go 1.27.1 (cache keyed on `services/mcp-gateway/go.sum`) | the same sequence inside `services/mcp-gateway` |
+
+Both Go jobs tolerate a `govulncheck` failure only when every finding is a Go
+standard-library CVE (known under the pinned Go 1.27.1, fixed in a later patch release) and
+no finding comes from a module; any module vulnerability fails the job. The Node script suite
+is part of the `frontend` job rather than a job of its own.
 
 No Redis or database service is declared for `backend`: Redis is replaced by the autouse
 fake and PostgreSQL comes from the testcontainers fixture, which is why the suite must never
 dial a real service. There is no CI job for OpenWiki — documentation is refreshed by its own
-scheduled workflow.
+scheduled workflow. The per-job detail and the test doubles behind them are covered in
+[Testing & Verification](./testing.md).
 
 ## Deployment surface
 
-`docker-compose.prod.yml` keeps the same service topology but swaps dev commands for built
-images, fixed ports, `restart: always` and explicit `container_name`s:
+`docker-compose.prod.yml` keeps the same service shape minus mailcrab and swaps dev commands
+for built images, fixed ports, `restart: always` and explicit `container_name`s — seven
+services in total:
 
 | Service | Build / image | Published ports |
 |---------|---------------|-----------------|
@@ -426,27 +497,32 @@ images, fixed ports, `restart: always` and explicit `container_name`s:
 | `frontend` | `build: ./frontend` | `80:3000` |
 | `postgres` | `postgres:18` | — (volume `postgres_data`) |
 | `redis` | `redis:7-alpine` | — |
-| `indicator-service` | `build: ./services/indicator-service` | `8085:8080` |
+| `indicator-service` | `build: ./services/indicator-service` | — ; internal network only by design, no host port |
+| `mcp-gateway` | `build: ./services/mcp-gateway` | — ; internal network only by design, no host port |
 
-There is no mailcrab service in prod, and the prod file declares no `env_file` — the
-backend/worker read their configuration from the process environment.
+The prod file declares no `env_file` — the backend/worker read their configuration from the
+process environment — and there is no mailcrab service. `mcp-gateway` fails fast when
+`MARKET_DATA_SERVICE_TOKEN` is unset (`${MARKET_DATA_SERVICE_TOKEN:?MARKET_DATA_SERVICE_TOKEN must be set}`),
+and both Go services default `ENVIRONMENT` to `prod` rather than `dev`.
 
 ### Images
 
-- **Backend (`Dockerfile`)** — a two-stage build. The builder copies `pyproject.toml`/`uv.lock`
-  first and runs `uv sync --frozen --no-install-project --no-dev` to leverage layer caching,
-  then copies the source and runs `uv sync --frozen --no-dev` to install the project; the final
-  stage copies `/app/.venv` and the source, puts the venv on `PATH`, creates a non-root
-  `appuser`, and declares `EXPOSE 8000`. The `CMD` is
+- **Backend (`Dockerfile`)** — a two-stage build on `python:3.14-slim` with `uv` copied in from
+  `ghcr.io/astral-sh/uv:latest`. The builder copies `pyproject.toml`/`uv.lock` first and runs
+  `uv sync --frozen --no-install-project --no-dev` to leverage layer caching, then copies the
+  source and runs `uv sync --frozen --no-dev` to install the project; the final stage copies
+  `/app/.venv` and the source, puts the venv on `PATH`, creates a non-root `appuser`, declares
+  `EXPOSE 8000` and a `HEALTHCHECK` against `GET /health/live`. The `CMD` is
   `uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4 --timeout-graceful-shutdown 30`.
   `.dockerignore` excludes `.env`, `.venv`, `.cache`, `frontend/` and caches from the build
-  context.
+  context; `.env.example` is deliberately kept in it.
 - **Frontend (`frontend/Dockerfile`)** — `node:20-alpine` build stage (`npm ci`, `npm run build`
   with `VITE_API_BASE_URL`/`VITE_INTERNAL_API_URL` build args) into a runtime stage that runs
   `node build` on port 3000.
-- **Indicator service (`services/indicator-service/Dockerfile`)** — `golang:1.27-alpine` builds a
-  static binary (`CGO_ENABLED=0`), copied into `alpine:3.21` alongside `wget` (needed by the
-  healthcheck) and run as a non-root user with `EXPOSE 8080`.
+- **Go services (`services/<name>/Dockerfile`)** — identical shape for both: `golang:1.27-alpine`
+  builds a static binary (`CGO_ENABLED=0`, `-ldflags="-s -w"`) from `./cmd/<name>`, copied into
+  `alpine:3.21` alongside `ca-certificates`, `tzdata` and `wget` (needed by the healthcheck) and
+  run as the non-root `appuser` with `EXPOSE 8080`.
 - `src/Dockerfile` is a separate, simpler variant of the backend image (single `uv sync --frozen
   --no-cache`, `EXPOSE 8000`, plain `uvicorn` with no worker count). Root `Dockerfile` is what
   `docker-compose.prod.yml` builds.
@@ -469,8 +545,12 @@ Probes (used both by Compose healthchecks and by orchestrators):
   `503 {"status": "degraded", …}` with per-dependency `ok`/`error` values.
 - `GET /api/ping` is the human/app-level check reported in the README and quickstart.
 
-The Go sidecar exposes `GET /health` (used by its compose healthcheck) and `POST /compute`
-on an internal network with no authentication.
+The Go sidecars mirror the pattern with their own shape: `indicator-service` exposes
+`GET /health` plus `POST /compute`; `mcp-gateway` exposes `GET /health` (a fixed
+`{"status":"ok"}` that does not depend on backend reachability) plus the MCP streamable HTTP
+endpoint at `/mcp`, protected only by Go's cross-origin protection, with the shared-secret
+trust boundary at the backend data plane. Both shut down gracefully on SIGINT/SIGTERM within a
+10-second grace period. See [MCP Gateway](../integrations/mcp-gateway.md).
 
 ## Spec-driven change workflow (OpenSpec)
 
@@ -526,10 +606,11 @@ directories. `CLAUDE.md` does **not** exist in this checkout, so Claude Code is 
 | Apply | `opsx-apply.md` / `.prompt.md` / `.claude/commands/opsx/apply.md` | `openspec-apply-change/` |
 | Archive | `opsx-archive.md` / `.prompt.md` / `.claude/commands/opsx/archive.md` | `openspec-archive-change/` |
 
-`.agent/skills/`, `.claude/skills/` and `.opencode/skills/` hold a wider catalogue beyond
-OpenSpec (`architecture-review`, `commit-message`, `feature-definition`, `orchestration`,
-`pr-review`, `quality-check`, `spec-writing`, `ticket-execution`). When adding an OpenSpec
-stage, add every mirror — a change to only one silently diverges per tool.
+The `openspec-*` skills are the **exception to the symlink rule** below: they are kept as
+per-tool copies because each carries that tool's own command surface, and
+`.github/skills/` holds *only* these four (the GitHub Copilot tree has no wider catalogue).
+When adding an OpenSpec stage, add every mirror — a change to only one silently diverges per
+tool.
 
 ### Rules the workflows enforce
 
@@ -556,41 +637,83 @@ stage, add every mirror — a change to only one silently diverges per tool.
 
 Beyond the OpenSpec commands, the repository carries a full agent operating manual. It is
 layered, and each layer has one owner: the root `AGENTS.md` is the entrypoint and delegates
-area rules to the two area guides, while each agent tool directory carries its own mirrored
-OpenSpec commands.
+area rules to the three area guides, the skill catalogue lives once in `.ai/skills/`, and each
+agent tool directory carries only its own thin agent definitions plus the mirrored OpenSpec
+commands (or, for `.github/`, only the OpenSpec prompts and skills).
 
 ```mermaid
 flowchart TD
     Root["AGENTS.md — communication style, branch and merge protection, project guides, Docker-only commands, harness, worktrees, OpenWiki block"] --> BE["src/AGENTS.md — backend workflow, testing rule, DDD layering"]
     Root --> FE["frontend/AGENTS.md — frontend workflow, testing rule, rune and class layering"]
+    Root --> GO["services/README.md — Go module conventions: cmd plus internal, config.Load, slog, X-Request-ID, graceful shutdown"]
+    Root --> SK["Shared skills: .ai/skills, symlinked from .agent/skills, .claude/skills, .opencode/skills"]
     Root --> M["Mirrored opsx commands: .agent/workflows, .opencode/command, .claude/commands/opsx, .github/prompts"]
     BE --> SRC["src/ — FastAPI, SQLAlchemy, Alembic"]
     FE --> FRT["frontend/ — SvelteKit, vitest"]
+    GO --> SVC["services/indicator-service, services/mcp-gateway"]
 ```
 
-Caption: the guidance hierarchy — the root file delegates area rules to the two area guides, and
-each agent tool directory mirrors the OpenSpec slash commands.
+Caption: the guidance hierarchy — the root file delegates area rules to three guides, the
+skill catalogue is shared from `.ai/skills`, and each tool directory mirrors the OpenSpec
+slash commands.
 
-| Location | Contents |
-|----------|----------|
-| `AGENTS.md` | Communication style, the never-merge-to-`main` rule, delegation to `src/AGENTS.md` and `frontend/AGENTS.md`, the Docker-only command rule, the harness and worktree instructions, then the OpenWiki block delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` |
-| `src/AGENTS.md` | Backend workflow (ruff, ty, pytest, alembic), the no-external-services testing rule, and the domain-driven layering contract (models → schemas → repositories → services → APIs) |
-| `frontend/AGENTS.md` | Frontend workflow (npm scripts), the mock-every-API-call rule, and the four-layer contract: `.svelte` UI, `.svelte.ts` rune/class services, stateless `.ts` API clients, and the chart-primitive plugin layout with its `helpers/` and pure finance-math boundaries |
-| `.agent/` | `agents/` (arch-reviewer, implementer, pr-reviewer, spec-writer), `skills/` (the OpenSpec skills plus the wider catalogue), `workflows/opsx-*.md` |
-| `.claude/` | `agents/` mirror, `skills/` (the OpenSpec skills plus the wider catalogue) and `commands/opsx/{propose,explore,apply,archive}.md` |
-| `.opencode/` | `opencode.json`, `agents/` (which adds `orchestrator`), `command/opsx-*.md`, `skills/` |
-| `.github/` | `prompts/opsx-*.prompt.md`, the four `skills/openspec-*/`, and `workflows/` |
-| `.ai/` | `features/` (product specs), `plans/` (working notes and ticket plans such as `424-plan.md`, `ARCH-T01-plan.md`), `reviews/` (`<date>-architecture[-focus].md`, e.g. `2026-08-25-architecture.md`) |
+| Location | Contents | Owned by |
+|----------|----------|----------|
+| `AGENTS.md` | Communication style, the branch/merge-protection rule, the artifact table, delegation to the area guides, the Docker-only-vs-host-Go command rule, the harness and worktree instructions, then the OpenWiki block delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` | all tools |
+| `src/AGENTS.md` | Backend workflow (ruff, ty, pytest, alembic), the no-external-services testing rule, and the domain-driven layering contract (models → schemas → repositories → services → APIs) | backend |
+| `frontend/AGENTS.md` | Frontend workflow (npm scripts), the mock-every-API-call rule, and the four-layer contract: `.svelte` UI, `.svelte.ts` rune/class services, stateless `.ts` API clients, and the chart-primitive plugin layout | frontend |
+| `services/README.md` | Repository-wide Go conventions: `cmd/<service>` + `internal/` layout, `config.Load(getenv)` with fail-fast validation, `slog` logging, HTTP access-log severity by status, `X-Request-ID` propagation, graceful shutdown, multi-stage Docker build target `./cmd/<svc>`, and why there is no shared Go module | Go services |
+| `.ai/skills/` | **Authoritative skill catalogue** — `architecture-review`, `commit-message`, `feature-definition`, `orchestration`, `pr-review`, `quality-check`, `spec-writing`, `ticket-execution` | all tools |
+| `.agent/skills/`, `.claude/skills/`, `.opencode/skills/` | Symlinks to each `.ai/skills/` entry, plus the per-tool `openspec-*` copies (see the mirror table above) | Antigravity, Claude Code, opencode |
+| `.agent/agents/`, `.claude/agents/`, `.opencode/agents/` | Thin agent definitions for `arch-reviewer`, `implementer`, `pr-reviewer`, `spec-writer` (opencode adds `orchestrator` and a default-agent binding) | Antigravity, Claude Code, opencode |
+| `.agent/workflows/`, `.opencode/command/`, `.claude/commands/opsx/`, `.github/prompts/` | The four OpenSpec stage commands, mirrored per tool | Antigravity, opencode, Claude Code, GitHub Copilot |
+| `.ai/` | The durable output area: `features/` (product specs), `reviews/` (`<date>-architecture[-focus].md`), `notes/` (`<id>-plan.md` working notes), `scratch/` (gitignored temp payloads) | all tools |
+
+The trees are therefore not redundant mirrors of one another: `.ai/skills/` is the single
+place a skill is edited, the three tool skill directories only carry the `openspec-*` copies
+that differ per tool, and the agent definitions are tool-specific by design (Claude Code uses
+`tools:`/`model:` frontmatter, opencode uses `mode:`/`permissions:`, Antigravity uses
+`invoke_subagent`-style `tools:`/`skills:`). Editing a shared skill means editing `.ai/skills/`
+once; editing an OpenSpec stage still means touching all four mirrors.
 
 ### The feature pipeline
 
-`.agent/skills/orchestration/SKILL.md` is the single source of truth for the ticket
-pipeline, and `.opencode/opencode.json` wires it to models: `default_agent: "orchestrator"`
-with `per-agent` models `arch-reviewer` → `opencode-go/grok-4.6`, `implementer` →
+`.ai/skills/orchestration/SKILL.md` is the single source of truth for the ticket pipeline, and
+`.opencode/opencode.json` wires it to concrete agent roles: `default_agent: "orchestrator"`
+with per-agent models `arch-reviewer` → `opencode-go/grok-4.7`, `implementer` →
 `opencode-go/deepseek-v4.1-flash`, `orchestrator` → `opencode-go/glm-5.3-flash`,
-`pr-reviewer` → `opencode-go/glm-5.3-flash`, `spec-writer` → `opencode-go/grok-4.6`
+`pr-reviewer` → `opencode-go/glm-5.3-flash`, `spec-writer` → `opencode-go/deepseek-v4-pro`
 (so `pr-reviewer` and `orchestrator` share a model, and `implementer` is deliberately the
-cheaper one).
+cheaper one). The file also scopes filesystem access: `~/projects/**` is allowed and `/tmp/*`
+plus `/private/tmp/*` are denied, which is what pushes temp files into `.ai/scratch/`.
+
+**Entry.** The pipeline starts with the `orchestration` skill and an argument of
+`resume` (default), a feature slug matching `.ai/features/<slug>.md`, `arch [focus]` for an
+architecture review, or a rough idea. Each worker is spawned with its skill, and the
+orchestration skill documents the spawn/continue mechanism per tool:
+
+| | Spawn a worker | Continue a worker | Parallel isolation |
+| --- | --- | --- | --- |
+| Claude Code | `Agent` tool, `subagent_type` = worker name (skill preloaded) | `SendMessage` to the same agent | `scripts/setup-agent-worktree.sh` (not `isolation: worktree`) |
+| opencode | `subagent` tool, by worker name | respawn with the Q&A appended | `scripts/setup-agent-worktree.sh` |
+| Antigravity | `invoke_subagent` by agent name | respawn with the Q&A appended | `invoke_subagent` `branch` workspace, or the script — the `.env` port logic is required either way |
+
+**Artifacts.** Work products land in fixed places, and every one of them is reviewable:
+
+| Artifact | Path | Status values | Produced by |
+| --- | --- | --- | --- |
+| Feature spec | `.ai/features/<slug>.md` | draft → ready → done | `feature-definition` skill |
+| Arch review | `.ai/reviews/<YYYY-MM-DD>-architecture[-<focus>].md` | open → resolved | `architecture-review` skill |
+| Ticket | GitHub issue, label `ticket` + `status:*` | label-driven | `spec-writing` skill |
+| PR review | verdict appended to the ticket's `## Review feedback` | — | `pr-review` skill |
+| Working notes | `.ai/notes/<id>-plan.md` (optional) | — | any worker |
+| Scratch | `.ai/scratch/` (gitignored) | — | any worker |
+
+**Branching.** Each feature, idea or arch batch gets a `feat/<slug>` **integration branch** cut
+from `origin/main`. Ticket PRs target that branch, and the orchestrator merges them into it
+without asking once they are approved and green. Only at the end does it open a single
+`feat/<slug>` → `main` PR for the user to review and merge. Legacy tickets whose `## Meta` has
+no `base:` line target `main` and need explicit user confirmation per merge.
 
 Tickets are GitHub issues titled `<ID>: <title>`, labeled `ticket` plus exactly one
 `status:*`, managed through the `gh` CLI:
@@ -605,26 +728,38 @@ stateDiagram-v2
     in_review --> changes_requested: REQUEST_CHANGES
     changes_requested --> in_review: implementer respawned
     in_progress --> pending: plan fundamentally wrong
-    approved --> [*]: explicit user confirmation
+    approved --> [*]: merged into feat/slug, issue closed
 ```
 
-Caption: the ticket state machine from the orchestration skill — the orchestrator owns every
-transition and workers never touch labels; the final merge step always stops for the user.
+Caption: the ticket state machine from the orchestration skill. New tickets are created
+directly as `status:planned` (only legacy or invalidated ones are `status:pending`); the
+orchestrator owns every transition and workers never touch labels; the terminal move is a
+squash-merge into the feature branch, and the branch itself is handed to the user.
+
+Concretely, the transitions are `gh issue edit <N> --remove-label status:<old> --add-label
+status:<new>`, labels are bootstrapped once with `gh label create <name> --force`, and resume
+reads `gh issue list --label ticket --state open --limit 100 --json number,title,labels`
+(fetching a body with `gh issue view <N>` only for the ticket being acted on). Each ticket
+lists `depends_on` ids, and a ticket only starts once those are closed. Review cycles cap at
+three before escalating to the user.
 
 Worker roles map one-to-one onto skills: `spec-writer` (`spec-writing`) turns an idea, a
 `.ai/features/<slug>.md` spec, or an `.ai/reviews/<date>-architecture.md` report into planned
-tickets; `implementer` (`ticket-execution`) executes one ticket on its branch and opens the
-PR; `pr-reviewer` (`pr-review`) reads the ticket and the diff and returns
-APPROVE / REQUEST_CHANGES with severity-graded findings; `arch-reviewer`
-(`architecture-review`) performs an on-demand health check and writes only the report.
-Supporting skills exist outside the pipeline: `feature-definition` shapes a raw idea into
-`.ai/features/<slug>.md` before it is ticketed, `quality-check` drives the fix loop over
+tickets — issue ids use the `F-<slug>` or `ARCH` prefix and never repeat — with the `## Plan`
+already written; `implementer` (`ticket-execution`) executes one ticket on its branch and opens
+the PR with `Refs #N` (never `Closes`, because the orchestrator closes the issue after merge);
+`pr-reviewer` (`pr-review`) reads the ticket and the diff and returns APPROVE / REQUEST_CHANGES
+with severity-graded findings (`blocker`/`major` → REQUEST_CHANGES), treating CI as the source
+of truth for test results; `arch-reviewer` (`architecture-review`) performs an on-demand health
+check and writes only the report. Supporting skills exist outside the pipeline:
+`feature-definition` shapes a raw idea into `.ai/features/<slug>.md` before it is ticketed
+(only `status: ready` specs are eligible), `quality-check` drives the fix loop over
 `./scripts/agent-test`, and `commit-message` enforces the 50/72 commit-message rule.
 
 Two habits keep the loop honest in practice: a backend model edit always ships its
 `docker compose exec backend uv run alembic revision --autogenerate -m "<msg>"` migration in
-the same change, and temporary artifacts (issue-body payloads, captured output) go to
-`.ai/scratch/` with working notes in `.ai/plans/` — never the repository root.
+the same change, and temporary artifacts (issue-body payloads, PR bodies, captured output) go
+to `.ai/scratch/` with working notes in `.ai/notes/` — never the repository root or `/tmp`.
 
 ## Scheduled OpenWiki update
 
@@ -633,13 +768,24 @@ the same change, and temporary artifacts (issue-body payloads, captured output) 
 
 1. Check out the repository; set up Node 22.
 2. `npm install --global openwiki`.
-3. `openwiki code --update --print` with `OPENWIKI_PROVIDER=openai-compatible`,
+3. `node --test scripts/opencode-go-session-fetch.test.mjs` — the shim's own suite gates the
+   run, and `just test-scripts` / the CI `frontend` job run the same file.
+4. `openwiki code --update --print` with `OPENWIKI_PROVIDER=openai-compatible`,
    `OPENAI_COMPATIBLE_BASE_URL=https://opencode.ai/zen/go/v1`, `OPENWIKI_MODEL_ID=deepseek-v4.1-flash`
    and `OPENAI_COMPATIBLE_API_KEY` fed from the `OPENCODE_API_KEY` secret. The step also sets
    `NODE_OPTIONS: --import ./scripts/opencode-go-session-fetch.mjs`, a preload shim that wraps
-   global `fetch` to add the `x-opencode-session` header the provider cannot send itself
-   (and a non-generic user agent) for requests to `opencode.ai`.
-4. `peter-evans/create-pull-request@v7` opens a PR on the `openwiki/update` branch limited to
+   global `fetch` and does two things for requests to `opencode.ai` (it is a no-op for every
+   other origin):
+   - adds the `x-opencode-session` header OpenCode Go requires for routing (the session id
+     comes from `OPENCODE_GO_SESSION_ID`, otherwise a fresh `randomUUID()`) and a
+     non-generic `openwiki-ci/1.0` user agent, both of which the openai-compatible provider
+     cannot send itself;
+   - captures `reasoning_content` from SSE and JSON responses and injects it back into
+     outgoing assistant messages, because thinking-mode models such as
+     `deepseek-v4.1-flash` reject multi-turn / tool-use requests whose previous assistant
+     turns dropped it (the underlying LangChain provider serializes only `role`, `content`
+     and `tool_calls`).
+5. `peter-evans/create-pull-request@v7` opens a PR on the `openwiki/update` branch limited to
    `add-paths: openwiki` (`docs: update OpenWiki`).
 
 Documentation therefore lands through review, never as a direct commit to `main`.

@@ -1,14 +1,16 @@
 ---
 type: architecture
 title: Authentication & Authorization
-description: The cross-stack identity system — signup and email verification, password/TOTP/passkey login, HS256 access and mfa_pending JWTs, the httponly auth_token cookie, the SvelteKit SSR guard that re-verifies the same secret with jose, Redis-backed challenge/lockout/denylist state, the signed WebSocket ticket, and 404-not-403 ownership authorization.
-tags: [authentication, authorization, security, jwt, webauthn, totp, sveltekit]
+description: The cross-stack identity system — signup and email verification, password/TOTP/passkey login, HS256 access and mfa_pending JWTs, the httponly auth_token cookie, the SvelteKit SSR guard that re-verifies the same secret with jose, Redis-backed challenge/lockout/denylist state, the signed WebSocket ticket, 404-not-403 ownership authorization, and the separate X-Service-Token shared secret that authorizes the MCP gateway's data plane.
+tags: [authentication, authorization, security, jwt, webauthn, totp, sveltekit, service-token]
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
+  - id: openwiki-source-11ef2d56dffda152beeb9f84
+    resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
@@ -43,6 +45,10 @@ sources:
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-7e59195247c1404e69c86c72
     resource: repo://frontend/src/routes/settings/security/%2Bpage.server.ts
+  - id: openwiki-source-875b28b0bd039ee3baf5a76a
+    resource: repo://services/mcp-gateway/internal/backend/transport.go
+  - id: openwiki-source-6b872fad076bdb4aa43f0fc9
+    resource: repo://services/mcp-gateway/README.md
   - id: openwiki-source-44d5e293c50c325f1fa3dd27
     resource: repo://src/account/exception.py
   - id: openwiki-source-30de42522595a37de333f4dd
@@ -77,29 +83,38 @@ sources:
     resource: repo://src/core/email.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-d70f78b70446e1ce1912c7c5
+    resource: repo://src/market/data_router.py
+  - id: openwiki-source-d8383d22d61483b00080a280
+    resource: repo://src/market/router.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-d63e02f817074e4280e045ae
     resource: repo://src/ws/router.py
+  - id: openwiki-source-176c83b51fa38f0cc37625b9
+    resource: repo://tests/auth/test_service_token.py
   - id: openwiki-source-72d49ab5efc81ce4cfa6acf9
     resource: repo://tests/fixtures/auth.py
   - id: openwiki-source-3e40a51fdce055a3dcf42d36
     resource: repo://tests/fixtures/redis.py
+  - id: openwiki-source-9d7ba9d51ce348ae0e86192e
+    resource: repo://tests/market/test_data_router.py
   - id: openwiki-source-3b9c85b5a6f0ebb589b73aa4
     resource: repo://tests/routers/test_auth.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 ---
 
 # Authentication & Authorization
 
-Identity is owned by the backend `src/auth` domain and consumed by the SvelteKit frontend, which independently re-verifies the same HS256 secret so it can protect routes before any API call. Three credential types authenticate a user — password (argon2), TOTP with recovery codes, and WebAuthn passkeys — and all three converge on one artifact: a short-lived, scope-tagged JWT that the backend sets as the `httponly` `auth_token` cookie and the SSR layer validates per request.
+Identity is owned by the backend `src/auth` domain and consumed by the SvelteKit frontend, which independently re-verifies the same HS256 secret so it can protect routes before any API call. Three credential types authenticate a user — password (argon2), TOTP with recovery codes, and WebAuthn passkeys — and all three converge on one artifact: a short-lived, scope-tagged JWT that the backend sets as the `httponly` `auth_token` cookie and the SSR layer validates per request. A fourth, userless path exists beside that one: internal services authenticate to the market data plane with a static shared secret.
 
-Two properties shape almost every design decision here:
+Three properties shape almost every design decision here:
 
 - **One signing key, many token purposes.** `settings.secret_key` signs the access JWT, the `mfa_pending` JWT, the itsdangerous email-verification token, and the itsdangerous WebSocket ticket. `docker-compose.yml` passes the same value to the frontend service as `JWT_SECRET`.
 - **State that must not be lost lives in Redis or PostgreSQL, never in memory.** WebAuthn challenges, the 2FA attempt counter, and the revoked-token denylist are Redis keys; users, verification tokens, TOTP secrets, recovery codes, and passkeys are tables.
+- **The user identity plane and the service data plane never share a credential.** Everything a person does resolves a `User` through `current_user`; the provider-agnostic data plane reaches no user identity at all and is gated by the `X-Service-Token` shared secret instead — a second, narrower trust boundary for the MCP gateway.
 
 ## Responsibility map
 
@@ -112,6 +127,7 @@ Two properties shape almost every design decision here:
 | TOTP setup/activate/disable, recovery codes, login-time 2FA + lockout | `TotpService` (`src/auth/service.py`) |
 | Passkey registration/authentication ceremonies | `PasskeyService` (`src/auth/service.py`) |
 | HTTP surface, rate limits, cookie issuance, audit logs | `auth_router` (`src/auth/router.py`), mounted at `/api/v1` in `src/main.py` |
+| Service-to-service authentication for the data plane | `require_service_token` (`src/auth/api.py`), applied to every route in `src/market/data_router.py` |
 | Service wiring | `register_auth_services` (`src/auth/__init__.py`) |
 | SSR route guard, cookie helpers | `frontend/src/hooks.server.ts`, `frontend/src/lib/server/auth-cookie.ts` |
 | Login/2FA/passkey form flows | `frontend/src/routes/auth/login/+page.server.ts`, `frontend/src/lib/components/auth/login-form.svelte` |
@@ -127,6 +143,7 @@ The domain follows the standard backend layering: routers delegate to services a
 | MFA token | HS256 JWT, `sub`/`user_id`/`exp`, `scope="mfa_pending"`, no `jti` | 5 min | `verify_mfa_token` asserts the scope; never accepted as a session |
 | Email verification token | `itsdangerous` `URLSafeTimedSerializer`, salt `email-verification`, payload `{email, nonce}` | `settings.email_verification_token_expiry_hours` (default 24 h) | Row in `auth_verification_tokens` plus signature and `max_age` check |
 | WebSocket ticket | `itsdangerous` signed JSON `{user_id, jti}`, salt `ws-ticket` | verified with `max_age=30` | Query parameter; single-use Redis key |
+| Service token | static shared secret, `settings.market_data_service_token` | none (no expiry, no rotation protocol) | `X-Service-Token` request header, compared with `secrets.compare_digest` over UTF-8 bytes |
 | WebAuthn challenge | base64url challenge | `settings.webauthn_challenge_ttl_seconds` (default 300 s) | Redis keys `webauthn:challenge:reg:{user_id}` / `webauthn:challenge:auth:{challenge}` |
 | TOTP secret / recovery codes | base32 secret; `xxxxxxxx-xxxxxxxx` codes | persistent | `auth_totp.secret` (plaintext), `auth_recovery_codes.code_hash` (argon2) |
 
@@ -176,6 +193,7 @@ Note the deliberate asymmetry between the two lifetimes: the JWT itself lasts 24
 ```mermaid
 sequenceDiagram
     participant B as Browser
+    participant HK as SSR guard in hooks.server.ts
     participant LR as SvelteKit login action
     participant UA as UserApi
     participant UR as UserRepository
@@ -218,9 +236,16 @@ sequenceDiagram
     LR->>UA: POST /api/v1/auth/passkey/authenticate/verify
     UA-->>LR: access_token and user
     LR-->>B: Set-Cookie auth_token httpOnly, redirect to /
+    Note over B,UA: Every later protected request re-enters the cookie through the guard
+    B->>HK: GET / with the auth_token cookie
+    HK->>HK: jwtVerify with JWT_SECRET, require scope access
+    HK-->>B: locals.user from the payload, no database lookup
+    HK->>UA: SSR load calls /api/v1 with the token as a Bearer override
+    UA->>UR: get_by_email from the token subject
+    UA-->>HK: User yielded, or 401 when the token is expired, revoked, or unknown
 ```
 
-Caption: login through the SvelteKit form action, covering the invalid, unverified, 2FA-challenge, and single-factor branches plus the passkey path, ending in cookie issuance on the response the browser receives.
+Caption: login through the SvelteKit form action, covering the invalid, unverified, 2FA-challenge, and single-factor branches plus the passkey path, ending in cookie issuance — then the next protected request, where the SSR guard verifies the same cookie and the backend re-resolves the user before yielding it.
 
 ## How a backend request is authenticated
 
@@ -253,6 +278,54 @@ flowchart TD
 Caption: the two authentication layers a protected request passes through — the frontend guard, which decides only routing, and the backend dependency, which decides identity.
 
 One asymmetry is worth stating explicitly because it is easy to misread as an oversight: `is_active` is enforced in exactly two places — `/2fa/login-verify` and passkey authentication, both **401** for an inactive user — while neither `UserApi.login` (which gates on `is_verified`) nor `get_current_user_from_token` consults it. A deactivated account can therefore still complete a single-factor password login, and an existing session survives deactivation; only token expiry or the `jti` denylist ends one.
+
+## Service-to-service authentication (`X-Service-Token`)
+
+Beside the user-facing surface there is a second trust boundary: the provider-agnostic market data plane that the [MCP Gateway](../integrations/mcp-gateway.md) consumes. `src/market/router.py` is the user-facing sibling — nearly every route there takes `Depends(current_user)` — while `src/market/data_router.py` deliberately mirrors its data through a different door. The data router exposes eight read-only routes under its `/market/data` prefix, mounted at `/api/v1`, so the paths the gateway pins as a contract are `/api/v1/market/data/...`. Every route declares the same dependency as its first parameter:
+
+```python
+_svc: Annotated[None, Depends(require_service_token)],
+```
+
+`require_service_token` (`src/auth/api.py`) is three lines of comparison built on one premise: it declares **exactly one input**, the `X-Service-Token` header, and nothing else.
+
+- **No cookie, no Bearer, no JWT decoding.** The dependency has no cookie parameter and never touches `oauth2_scheme` or `UserApi`, so a valid user session cannot satisfy it: a request carrying a perfectly good `auth_token` cookie (or Bearer header) gets **401** `Service token invalid`. The two planes are substitution-proof in both directions — the service token is never accepted on a user-facing route either. `tests/auth/test_service_token.py::test_no_cookie_fallback` pins the cookie half.
+- **The comparison is constant-time and byte-based.** Both operands are `.encode()`d to `bytes` before `secrets.compare_digest`. That is not decoration: Starlette decodes header bytes as latin-1, so a non-ASCII token arrives as a `str`, and `compare_digest` raises `TypeError` on a non-ASCII `str` operand — which would surface as a 500 instead of a rejection. Byte operands keep the constant-time comparison for any header value and reduce the malformed case to the ordinary 401.
+- **Failure is one indistinguishable 401** for a missing, blank, wrong, or non-ASCII token. There is no unauthenticated dev mode on these routes, and a blank `market_data_service_token` rejects everything rather than matching a whitespace header (`test_empty_configured_token_never_matches`).
+
+Because the dependency yields `None`, these handlers carry **no user identity at all**: no `current_user`, no `AuthorizationApi.check_entity_owned_by_user`, no `user_id` scoping, and no `@limiter.limit` decoration (the limiter keys on a decodable user JWT, which these requests never have). What remains in the handler is data: the gateway and `EndpointResponseCache` lookup, the provider-agnostic error mapping (404 for an unknown symbol, 502/503 for a provider outage, never a provider name in the body), and the required top-level `currency`. The route paths and query-parameter names are a frozen contract published as `tests/market/contracts/data_plane_openapi.json` — see [Market Data Providers](market-data-providers.md) for the gateway and cache internals.
+
+```mermaid
+sequenceDiagram
+    participant AG as MCP agent
+    participant GW as MCP gateway
+    participant DP as data_router route
+    participant ST as require_service_token
+
+    AG->>GW: MCP tool call for a market dataset
+    Note over GW: /mcp is unauthenticated, so run it on the internal network only
+    GW->>DP: GET /api/v1/market/data/... with X-Service-Token
+    DP->>ST: resolve the dependency before the handler body runs
+    alt header absent or secret mismatch
+        ST-->>DP: 401 Service token invalid
+        DP-->>GW: 401 with no gateway or cache work done
+        GW-->>AG: ErrConfiguration, reported as an operator problem
+    else secret matches MARKET_DATA_SERVICE_TOKEN
+        ST-->>DP: dependency satisfied
+        DP-->>GW: 200 provider-agnostic JSON served through the endpoint cache
+        GW-->>AG: tool result as JSON text
+    end
+```
+
+Caption: the service-token path — an unauthenticated MCP listener, a shared secret attached to every outbound call, and a backend route that rejects before doing any work when the secret does not match.
+
+### Where the trust boundary actually sits
+
+`services/mcp-gateway` is a Go sidecar that holds no provider credentials and calls no provider directly. Its `/mcp` endpoint is **unauthenticated by design**: the only inbound defence is Go's `http.NewCrossOriginProtection`, which rejects browser cross-origin requests (`Sec-Fetch-Site: cross-site` or a mismatched `Origin`) with 403 while non-browser MCP agents connect normally. The README states the position plainly — the shared-secret trust boundary is the backend data plane, not the MCP listener — and requires the sidecar to run on the internal network only; `docker-compose.prod.yml` publishes no host port for it, and the dev stack restricts it to loopback (`127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080`).
+
+Outbound, every call to the data plane carries `X-Service-Token` (constant `serviceTokenHeader` in `internal/backend/transport.go`) plus `Accept: application/json`, through a single `Transport` that bounds concurrency and classifies failures. The token value is redacted from the gateway's request logging, never logged on outbound calls, and excluded from tool error text, so a leaked log line cannot leak the secret. A backend 401/403 arrives at the agent as `ErrConfiguration` — "the service token was rejected", classified as an operator problem rather than a caller-fixable validation error.
+
+Operationally the secret is blunt on purpose: one static value with no expiry, no key id, no per-caller identity, and therefore no rotation overlap window. Replacing it means updating `.env` and restarting both the backend and the gateway. Anything that should be attributable to a person must stay on the JWT path instead.
 
 ## Two-factor authentication (TOTP)
 
@@ -328,11 +401,11 @@ The browser cannot send the `httponly` cookie in a way the WebSocket handshake h
 
 - `POST /api/v1/auth/ws-ticket` requires the `auth_token` cookie (it is not a Bearer-authenticated route), validates it via `UserApi.get_current_user_from_token`, and returns `{"ticket": URLSafeTimedSerializer(settings.secret_key).dumps(json.dumps({"user_id": ..., "jti": uuid4()}), salt="ws-ticket")}`.
 - `GET`-upgraded `/api/ws` (`src/ws/router.py`) prefers the `ticket` query parameter: it first marks `ws-ticket-used:{sha256(ticket)}` in Redis with `SET NX EX 30` (a replay, or a Redis error — the check fails open — is handled separately), then `serializer.loads(ticket, max_age=30, salt="ws-ticket")`. Without a ticket it falls back to the `auth_token` cookie or `sec-websocket-protocol` header verified through `UserApi`. Any failure closes the socket with code **1008**.
-- `frontend/src/lib/components/accounts/accounts-list.svelte.ts` is the only browser-side consumer of the ticket (`authService.getWsTicket()` posts to `/auth/ws-ticket`): its constructor runs `initWebSocket()` in the browser, derives the socket URL from `VITE_API_BASE_URL` when it starts with `http` (`https`→`wss:`, host preserved) and otherwise from `window.location`, fetches the ticket, and — if the call rejects or returns no ticket — logs a warning and **aborts**, with no reconnect scheduled on that path. On success it opens ``new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`)``, and `onclose` re-runs `initWebSocket()` after a fixed 5000 ms delay, so every reconnect exchanges the session for a fresh ticket — which the single-use replay guard makes mandatory. Reconnect is otherwise unconditional: a rejected ticket (for example an expired session) leaves the account list silently offline until the page is reloaded. The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`.
+- `frontend/src/lib/components/accounts/accounts-list.svelte.ts` is the only browser-side consumer of the ticket (`authService.getWsTicket()` posts to `/auth/ws-ticket`): its constructor runs `initWebSocket()` in the browser, derives the socket URL from `VITE_API_BASE_URL` when it starts with `http` (`https`→`wss:`, host preserved) and otherwise from `window.location`, fetches the ticket, and — if the call rejects or returns no ticket — logs a warning and **aborts**, with no reconnect scheduled on that path. On success it opens ``new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`)``, and `onclose` re-runs `initWebSocket()` after a fixed 5000 ms delay, so every reconnect exchanges the session for a fresh ticket — which the single-use replay guard makes mandatory. Reconnect is otherwise unconditional: a rejected ticket (for example an expired session) leaves the account list silently offline until the page is reloaded. The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`. (See [Realtime & Background Jobs](../workflows/realtime-and-background-jobs.md) for the push side.)
 
 ## Ownership authorization
 
-`AuthorizationApi.check_entity_owned_by_user(user, entity, field="user_id")` raises **404** `Entity does not exist` whenever the entity is `None` **or** owned by another user — the two cases are indistinguishable from outside, which is the point: a 403 would confirm that the resource exists. `check_entity_owned_by_user_from_token` resolves the user from a token first, and the account, portfolio, and integration routers call this helper instead of comparing `user_id` inline, so ownership failures surface as the same 404 that a genuinely missing record produces.
+`AuthorizationApi.check_entity_owned_by_user(user, entity, field="user_id")` raises **404** `Entity does not exist` whenever the entity is `None` **or** owned by another user — the two cases are indistinguishable from outside, which is the point: a 403 would confirm that the resource exists. `check_entity_owned_by_user_from_token` resolves the user from a token first, and the account, portfolio, and integration routers call this helper instead of comparing `user_id` inline, so ownership failures surface as the same 404 that a genuinely missing record produces. This helper is user-plane only: the service-token data routes have no user to check ownership against and are kept read-only for exactly that reason.
 
 `src/main.py` registers two exception handlers that keep the convention for errors raised in the service layer rather than by the helper: `AuthorizationError` (the base class for domain-specific authorization exceptions such as `AccountsDoNotBelongToUserError`) maps to `404` with `{"error": ...}`, and `EntityNotFoundError` maps to `404` as well. Router code that raises `HTTPException(404, ...)` directly — passkey not found, account not found — is the third spelling of the same rule.
 
@@ -350,10 +423,13 @@ These are contracts a change must not silently break. Each is enforced in code t
 8. **The `auth_token` cookie is `httponly`.** Both the backend (in prod) and the SSR actions set it that way, and all browser-side access goes through SSR loads rather than JavaScript. The token is additionally returned in the JSON body for Bearer clients — that is a deliberate convenience with an extra exposure surface.
 9. **Auth tests must mock every outbound dependency.** Backend tests must not touch Redis, SMTP, or any HTTP API; the autouse `fake_redis_manager` fixture swaps the shared Redis client, email sending is patched, and EODHD/broker gateways are stubbed. Frontend tests must mock every API client and SvelteKit module they touch. See `src/AGENTS.md` and `frontend/AGENTS.md` — a test that dials a real service is broken by definition, not a service-availability problem.
 10. **Rate limits stay on the sensitive routes.** Signup, login, 2FA verify, resend, and both passkey authenticate routes are decorated with `@limiter.limit`, keyed by verified identity or IP.
+11. **The two authentication planes never share a credential or a dependency.** User-facing routes depend on `current_user`, which accepts only the `auth_token` cookie or Bearer JWT with `scope="access"`; the `/api/v1/market/data/*` routes depend on `require_service_token`, which accepts only `X-Service-Token` and resolves no user. Reusing `current_user` on a data route would expose the data plane to every logged-in user; accepting the service token on a user route would let the gateway act as an arbitrary account. Changing `require_service_token`'s header name, adding a cookie fallback, or dropping the byte encoding all silently weaken this boundary.
+12. **The data plane fails closed, before any work.** A missing or mismatched token yields 401 with the gateway and cache untouched — the parametrized suite asserts both the status and that no gateway method ran — and a blank `market_data_service_token` in dev/test rejects every request instead of matching anything.
 
 ## Configuration and operations
 
 - `secret_key`: validated at startup to be present and at least 32 characters outside `dev`/`test` (`src/config/settings.py`); `.env.example` ships a throwaway dev key and documents `openssl rand -hex 32`. In production the frontend service receives the same value as `JWT_SECRET`.
+- `market_data_service_token`: the data-plane shared secret, validated non-empty outside `dev`/`test` by `validate_service_token` (`src/config/settings.py`) and independent of `secret_key`. `.env.example` documents it next to `DATA_PLANE_PATH` and ships the dev value `dev-market-data-token`; `docker-compose.yml` passes `${MARKET_DATA_SERVICE_TOKEN:-dev-market-data-token}` to the `mcp-gateway` service while the backend reads the same `.env`, and `docker-compose.prod.yml` requires it to be set. It is read from settings at process start, so rotation means updating `.env` and restarting both services — there is no expiry, no key id, and no dual-secret overlap window.
 - 2FA: `totp_max_attempts` (default 5) and `totp_lockout_seconds` (default 900).
 - WebAuthn: `webauthn_rp_id`, `webauthn_rp_name`, `webauthn_origin`, and `webauthn_challenge_ttl_seconds` (default 300). A wrong `webauthn_origin` fails every ceremony, so it must match the browser's origin.
 - Email: `smtp_host`, `smtp_port`, `smtp_use_tls`, `smtp_user`, `smtp_password`, `smtp_sender_email`, and `email_verification_token_expiry_hours` (default 24). Dev compose points SMTP at `mailcrab`.
@@ -364,6 +440,7 @@ These are contracts a change must not silently break. Each is enforced in code t
 
 - **A new login factor** slots in as a service under `src/auth/service.py`, a route group on `auth_router`, and a branch in `UserApi.login` (or a standalone endpoint like the passkey verify route) — but it must end by minting tokens through `UserApi.create_access_token` and set the cookie the same way, so the SSR guard and `/2fa/*` routes keep working.
 - **A new token purpose** means a new `scope` value plus a matching assertion on both the backend and the SSR guard; reuse the `jti` + `token:deny:` mechanism if the token should be revocable.
+- **A new data-plane route** belongs in `src/market/data_router.py` with `_svc: Annotated[None, Depends(require_service_token)]` and no `current_user`, and it must update the committed OpenAPI contract snapshot `tests/market/contracts/data_plane_openapi.json` so the Go gateway client and its contract tests stay in parity.
 - **Resource authorization for a new domain** should call `AuthorizationApi.check_entity_owned_by_user` rather than comparing ids, to keep the 404 semantics uniform.
 - **Frontend auth UI** belongs in `frontend/src/lib/components/security/` (state in `securityService.svelte.ts`, calls in `securityClient.ts`); components should not call `fetch` directly.
 
@@ -371,6 +448,8 @@ These are contracts a change must not silently break. Each is enforced in code t
 
 - `tests/routers/test_auth.py` is the reference suite: signup and password-length validation, login success/unverified/invalid/nonexistent, verification-token success and rejection, resend including the already-verified and nonexistent-address no-ops, `2fa` status/setup/activate/disable, the 2FA challenge issued without a cookie, TOTP and recovery-code verification, reused recovery code, lockout (**429**) and counter reset on success, expired and forged MFA tokens, rejection of `mfa_pending` tokens on authenticated endpoints, passkey register/authenticate incl. challenge expiry and replay plus unauthenticated-endpoint checks, logout denylist, `last_login_at` after each of the three login paths, and audit logging. The 404-not-403 rule is pinned next door in `tests/routers/test_accounts.py` and `tests/routers/test_portfolios.py` (`*_not_found` and `*_not_owned` both assert 404).
 - `tests/services/test_auth_api.py` covers `UserApi` decisions directly (challenge vs. session, unknown-email error parity with a wrong password, revoked-token rejection, silent ignore of invalid/expired tokens on revoke), and `tests/services/test_auth_services.py` covers the TOTP, recovery-code, email-verification, and passkey services including lockout, lockout reset, and replay.
+- `tests/auth/test_service_token.py` exercises `require_service_token` alone through a throwaway FastAPI app — no svcs container, database, Redis, or JWT machinery — against a monkeypatched `settings.market_data_service_token`: 200 for the configured value, 401 for a missing, wrong, blank, or non-ASCII (latin-1 bytes) value, 401 when a user `auth_token` cookie is presented instead, and 401 when the configured token is itself empty.
+- `tests/market/test_data_router.py` keeps the real dependency in the real app (its fixture patches `settings.market_data_service_token` and deliberately does **not** override `require_service_token`) and asserts the plane-level consequences: a parametrized 401 for every route with no header *and* that no gateway method was called, plus wrong-token and non-ASCII cases for the price and newer fundamentals/statements routes.
 - `tests/ws/test_router.py` covers ticket replay (`_check_ticket_not_replayed` first-use, already-used, and the fail-open Redis-exception path) plus `1008` closes for no credential, a replayed ticket, and an invalid signature, and the valid-ticket / cookie / header fallbacks, all against the in-memory Redis fake.
 - Frontend: `frontend/src/hooks.server.test.ts` signs tokens with `jose` in-test (mocking `$env/static/private` to supply `JWT_SECRET`) and asserts the scope/expiry/foreign-secret/malformed/redirect/`clear_session` behaviors; `frontend/src/routes/auth/login/page.server.test.ts` asserts cookie setting and the 2FA/passkey/403 branches for the three form actions; `frontend/src/lib/api/async-data.test.ts` pins the browser-side `redirectOn401` contract (redirect on 401, no navigation otherwise).
 - Never let these tests reach SMTP, Redis, or the network. The backend fixtures patch email sending (`tests/fixtures/auth.py` monkeypatches `EmailService.send_verification_email`; the email suite patches `src.core.email.aiosmtplib.SMTP`) and swap the Redis client (`tests/fixtures/redis.py`, whose autouse `fake_redis_manager` patches `src.core.redis.redis_manager` plus the `src.auth.api` and `src.auth.service` module-level references); frontend tests mock the API clients and SvelteKit runtime modules. Run the backend suite inside Docker.

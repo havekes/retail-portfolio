@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:59521af21c0a63462035dd5be888b64b567ab69894bb46457901bcb276f7f1c8",
+  "claims": [
+    {
+      "id": "claim_d7b276a9e1cb45d897f8a71438fb1863",
+      "statement": "services/mcp-gateway is a Go sidecar that exposes the backend's provider-agnostic market data as an MCP server over the streamable HTTP transport; it holds no provider credentials, calls no provider directly, and talks only to the backend's service-to-service data plane at BACKEND_BASE_URL + DATA_PLANE_PATH.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L1-L10",
+          "version": "repo-lines-v1:sha256:9916658bcf2c3b8e935fe61b5ca2385199b8d8fa1da3365ac12892d897e934aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlMmIyY2UxNTkyNjhhMTRjMDMzNGVjYzNjYzM4YmQ0M2JjMGE2ZDA5ZGVjMzY2ODk3MDlmZTNkYTA1NjIwY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMTM2ZTJkOTJmZDhmNzFmZGI3YThkNjJjNzA0NGRkMGVlNjMxNGQ2NDQ0MjAxYzFiOTM4MGFhOTNiODIxZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjOGU1NDEyYzU0YTAzZTcxZWZiYzU3Y2NiOTJkZjEyN2U1MGJmZGQ1NTZhNDdlMmIyNWE1N2UyNTM5NDY2ZGUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/cmd/mcp-gateway/main.go#L40-L51",
+          "version": "repo-lines-v1:sha256:cb1bce34c05c7bde03cfea2608663e65ab8b7b695a96bb9d389a05281a2a53d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMjhjNTFlZTM2MGRlOWNlYjc3Yjk5OTgwMTU1MGEyZDdjZTNmZTEyMDUyNTlkZmViN2I1ZmM5Zjc1OGFmZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwZDAzYjA3N2Q3NTZmYmFiNDRmNzY2NjBlOTA0NjY5ZGM4YzFkNzA5YjBjOWRhNjU2YTVjNzRiZDJjNmE2NzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMTkyOThmNjIwNmQ0NWVjZDFjYzg0NzQ2NWUwYWExMzZkMTU3MjM0NDYxZTE1YjdmODc3YmFiOWFlM2NmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5MDU5MGVmNDRmNTJmYzkwMWM2MDVlM2NjYjRmYTE3MzE2YmIwYmZmMjI4ZGVjNmQ5NjI0NDljNzdlNmNhYmQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market.go#L14-L48",
+          "version": "repo-lines-v1:sha256:0130b56f831edb83968fa801928e87c8ca93a738cf1c3f8ddb424312896aef70:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMDE1NTIwMzE2ZmY2MzI3NzYzNjYyNmY0MGZjY2Y3Yzk2YjFiMjAzMzdhZDYxM2RkM2Q3MDZjNzZmZDg4MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZWRkNzJiYTZiNDAwODNjZTk1MjY5ZmE1NmZjZjNhYzFiZDk4MjIxYWE2NjIxYTY4M2Y3ZDU2MzJiYjIxZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZThmOGNkNDA3NjkxMjUwYTgwYjk5MTE4NmNmNzZjNGNkYzFhN2RmMDBlMzJiMjc5NjVlY2EzOWZmMjU1MTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ec5979459c38437d8ae61c3f98310515",
+      "statement": "server.NewRouter wires exactly two endpoints: GET /health returning a fixed 200 {\"status\":\"ok\"} payload independent of backend reachability (any other method returns 405 with Allow: GET), and /mcp served by mcp.NewStreamableHTTPHandler. /mcp is unauthenticated by design and is wrapped in http.NewCrossOriginProtection, so a browser request carrying Sec-Fetch-Site: cross-site or a mismatched Origin gets 403 while a non-browser MCP agent without those headers connects normally.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/router.go#L12-L45",
+          "version": "repo-lines-v1:sha256:1ab6e177ac95b320ee129bfe4b02f3e1066bec561a13a5f7626996edb4088067:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlODJjMjczOGIzZWJhMWM0YmZhY2E0M2Q5NDBkMGM2ZDE0ODhlZTgzODQ2Njg2MjkzNGQyNTU2NDFmNmVkMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkODMzMzNhMDIzZWM2YjBhOWQwOThmMTNkZDNlMjJjZDA4MjE4ZTk3NWY3YmQ4OGI3MDcxYmM0N2Q2NmU1ZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMjAwMGM0ODM4MTIzMmU4OGYwMTk0M2NiMmVjNmEwMTNkMjhkYzAwYzNiNTExNDZiYjIyYzgxNjJhZDAwZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L181-L243",
+          "version": "repo-lines-v1:sha256:d423f507c52c59914efee04ad2dcdbbf2efbcc1de6124f69223b5af6990c9942:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYmY0MDA5Nzc1MDg5MjJjYjEzNWQ3Mjc4N2E0ZjkzZTU2YzA5NjFiYzUxZDRmYmNlZThkMDE1ODYyNGU5MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L66-L104",
+          "version": "repo-lines-v1:sha256:97250ff9fa43e1edddc29f3fff79e6d87ccb9068c6d7e183978ea302afc4b54d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjM2RkMDViMThhMTNmZjZiY2ZhOGVlZjhlMTI1NzIwYWE3MTEzMjk5MGM5YjI3NzVlNzgwMjY4OGViZWU1MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkYWI5YzNlMDk0NmU5MmM2ZDE1M2U4MDI4MzJmOTI2ZDc2ZDNiNmYwNGU3YTI1MGI2YjdkM2E1NDJmOGU4NzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyMDhkMzZlODIzNjA2NTgxNTI1ZjVjOGNiZDk1MDc3NTIzNDUyYWE1OGY5MDk1Yzk5YmZkNjMxYjU5YmIxNmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e8df88ad8ef7465985827f1f0db5b7a9",
+      "statement": "Idle MCP sessions are reaped using SESSION_IDLE_TIMEOUT, passed through as mcp.StreamableHTTPOptions.SessionTimeout, and the MCP server identifies itself during initialize as market-data-gateway version 0.0.1 — a deliberately provider-agnostic identity.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/router.go#L23-L34",
+          "version": "repo-lines-v1:sha256:2fff06e465bee61d3413602d28ac17b591105fd9d1ccd878f874991fbcf7f106:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1M2Y1MmQ1M2NkOWU4ZjNmMTBmMTVjZjA1NWY3YjI5MTljM2VjYzhjZDcxN2I3NDI2ZGJkZGU1NjZiMmY2ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZTViZTVkZWE1N2U3OGI4OGVjNzkzMTcyYzcxODY4OGFjNGQ5ZTliMGYxZDVmZWJkMGMwMTRmNTA4ZmI5YmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNDhhMTQ2NjJjYWY3ZjU4OTNiYjc1YjNlMzRkMzdmZjgyYzM4YWM3NjIwZmY4NTBmYTQ3ZGY1M2RhNzk2MjMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server.go#L10-L49",
+          "version": "repo-lines-v1:sha256:4e5ee02787250642099d424e3f7a63d6cc1f41f2f324d88a10b022f327c4db2f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzYzA1OWNjZWUyYTkxODEzODZmY2I1YmMwOWNhNDIzZTFlNWM2ZTQxYmE0N2FkMmI2NGM4YjZjMWRkYjEyZjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwZjhiZTYzYmNlNWM5YjhmYWU2NTBiYjgxOGRhOWIxNzBmZWJjYjRmMmU5MTRhZGE2ZDIzYTliNjcwMDU5YzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1Nzc1Y2EyMzM1NjUyNThjYzQ3ZDkwZmIyYjVkYjQxODcxZjA5OGJlNDJhNDNjZjY5NzQzMjMxZjk2NWVlMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L106-L179",
+          "version": "repo-lines-v1:sha256:1ff5ac8aa4388b4db1e80b262a005cda32f21a4665cdf82f638a94c00935426c:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5OWI1Yzg4MWNjMjNhYTg2ZWE2NDU5NzY5ZDFiZmZiNTQ3MDcxZWVlYjdiNjgyZDE5OTIzZGY5ZGU1MzA0OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YTZkNzkyNGNlMGM0YWQ2MDZjNTBkNWJjZDI2MmM0N2Q2ZGJlNGY0ZjJiZWY1OTgzOTc0ZTEyMGQ1MjE4YmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e87e61b1fbf5435cae650f61bbc13f0c",
+      "statement": "The gateway's HTTP server sets ReadTimeout 15s, IdleTimeout 60s and WriteTimeout 0 (unlimited on purpose so streamable-HTTP SSE responses are not truncated mid-stream), and SIGHUP/SIGINT/SIGTERM/SIGQUIT trigger a graceful shutdown with a 10-second grace period.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/cmd/mcp-gateway/main.go#L53-L105",
+          "version": "repo-lines-v1:sha256:c77e5b342ef0a858a46efabf3c3e37387e741d85ce20fb6c0d84c6e2cc8b3551:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNTdiNjBmMmM4ODZlOTEzNGYyY2Y0NTI0ZTliYzYzYjEzZjlhNWQxMjVjOTliMGE0MjNkMGYyM2JlYjI3MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNDFiNzEwZDY4YjVlOTQxODdjYzRiYWRiZjA5YTNhYWJhZDA0YzQxMmM1ZTRjNTNiOTk3NWI0Zjg2OWE3YzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwZGYxZjhmOTQ2ZmQxZjU3ZDkzMzI3OTM1YTNiODFkMjcyMTdiZmMyMGUwZWFkYWJmOTY0YjRkMTI3ZDc0ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4ebaac1894a4a588d8c50cc68501c47",
+      "statement": "Configuration is read from the environment through config.Load(os.Getenv) with defaults PORT=8080, ENVIRONMENT=dev, DATA_PLANE_PATH=/api/v1/market/data (MARKET_DATA_PATH accepted as an alias, DATA_PLANE_PATH wins, path normalized to a leading slash with trailing slashes trimmed), MAX_CONCURRENCY=10 and SESSION_IDLE_TIMEOUT=30m. A missing or unusable required value is a startup error naming the offending variable (BACKEND_BASE_URL, MARKET_DATA_SERVICE_TOKEN, MAX_CONCURRENCY, SESSION_IDLE_TIMEOUT, LOG_LEVEL) and never echoing the token; main exits 1 on a config or logger initialization error.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/cmd/mcp-gateway/main.go#L19-L29",
+          "version": "repo-lines-v1:sha256:731845fff6c0c8b323bd11211bdffacdad878ccd92e6c2a3b9ea7f6a9d3843a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNWQ2NGY5NzFiMjRmNzAxZDM0Yzc3ZjEyNWFkOTNkNzBiN2I0MGEwMmMwMjM2YjA0NTM5M2UyNGJmNmI1ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDI2YjBiN2IwMGIxNWU4Mjk2MDhkNTU4ZThiNzIwOTJlNzRjZTJjZmVlZGNhZGJjZjlhNGUwNjRlNzk2NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZTM1N2RkMzM4OGVhODYyMGYxMDFjYjE3MGJhYTZiODFjMGFjZTIwMDY5NjA3MTEzYzFmZjY2MzBmYTIxMTIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/config/config.go#L45-L134",
+          "version": "repo-lines-v1:sha256:32d0343aadc1ab14a59cc11814c10e37311556849b4092318db1b28fd950cf21:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwZDk4NmIwZGY3ZTljNDdhYTc4MmIwNjYwOTQ2OWJjOGVlY2E0NzYxMmI4MzhjZjgyOWRkYTRiY2RkZDMzMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3MTc4ODZiYTcxY2ZkYmQxNWQyYjAwNzhkZTcxOWM3YmQyOGY2YTg2YzkxOTFlMDA2MTRiNzgzNGE1YWI0ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyNDdlZjEzMjIwYzJlZDgzOGMwN2M4YjczZWM4ZTUxODhjYzQyNjRmYWNmMmY2NGYwNjUxNzkyM2FkNWJhN2MifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/config/config_test.go#L368-L440",
+          "version": "repo-lines-v1:sha256:829356a131ae005a5a925b4a4d13addb899b878b4858b4954f8eb9988e6b5b9a:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1MTUzYTE2MTZmMGRhZGM4OWZkZTc2MGM1ZTZlYTlkMDVmOTM5YjZlNjY1YWViNGEwYWNjZjUxYWIwZDNjOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwMTBlOWQ5MTVmNDdkYWQxMTBjOTVhMGIwZGMxZGE3ZTYzYTYwZTMwMzAxNWE3Nzg0OTA1ZGI2ODdkZTkyZTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiOWVmMDdlNzVkZDNhMGU4YTBmNmNmY2ZiNGYyYWViMzEzOTc4OTdkNDYxOWYwNDBlYTQ2NjBkY2JjZmU0YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkODc4YmM5OGZjZTA3OTgxNWI1OTNkMGUyNTQ2NDM2YWIxYzA4YmFmNWZkMTgyMmY5NThkOThjZjM0MDZjMTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9129051289c44b2d83c4c87ef29c8ad2",
+      "statement": "BACKEND_BASE_URL is validated by backend.ValidateBaseURL, which rejects values that parse but cannot address an HTTP origin (non-http/https scheme, missing host) so a misconfiguration fails at startup rather than on the first backend call; the startup log line carries service, port, backend_url, data_plane_path, environment and max_concurrency but not the token.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/cmd/mcp-gateway/main.go#L31-L38",
+          "version": "repo-lines-v1:sha256:581eb68b06fa38960d148304e89ac08052cb103e5bfedb8c7bd00a07fa1b33d7:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjdjOTE2MjQwZWY5NDNhNzU2ZjRhMDViZTg2N2JhNDcxZDJiOGJkZjBkZmUyMzk0YTk2NTQzMjhjYzQ5M2Q0MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZhYzE4YTNiNTQ5ODY5MDRjMjc3OGE0MGNmNWRlYzRmZWJjNTYyY2U1ZGE5OGU1NjcyYzFlYzY3NjlhYjYxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzFjZjQ3OGI2MjI1ZmRjZDAwZDUzODA1MGZiZmYxZmUyMjcwMjQ3NTcyY2I5YWQ0YWY4NmY1OTgxNDg1ZDE4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTc1Y2UzNThhMjg1ZDk5NmY2ODVkOGQ4OWMxOGRmOTQ4MGQyM2IzZWJhYzlmMTgyNjgxZmI1ZjVhNjJiY2MzNiJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L28-L47",
+          "version": "repo-lines-v1:sha256:35f837abdd3f0a643af103f7115b87cceb68f25077751f4a472db02236b3bdef:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2OTkxYjhiMzRjZDM5MmU3YTU0NTA0OGQ4MTVmYThlOTUwYmVjMmY5MTQyZTQxYjMzNjdkOTgxNGNlYjQ3YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwOGVmNGRlMDg0NmJjYjY3MDgwZDNlMjczZDI5Y2Q5ZDBhOGU5ODIxNzM4OWRkYmZiNmFkMzhkMjA2OTkxNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkNmU5MzU5ZGQ1MTA5YTdkYjJhYjgyN2VmY2NmZmNmOWU2NjhjZThjMDQyNWFlZDRhMGVkMTQ1YTY4OTIxOWEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/config/config.go#L120-L128",
+          "version": "repo-lines-v1:sha256:811c09115e88610dfad2c984dd112cb632c6ba5845cf1daea1fd4b286318d3e5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzVhY2UxNzg4ZTJhMzFiODZhNDU1MDliYmQzZTdmYjE3Y2M0MmY4M2E5NzUzYjFlNzdhMzI1ZmE3NTBlNjZkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmY3ZWZmYjAyNWI3NGQzOTY4ZGEyMDkwZDJiNDg5ODZlYjlmMDRhMGZiZTY0OTQzNWRjYjBmNjllNWM1N2JlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTUzNTI0ZTBjZDY4NDQwNjg2NjU1YjRhZGQwZDkxYTMwN2U2YTE0ZmUxMGU5OWYyM2RkZDkzZjE4YzZkY2ZmNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3aca456f77a4b00a0ba7eb67b5738e0",
+      "statement": "MarketClient composes every data-plane request as BACKEND_BASE_URL + route-group prefix + route, always sends Accept: application/json, sets Content-Type: application/json when a body is present and X-Service-Token whenever the group token is non-empty, and normalizes what goes on the wire: symbols are trimmed, upper-cased and path-escaped, float filters are rendered without exponent or trailing zeros, and dates are formatted as YYYY-MM-DD.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market.go#L50-L273",
+          "version": "repo-lines-v1:sha256:ed9c7c63f3845572a7cc0123c1c53dd147ba71faeb97dbdd0d90634f38167174:eyJzZWxlY3RlZExpbmVDb3VudCI6MjI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MTdhMGRiMDc0ZjEwMjJkNTE3MzRjMDFmZWZjNDQ4YTYyMGNiNTZhOWQxZDgxMTJkYjk4ZjE2YjZkY2Y1OWYyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzZTRlNDJmNzA0MDE3YmZmMTFlYjg2MTg0NWQzMmEwNDI0YTY3ODhiYTFlNzQ0MjhhYjEyNjAyYzhhM2ZhMmYyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxOGU4NWIyMTc3MmYwYjAxMzQ5OTliNjZlMDFhNThkOTlmOWI2Njk3YzcxNjhjZThkMjYwNjIyZTQ5ZjkxNTY2In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L116-L203",
+          "version": "repo-lines-v1:sha256:f35851e66be06f20799ea41c12d8cd0445053906c24da392eb02518dea73ed1f:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYjAyMTRkYmJlYTIwZDlhMmRkOTk5OWM3Yjg5MGY3Y2M5MzAyNmIzOGRhNzY4YzRlNjg4YzUyODRmNzFiZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmYWMxOGEzYjU0OTg2OTA0YzI3NzhhNDBjZjVkZWM0ZmViYzU2MmNlNWRhOThlNTY3MmMxZWM2NzY5YWI2MTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNzM5YTFjMmUwYjdhNjM4YjI4NGQ5ODY5ZTVlNTM0MzlkMGE2NDg0NTFjNzkxMGZjN2ZjYjExNDZmMzRmMWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8dcad69ded9646c798c206b0a8282062",
+      "statement": "The client's method-to-route and query-parameter mapping (Prices, Quote, SymbolSearch, OptionsChain, OptionExpirations, Fundamentals, Statements, TechnicalIndicator) is a frozen contract shared with the committed OpenAPI snapshot tests/market/contracts/data_plane_openapi.json; the Go half is internal/backend/contract_test.go, which asserts the eight routes and non-empty operationIds, drives every MarketClient method against a stub server that validates each request against the snapshot (requiring 100 % route coverage, the token header, only contract-defined and all required query parameters), compares the exchange enum on every route that declares it against supportedExchanges, and runs negative drift cases (missing token, unknown route, missing required parameter, unknown parameter).",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L169-L212",
+          "version": "repo-lines-v1:sha256:e94d142ad347d3c29ba7cd50f10ddfafd91961e1504e05af6cf2060399a938cd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkN2QxODU0NDQ3ZGQ0NGY0NDQ1YzA5OWI1OWZmOWJmN2VhN2RmNmE4YjYzMmFjZTZjM2RhYzc2ZmU0ZGQ5YzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmYjJhODI4NjA4MDNmMWJlMDhkYWI5MWJjODIyYjY3YmU5NzdiMTYyNDM5Zjc1NmNiZjI1N2YzYzY3ZTY3MmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZDA0ZDg5OGIwNDZlYjRkZjg5NGJlN2ZjZDczMTU3NmMzN2Y4ZTdlNGMxYTQxZmMxMGFhYmQ4ZjM2OGE1N2QifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L214-L353",
+          "version": "repo-lines-v1:sha256:974b48b2341196f9a11e3b3e6260373c79514f14416a80443aba618e0786fd44:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhZWM5Y2RmOWI2MWQzZDViYWVlMzM5MzhmMDFhYWM0NWExODczNzhjNmVlOTZlYTA5MGY0NzVjOGVhYmI5Zjc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmMzgwZWRkYTQ2NWVkYzg0Mjg3ZTBlNjM5NjgwMGU1NGZiNDhlZjVjMjZhZDM4ZDJiNzRiMDJlZmY0ZWZkYWJkIn0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L354-L444",
+          "version": "repo-lines-v1:sha256:69f0f6e1af31154aa8961df1c9251b3e56027d38637a08e09e858c3c0e136db2:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlOTY0MjI5YWNmMGVhZjc0Yjg2MzFiM2ZjZjlhNzg2NDZmMmE0NWZhZmE3YzgxNzcwZmQ3MWQ2YzI1MGIwZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZTBhMjFhMjkzYmMwYzg4NTNhM2ZlNWVmNDUxZDNiMTEyOTMxZGE3YWE1YzE1YWI0YjUyYjZkNDA4YTJiOTQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L472-L500",
+          "version": "repo-lines-v1:sha256:2e84b4f362ff84c4f5365c410e48e98b9c50061bbff2b8c5d698716755ac9740:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3OWEzYjM1NjMwZTUxYjUzYTdkZTBlM2Q3NDM0NTI3MDRlY2NiNDU0NWIyZTQwZTQwODc2MDAwNzQ5ZmExMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmZWRiMmE5YmI5OWM5MDFkNzc2NzY0OTJiM2FjOTRmNzI2YmQzNDc5NGUxMjJiOTVmNjhhNGM5MTgzYjI0YjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3NjM0NmM1YWE3MGMwOWUxNGQ1Yzg4Yjc1YTczY2NhZjY0MmI3NjUxOTg3MzNkZjEyZmQ1MGNjODZiNDFiMDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0a5dc10fdf8c4c1bbd12777c30cf75b6",
+      "statement": "A single backend.Transport owns the outbound HTTP client: a 15s default timeout applied both as http.Client.Timeout and as a per-request context.WithTimeout, an 8 MiB buffered-response cap via io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes)), and 512-rune truncation of retained diagnostic detail.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L11-L12",
+          "version": "repo-lines-v1:sha256:c4976c93a99857d547e245686bdfa8a59314897fa9cbaaf09546616543f05c59:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODkxNDU3YWU3NThkNjVlODJlYTMzZWRkM2M4YTJiNzk3ZTEyYWNlNDAxMjY5ZTBmYTJiYjAzOWI4MjIzNTgyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDMwMTllMWRiZmFkZTQ4NDlhZWFjODEwY2VkNjJmNGI3MjRhNzZmMjVlOWM2OTc3ZDYxNmY3MDcyYmJiYzA5MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGQ1ZGU2NzM5MGNlMzJiZmZlZjBkZTk2NGMxYzcyMDA5OTVkNjhjYTNlZWNhZGViM2RkMDliODcyYTU0ZWI3NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFjZWQxMjM2N2NjZjNhMjRkZDhkYjlmZjgxYmQ4NzI5MTE3MGIxOTYxOWQzOTllM2QxYjU3YjMyMWYwM2NjMiJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L180-L187",
+          "version": "repo-lines-v1:sha256:b9f0f1b80db2e6f85499131d95394eaba79754af5e8ed0ea1fb8be892f9c5ef4:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDY0MDFmZTdjYzhkOTI4YzVlNDdkYTk3NmM3ZTY2YjY1MWQ2NjRhZDJjMGZjNTg0MWZlZjJhODk4NmJmZTFhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDNhMjAzNGFmODAwOTJmMGJjZjJiMDJiODBmN2UwNGQ4NmFlYmFmODJmNTkyYTBmNTUzMWY5NDViYTc0YzNjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L120-L126",
+          "version": "repo-lines-v1:sha256:f259d71f9c480d1fef7e2e01adcfd529cd150ae510d9a205dcf19662dfac9b06:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjEyZTdiNjg5NTdhZjMxMjI2NDgxMzVkMTdmNGIxMmEzNTk0NzU3M2Y3MjFmMjg2YWFlZTViNWU2YTJlZDc1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjFhMTBlMzVjZjI0NjI5M2E2ODI5OWQwMjY3MDRjMTlmOGVmODFjOWYxOWMxM2ViZjBiYWE0ODE3MjBiOWZkNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGQwNmJkNjBlYjI0YWI3NWY1OTNmOGEyNzIxNmQ2NTE4MDc1OGI5MzI0YWZmN2ViZThkYjhlZGY5NGI1NmRlMyJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L21-L26",
+          "version": "repo-lines-v1:sha256:f88c3d51d01d8da5fcecccbac54224972f710364d7e288887b01d8cee0ea7d59:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI5ZGM1YjQyZDhlNzhiNTMyOWE5ODEzMTExYjVkNWQzNjM4YWNkNzA3YWMwOWU3NTI5ODcwYzhlNTg3ZDFhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmZkZGRjZGY1MTVhMGE5NTUzMDgyNjE2NGQxOTgxNjUwOTVlZWQ4NzAxNGJiZjhmYTg3YzcyZGRmNTVhZDg2ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWViOTVmZmQ2MzZlNzM5Y2Q4ZTZlNmRmZTJiYTMxOTJmYjJjNWEzNzgxYzNjMGU3MmRkNGFmN2NhZjU3MDNlOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzdhYjIxYTllYzVmZWI2YjhlNWY4ZmE2NTQ5MThiMDE5NGFmYmM5MDA4YWY2NWNkNTdhYjIxYzJkYjBlNzE5NyJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L225-L234",
+          "version": "repo-lines-v1:sha256:064d139cf64200935d74d9efbb889e8079046150f34075d08195453259b11329:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2NDJlNDQwODRiZjFkMDNiMDdkNDk5NTI0MTIzMDkwZjdhMzgzOWQxZTY2MTdjODJkZDdiODk0YjJhZTc1ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0Y2Q4YmUzZDEyN2JhMmQwYTE2NjZlY2ZkNTA3MjA5MGI4NDZjZGRmODBlMzY3ZGQ4YTIxYzkwOWM0ZmQxYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzZDg5YWZjMzA2NjcyZWJiZjEwYzVkZjAxNmI4NTgwYTc1YTliNzAzYmQ1ZjQ3YmQwZTViYzNlODNmZTMwYzkifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L81-L93",
+          "version": "repo-lines-v1:sha256:ae981270034f2f872814318698b7378c5200ebf6acc61f3460c8de5fc35c7f85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjMDc4ZTU2NzVmYjU2ODU4ODAzYjMzNWY2OTYxY2RmYjMxMDMzNDMwZTQ5MDEwMjY3YTE2MDRjN2VkODAyNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxN2MwNWNjYTk5YjlhMTUwNzIzOWUzNDQxZDZjZWFkZTI1YWQxYTBjNTFjMGY1ZjkwYzQyY2RlNjViOGM4ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMjEzZDRmNWVhNTlhMTkxNzUyOTEwMzk5M2JhMDRiN2ZmODc1NzU3M2Q0MGM1N2E3MDA2OTdhNDNkMmQxNjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d79be02bd66f419f8491f0c1c846f8d6",
+      "statement": "Outbound concurrency is bounded by one semaphore channel sized MAX_CONCURRENCY, acquired with a non-blocking send first; when saturated the call emits the WARN record \"backend concurrency limit reached, queuing call\" (with max_concurrency and url) and then blocks on either a slot or ctx.Done(), so a queued call that exceeds the request timeout fails as ErrProvider instead of waiting unboundedly. The slot is released by a deferred receive, so it is held across request build, HTTP round trip and response decoding, and the same budget is shared by every route group.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L970-L1060",
+          "version": "repo-lines-v1:sha256:045d885f41834c8e397ae4b03d4982d0db4dd980e633715af873b8f7d7017e1e:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2N2IzMThkZDMzNzhkMjBiZTI4ZTY4NDdhMmNmMWU2NWFhMWE1ZDdkNzc5MjNlYzlmYWQwZDlhNGQ4ZTQ3YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZTY3ZDgxN2ViNzU3MzFiMDU3OTQyOGM2ZmYwMzM4YzQyZWZjNmFjMzJmZGM3N2NkZDQzZTFkYTA5MmE3MzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3OTZiMDdlZTYxZDdhMjgyZWI1NDEyOGQxYTE4ODc3OTM2OGUwNTMyNTM4MGNlOTMzNmQ5NzIzYmI4YmJhMjUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L147-L163",
+          "version": "repo-lines-v1:sha256:ce807ec66d771f56fef4c2558775e970135c2e0c40ec6a21d3807d8895d522b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MzNkYzNhM2ExMTBhNDRlYTg2NDM5N2YyYjVkMDE4ZGIwN2Q0MWMwZmY1YTIxNTM4NmU1NWRkMDA4Yjk3NmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxY2I3Y2EzN2JhMzM4ZTBiMjZmMDk3NjgyNjQ2MjllOTgzYTBkMWY1OWY2ZGYxOTc2YTQzNzVjNDBmYzYxMWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmNTFkY2FkY2I5NTQ3NDk1NzRjNzlhNjJmOTlhYTk3ZjNkMTVhMmM2MjUzMTllYjBiODU2NmNlYmRlOGQwZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhMWIxZThmYjQ5MjUxNDE1NjEzY2FhYzIxNzRmZGRiNTRlZTgzOTljNzE1Y2QyYjZlMTA5NTA2ZTQ5YjVkODkifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L462-L523",
+          "version": "repo-lines-v1:sha256:31a1f437d7bf69614b206ed794e34b739cded762d20c820c7caab2cc5934af45:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZjhjMTE4NTFkMmFlOTc1OThjNmYwYWM3MTI0MjM0MGMwZmI5NzVlMDNhMWQwN2Y2OWMxYjA0MmU4MTVmMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmZGVmYjk2MGY1MWE0NDcwNzY3OWJiMTgwYjllMjQ1ZjNmZDQyNGZhY2ZkMjc5NzM2MGFmMDFjNWFhODRjZjYifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L525-L598",
+          "version": "repo-lines-v1:sha256:81eccf0408d27d40d215623e0ccf50daaede523aada96ebf77ddb97c9bf99192:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhOTM5ODU3NTU1OWJiNmFiNTYxYjYwZjI3ZjNmZDE5OWEyYjQ5ZWY4MmZjMTFjYzBmNTBjYjQ3NWU3ODQ3OTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ea9a39d421d409faec6c1229bcc6e9d",
+      "statement": "RouteGroup is the transport's domain-isolation seam: transport.NewRouteGroup(prefix, token) binds a path prefix and a service token to the shared Transport, so adding a second data plane means adding a route group plus a typed client over group.Get/group.Post without touching existing client methods or the concurrency budget; a test verifies two route groups issue to their own paths with their own tokens.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L268-L276",
+          "version": "repo-lines-v1:sha256:066d38b7c1460f3ff28bc351c5b2230c667a8be20a9094a80b239170a5f5af02:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2JhZDk1MTRlOGM3ZDJmZTcyNGY0ZDY0YzQ4MWQ4M2FhOWU1NDMyNTk4MTY0Njg4OGY4OGEyMWU0MmY4MmRiOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYzMWI2ZTJjYTA3ZDhiYWYwZWI0NGU3NDlkYmY0OTBiMzkyZTNhNTM0ZWY2MTAyMjc3MTE0NmNkZjlhZjFhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L95-L114",
+          "version": "repo-lines-v1:sha256:6cccd82b6b6cf6e701c0093ce07b17281392c6214ad569a0923c28be19e7268a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYzNiZmIzOTIxMjdiMTFlZjM3NjY0YjZhNzkwMGY3ZGU4NjgxNWJkMWM2ZmZlZjUzOWU3NTYwYzE3M2YyYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlNGU0MmY3MDQwMTdiZmYxMWViODYxODQ1ZDMyYTA0MjRhNjc4OGJhMWU3NDQyOGFiMTI2MDJjOGEzZmEyZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkOTBhYWZhOWI5M2Y4OTQ3NDM1YmNmOGQzZjcyZTIwZDk2MTk2ZDc4MDhlNjBlZGRlNjViOWRiMDc2ZTc5ZDUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L186-L258",
+          "version": "repo-lines-v1:sha256:483632eea0e8dd15e1905e0e0cf7bce3cf951639cf92ab2060376e4260a18de7:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxN2Y3MDVjNDVkNmJhNjlmNzI2MzFkNWIzMjU4ZjA0ZGEyZTg5ZDUxMDg0Yjc3YjgyN2Q4MzA4NTUyN2U2ODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkYzJkYTY0MWJhODkwZGVhMzc1OWMxMmEzZGY5YTNmNmM4NGJiZWVlYWJiYjc1MzUzNGNkNzE5OWM3YTRiMWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c1644810e78f45fd9acde07cb3768465",
+      "statement": "Tools are registered through toolSpec plus addTool, which sets Annotations.ReadOnlyHint: true, IdempotentHint: true and a human Title on every tool, and input schemas are inferred from typed In structs so a call omitting a non-omitempty field (symbol, statement, expiry) is rejected by the SDK before the handler runs.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L46-L80",
+          "version": "repo-lines-v1:sha256:8ba1081bb9ed3dc844eb31fa7348a7f8e22928d0e29af2142f8fc8173e7c44ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzFlYmYwZDE2NzE2ZWJhY2IzMjc3OTVjMDA5ODEzNDQ2MjhkNmQ3MWFjNGQxMzY1MWI4NjliZmM0M2RiMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MGM2YmIxNmRhMGNkOTVkNjc2MzYwNmI5OTlhOGE0MGYwMTg1ZTgzMGYzMjE0YmI3MjE0NTg4Yzk4ZjMwNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzOGU3NDgzNTRjMTc1NzkxZjM3YWE5N2YwNDcxOTI3OGNhMTI4ODkyNTQxNDIxMzQ4MGM0M2FhNDk3YmU3Y2EifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1477-L1512",
+          "version": "repo-lines-v1:sha256:d9a354d0a16eb654256df7d2d631e1862b1e76de4c6406bc4ff83cdbce0aaf90:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4OTZmZTM1NTUwZmI0OTQ1YTJmZTA5MTYzNmEwNDhhNTI3ZDZiNTdjYjNiMDY2Yzc4MjlmMTIwZWQzZmUwZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxYmUwYTc2NmM1MmZhMDk1OWU0N2M1YjFiYzRjZDk4NGUxMDM3OWM1NDBhMjNjYmY1NDcxYzIwMjUxMjM1ZWQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L960-L984",
+          "version": "repo-lines-v1:sha256:6b0992e706dc016678cc16666bc786ea7749ccd46c55ce283babf17f210fc2ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMjQ2ODJlOWVlOTg5NmQ0YzMyMjc0NDkxMTY3YTZkZmM4NWUxOTY1ZGFiOTcwOWNhNjNhODhiN2M1MjQxYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyMjQyNzE1NzE2ODRhNWY1MWFjNmJkZDk1NTgyODNiMzVmZGFjZDBlNTA3MzJkNzA4MTZjMGYzNzJlMDBlYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3c92100570ca4b2e9a1867ec33a86455",
+      "statement": "The tool surface is eight tools in four per-family registration functions (registerPriceTools, registerFundamentalsTools, registerOptionsTools, registerSymbolTools) called by tools.Register: resolve_symbol, get_quote, get_price_history, get_fundamentals, get_financial_statements, get_option_expirations, get_options_chain and get_technical_indicator, each mapping to one data-plane route under DATA_PLANE_PATH.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L64-L104",
+          "version": "repo-lines-v1:sha256:987425d6fe6424fe67a1aed153ca0bcbd30537c433d863d6d648b36dbc8352ae:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMzZiMzgxMjYwNDFjMzc1ZDhmOWY2MTI3MmQwNTVhNjBjNDdkY2U5NjMzZGEyOGVkODllMjE0ZGYyNWIwMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4Yjc5MDA2ZmJlZGRjN2VkNjJhYmRkMzdjMDJmMmM3NmU1ZTNjYjY4ZDY4OGNjY2Q3M2VkNWUyOGZiZGE3ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4MzcyYjI5ODRlYmZhMzRkZjYzZGNjMjYxNDBlMGM2ODVjZWNmNGEwNzU2OThkODVkODRlYzk3NWMzODEyNWUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/options.go#L54-L75",
+          "version": "repo-lines-v1:sha256:fc66a31db666f6343fc20849a7db043f98f291182400f7ed3188886702b1d0a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMmIxNjQxOTllM2M3NjFkYjNmMGY4ZGJlM2U5NTc1NGY4MzJkYTY5NTJiYzU5OWJjYmRiMjcxZjQ3YWNkNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0YzZmMjYwMGVkNmJmNWUwZTE4MzkzNjYyNTIwNWJiOGFlOWI1MjA3YjA0ZWU2ZjJjN2FhYTBlYTEzOGRlNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2ZmNiZjFiOGNjOGYyNTU0NjkxMTg3ZTQ2NTdkMDcxOTMxYmFhODkyODk4N2NjMGRhODcxMzU0Y2VjMTE2NTcifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/prices.go#L79-L110",
+          "version": "repo-lines-v1:sha256:d7637e073265270a4bfd2dd0254bfaee3397357b7bd460101c57560526fa789f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZjkyMjM5YTkxMTI4OWI0MzVmYmFjYjIyYmIyZDc0NTk3OGRmYmFiMGMzZTAwODE3YWNjNmY2NDc4MWUxYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5Zjk3MTIxMDVhODYxMDg2YWUzZWQ5ODhmOGY4Y2I1MmVlNmM5Nzk5ZDNmZmU5N2I1YzkwODFlYTYxODUyNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNmQyN2QwNTg0OTk3YmI1ODBmZmEyOWE5NmRjNDZkYmU2ZGYyOWUzYTM5N2Q1OTQ0ODAxMWQ2ZTUwMGQxZDIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L53-L59",
+          "version": "repo-lines-v1:sha256:1a02c70caf12ed1d81216c41f178b6dd8daa4265b9caa94f37bc215f2ab7f35f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmQzZjU5MDk3ODk2OGVlYmQ1MTUyMGFmYzQ0ZmYwYTdmNjEyYjQzOGVjYjk2NjMxYWE0ODZjZDkxZGQzMGE2MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDE0ODZjNTgwMzRkZTJjMGQ1N2U0NjA1OWQzYWI5NzZjYTZiYTkwNWJiMWIyNjFhODMwMTE3NzBlZmE3M2NmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODg3ODFhZjcyNDE0MzUxNjQ5Yzc3MTViZDEyNTJhZjg2YzY3NGJjYzc3NTllZjZjZDc3NDA3ZDQ4YzNkZjY3MSJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1477-L1512",
+          "version": "repo-lines-v1:sha256:d9a354d0a16eb654256df7d2d631e1862b1e76de4c6406bc4ff83cdbce0aaf90:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4OTZmZTM1NTUwZmI0OTQ1YTJmZTA5MTYzNmEwNDhhNTI3ZDZiNTdjYjNiMDY2Yzc4MjlmMTIwZWQzZmUwZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxYmUwYTc2NmM1MmZhMDk1OWU0N2M1YjFiYzRjZDk4NGUxMDM3OWM1NDBhMjNjYmY1NDcxYzIwMjUxMjM1ZWQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols.go#L30-L56",
+          "version": "repo-lines-v1:sha256:99e37b54a168e048ead8e3b66fb7050b6475174c83e45884d9c1480927f0911d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTA2NTc3NDU1OTVkMTdlYTAxMDRmOWMyZjJmMmViOGE4Y2Q2ODdkMTE3Mjc1ZjM2ZGFiMWRiNDQ1MGY2M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyNTZiZDVhNWViNGZjOTYyNTUyMWUxNDRlMTM2OWU0OTE2YmRjNGMwZWJkYWVjNjE0ODcwMGEyYWQ2YWQ4YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyY2Q4MTYxMzRlYjRhNzQ2Nzc5ZTNhYzA1ZjBiNWJhNjBiMTIxM2JiMjg4ZTgxOWE3YzBiZjYwYThhYTJiOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_45c5c852d5984ccabb157e87becfb2c6",
+      "statement": "Shared tool-input rules are enforced in prepare before any backend call: symbol is required, at most 32 characters and must match ^\\^?[A-Za-z0-9][A-Za-z0-9.\\-=]{0,30}$; exchange is uppercased and restricted to NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE; dates parse as YYYY-MM-DD; statement is income/balance/cashflow; period is annual (default) or quarter; interval is day/week/month; indicator is sma/ema/rsi/macd/bollinger; option_type is call/put; technical-indicator periods are rejected unless within 2–400 (not clamped); std_dev must be > 0; from <= to and strike_min <= strike_max are enforced; and only statements limit is clamped (1–20, default 5). resolve_symbol requires a trimmed query of 1–100 characters; get_fundamentals accepts a deduplicated subset of profile/key_metrics/ratios defaulting to all three.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L146-L239",
+          "version": "repo-lines-v1:sha256:909d5099a0b2687c6ea0114f7ab00af8e4a72033fc70154bcb239f0a59da74ce:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZWFlZTM4YTVlYzc1ZTRkMzI2MmQzMTc3ZDI5YTlkZTQ4YzgxYTlhY2VkZDkzYzZlZDhiMTllZDU1MzkzYjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNjAzZTg0YTI5ZGFhNTI2MzM5Y2UwZjQ2NDFmOTMzZTA3Y2I4MzIzOThkYzJhMTM3MmY1MzUzYTM0NzJhMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkZGM2ZDQ1Njg0YjQzZThmMTYxYzhlNDliNWQ2MDU5MjA5MjA4NzE5YmEwZDYyY2Q5ZTlkMDZhNmJlOTNiM2IifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/options.go#L93-L119",
+          "version": "repo-lines-v1:sha256:458bf2ddf22d8ed44572149cf894a9f895df987d85358a4619df61347164727d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NjExZGFhMTQ1MjkyN2ZkNjM4OWUyMmYxZTFlNzU0NGEyYjhhZjhhMGZkMDRkNTJjMjY1NTczYWMzNTJlOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2MDRiMjQxM2MwNzc0YzhlNzFiZDFhNTQxNjU0YmYwMzc4YzMxMjZhYTFiZWQwZGE1NDI5ZmIwZjUxMTVjYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2MmQzODczZWYwZTMyNzE1OTFiMDM2MmFkYTkzMTRmYjRlZDkwNmYzNDg2MjJjNTZjMmNmMzY0ZWJlZjM0OTAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/prices.go#L128-L166",
+          "version": "repo-lines-v1:sha256:dea5ad2a362f63090f0db3f598c3d97a0f7a6b5b2ce6f45046fb582b067b4ad7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYTBmMTE5MjBkMGRhOTgwODFmMDg0ZWFhNWE2YmU4MGZlNzE1ZWQxNTc2ZTE4NmVhYTlmMDhmYWUxZTViN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNjAzZTg0YTI5ZGFhNTI2MzM5Y2UwZjQ2NDFmOTMzZTA3Y2I4MzIzOThkYzJhMTM3MmY1MzUzYTM0NzJhMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmMjQwMWUwMTJhOGQ5Y2M1ZTliOTc3OTQ3MDA2Y2U5NWM5NzY5MGI1N2ZhOGNhNGY1ZDdlMTY5OGMyYjgzY2MifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/prices.go#L211-L271",
+          "version": "repo-lines-v1:sha256:0e49379199f834a7235d058d9d39783afa51bc8316708789df316e312c4ff2cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTllNmQyYmMxODZlODJhOWFmNzVlYjU1YmNlOThhNWU4NTc1MTU3OTA3ZjljZDBjMjQ1M2M2NjA2YjZkMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0M2FkYWI3ZWU4NjhkYTNlZGU0YzcyYTU4ODBhNTlmNGQxZWZmM2UwZDhlNWM2OTk3YTI0ZmI1ZGQ4MDg1MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyYmVmNjI0YWNhY2Y4NTM4MGI4MmZhZWMzYTUwMTNmZDhhMmMxZDY4YTJhMGYzMTY3YzJjM2ZkYTg3NDRmNWUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L30-L44",
+          "version": "repo-lines-v1:sha256:8993f5387fbe50d8a2e72066b930648c2c96496f0db6c3cbf0a80c9a689ce440:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZjEzMzM4ZWQ4ZWM0N2YwZDM5MGI0NDc4NTA4YWNlMDdlMDhkMmM0MDUzY2FiMzdhZjFhNDNlNzgxODJjODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1ZDg0MTRhZjg3Y2RmNDhmYmRjMzBjZTA0Yjg4OWFhZTYwNmQ3MjNjMWZhY2ZiMDMwZmY3ZThjNDQyNjgyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyYjYwZDEzOWI2NzRmMzBiNjNiZDcwMTVjYmY0OTY3YjY4NzdhOGE5NTIyNjFkMGUwNjgzODY3NzA1NjZjMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlYjZiZDhhNWQyNzcyYzVmM2JjNzQ0ZjI5NWQwNDBkZjI0ZTY0NDdhNmRlMGNmYTA2OWVmZDk1MTVlODIwNTQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L986-L1078",
+          "version": "repo-lines-v1:sha256:9fe3f4cb274d8d621adf378387582b4bd39110eaa6bef4ed8e6eeaaf80facd8a:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4NmY1YTNkN2IyZDhmOTkwOWE5ZGQ0ZmQwZGUxMWMxNmU2NjIxZTFiMDBiMjczMGY3YTcxZjZiYzViYjU1MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols.go#L68-L81",
+          "version": "repo-lines-v1:sha256:3cf8d6b09ac7edaaed2fd55a3304346977102f1a868b066dbe1279b6a77e5af9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZDU4OTQzNmY4YTQwMWZiOWJkYTI1NTUxYTk4NGU5NGIxMWU0Y2M3OTAzYmMwYTg0ODkzNGRlMGMxZDhhNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNjAzZTg0YTI5ZGFhNTI2MzM5Y2UwZjQ2NDFmOTMzZTA3Y2I4MzIzOThkYzJhMTM3MmY1MzUzYTM0NzJhMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZWY2ZDg5ZjE5NTVkOTc0YjQ2ZWU3Zjc4ZTMzOTlmZmE0NjM4YTA3YWI1MTI1ZTMyZGVjYmQ4YzA3YzAyN2EifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/validate.go#L15-L137",
+          "version": "repo-lines-v1:sha256:6c675764709dae219cec9bd22ec5a72d4743261f97d42204d3c6bd1f5e75ad90:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1OWMyODdmYzljODdhZWRlYjY2MGFiZDdiZjg1MjFiZjQ4NDI0MmZkOTBhMjIxMjZkMzIwMDFjNzY0ODRiOWMxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4NDAyMDQyNmI3NWZlZmJjZTA0OWNkYTZlNWYzYTE1MTMxZDlhMWExMzM2NWY4ODlmZjBkNjc4NTYzN2Q4MTBhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_878a2eae7b5448b389dc2e4099f0df01",
+      "statement": "runTool in internal/tools/registry.go is the single place that maps backend outcomes onto MCP results: success returns one mcp.TextContent holding JSON-encoded payload (the typed Out is always any, so no output schema is inferred); ErrNoData returns a successful result whose text is exactly \"No market data is available for this request.\"; ErrValidation returns result.SetError with the parsed, agent-safe validation message (falling back to the sentinel text); ErrConfiguration and ErrProvider return result.SetError carrying the generic sentinel text; a prepare failure returns an error result with the handler's own message and never reaches the backend; anything else maps to \"tool call failed\".",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server.go#L25-L42",
+          "version": "repo-lines-v1:sha256:8f5d5daa9208a9935ce74559920ca8b79a0b6950fe33be8e64d507aeb533f42d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyNjE0NzYxMzlmZTJmMjViMjgwMTBhNTRiZTQ0MWRjOGM0YTA3OTg2NjcxODBmZGQ4NzBiYmY2ODRmMTNkNDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1OTg1N2Q5NjgwMzhiOTI0MTA0ODg0Yzk1MTFkY2U2NmJjZjZkMjUwMjAwNWJkYzU3Y2E5NmZlOTMyNGQ0N2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZDU4OWU3NmFlYjVmMjBhOGVlNDAxZjg3ZTM0MjM3NTRmNWVhZDgyNTEyYTZlYmJkM2UzNzM3ZTFlNTgwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlNzNkMGRiYWJiMjI5Y2Q3YzdjMDI2ZDU1NTU2MmMxNWY1YzBjMTU1NzljNGM2NjkwM2VmNmRkZmE3YjdiYmQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L82-L231",
+          "version": "repo-lines-v1:sha256:183ca7bf54af07f498836555762e7ce112a2dec10c3daae085b97279e5d2001a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYjI5MjA1MjFkMWQ3ZDNlZGZhZjBjZDQxN2ZlZjA3OTNmOTY2ODBlMTRlMmNlZmQ5MTNiZTljMTIxZTA0MzdjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjYWYyOWE3Y2IyYmIyZDZmYWFhNWNkYjZkZGE5ZTZjZmI1ODJhOWM5NzY3YWQyNTViODYyMjI3ODc0MWI4ZWI0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L547-L593",
+          "version": "repo-lines-v1:sha256:0c1d2cf40d37b00a34c2a613073516e1be208497d6ff66e85f432c3a2b1a0435:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxMzAzYTUwMGFhODA1MTMyM2ZhYWJjNGJjNGQwYjFiM2JjZTMzMGJlZTc2YzVjMDk5YWExMWJhZGM1NmNkNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwNTQ0YmM1MDMyYmVmNDJmZjZjOTAxOTkxYjU5NWJlM2RkNWU0ODNkZmZjNWY3ODFjZTk2OTViOTkxZjcxZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ad7174e6a36a43f8af5b62aa3364b6ea",
+      "statement": "*backend.Error keeps Error() equal to the generic sentinel text and exposes the status, the truncated raw body and the parsed 422 validation text only through Status(), Detail() and ValidationMessage(); Detail() is documented as Go-side logging only and is never forwarded to an agent, while ValidationMessage() is the single backend-derived string allowed to reach an agent-facing result.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L36-L76",
+          "version": "repo-lines-v1:sha256:52310efbadea22c1ddc468364aaddbc44eca28254812bafa8dd14724a263efb4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4YzE1NWZlNmY0YzY1ZjZmMDM0M2VkMGQ5OTc3YjdhOWE3ZmVhNzcwYjUwZTZjNzNmNTE0OTZkNjQxZGQxZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1NTZmMjZlZDgzMjZkYmI0NDBiZmJlYjcwMDNkODM2MDJlOGI3Y2VlNGZlMGExNTI4OWU1OThmOGI1ZmY4MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkODgzZjY0YWI2ZDJjZDE4NDZjZjcyYWQyMTU3NzJlZjU4MTQ3ZTA3NGMzNGE0MjQzM2ZjNTE4ZWIzNDdiMDAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L697-L741",
+          "version": "repo-lines-v1:sha256:55024acf5a1672fe082c3afe1f92c55c67d92cc51cf095c898dfbce59342d066:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2N2RkMDcwM2ZhNGUxM2NhMjg3OWNhMzEzNzJjN2M4ZWViNjMzNTI4NTc0ZjAxMWMxN2YwNjdhODU3NWRlNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyY2M2NTMxMDc4YTJmOTEyNzllNzZhM2U1YjA5NmIzZmRjYWMyYjlkZTZjNzgwY2YyN2IxZmEzZTU5MmQ0OGIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L123-L150",
+          "version": "repo-lines-v1:sha256:fe2cc4d8571e1885064be6f9338420a09b77e341a28201b08dde57058a396820:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzZDE0MmQ1OWVkOTA3Y2Y3MWJjM2E0OTA0MGU4NzNjMGM2MzU4NmMzZmUyMWM4YjA1MGI3NWRmOGYxM2ZhMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTVlOGVjNjhkYjA4OGQwM2FiZmRhMGU5M2M4MTRmY2M1MTU3MDAzOTZlYjAxMDNjMmJhZTU1M2EyOGM4NmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3ZDVhMGViYjQ2NTVjYTBiN2IyMWJmMzEyMzJiZTcxZmFjYmQ3OTc4OWZlMzZhMDhjNWNkYzIyYWQyNjE5NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3MTEzMWYyM2FiZDQ3ZThiZjcyYTllMTc5MWJhYWY0Y2U5YTBlNjYyNGFkNTJiZjdjMjU2MmQxZDU0ODEzZDAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L567-L590",
+          "version": "repo-lines-v1:sha256:cda411509243ac020c850ee9431e28ea52983731a1e24fe0c6b20861afebee64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNWUzOTEwNTU1NTNkMTQwNTFlMjJmYjMxOTk2N2EzZTA5MmQ1Mjg5ZGY2OGI0N2FlYWUwZTI1NjcwOTNlYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMmU4ZDNkNzYxZjMxZWQ3YWI2YTI0YjRlMGMzODJmZGFmNzYwYzRhMDgyYjJiMjU3YTE4MDFhZjIzNzlhMjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNjdmOWU3ZjQwYWRjNDljNmYwMzRmNTQ2ZTUzYjdiNzkwYTI1OTI1YWVmZWJlOGMwN2NkYjE3M2Q3OGRjN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4ZmM1NmUzOWRlNjQ0ZWM0NDdhZDM2NWYxMTI1YTM5NTBmMTA1MTM3NzZkMDU5NWM3OGFkMzEzNDc3ZGIyMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_98e905cbfb79420eb2adbf2a62975337",
+      "statement": "Every backend failure is normalized into one of four sentinels matched with errors.Is: 404 → ErrNoData (no data for this request right now, which may be a cached empty result within the cache TTL, so it is never phrased as an invalid symbol), 422 → ErrValidation, 401/403 → ErrConfiguration (service token rejected, an operator problem), and everything else — 5xx, unexpected 4xx, a non-JSON 200 body, timeouts and connection failures — → ErrProvider.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L78-L101",
+          "version": "repo-lines-v1:sha256:0f8e139d20acc4ca1f31ddc35efcf6a08531f9b8a685de48bc2e419e66918f4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmNGY0YTJhY2EyYzJlMDViZjUxODZhYmU2ZjY2NWIzNjA2YzE2ZGNiNTUwYjBhZmNjYWY1NmRjMDE1Yjg3YjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjZjIxYjNiMWRkNDA2OGM0YmQ1ODA1ZWIzMTY3MWVkZmZiODU2N2U4Y2MyZmEyMmY1ZmJhMzRmZTQ1MGQ4OTIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L381-L411",
+          "version": "repo-lines-v1:sha256:be23d4bd89ceb6e51dc1022ee6778943276d72e3cd955241dabdf3aeef7f05d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YmI0ZWFhNWQxZmMyZjc1ZmM2NmVkMTYzN2Q5ZGY1MGM1ODNmZjQ0MjBlMjA3NzM2NTU0YTI3MGIwMzQ0ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNTYzMWFhZmEwY2JlMWM1ZGQ4MjdiZjEzM2ZkODRhNGUzNDU1NmYzYjY1N2JlMWMzMGE0ZTA5MjhlNDViZWUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L236-L264",
+          "version": "repo-lines-v1:sha256:cfa52918dc96492d9f751761c31cb121b5c36d4e29e66bb1f9808e3c8d29bb37:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxNWMwNzhjMzVjNDgwN2IyNDg1ZDIyMGZlYTBkOWY4OWU1YmRiNmVkM2MzMzNjN2Q5YTQ0Mzc3OWFjYmY1ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNjEzZTY5ZDc0NDZlNDNmM2I2ZjA3Yzk2OTE2ZjY0ZGE1ZTJhMjRiNjNkODFhZTE5ZjA3MDA5OTg0Y2RkZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2MzFiNmUyY2EwN2Q4YmFmMGViNDRlNzQ5ZGJmNDkwYjM5MmUzYTUzNGVmNjEwMjI3NzExNDZjZGY5YWYxYTIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L260-L358",
+          "version": "repo-lines-v1:sha256:18ddc61e1c5cd47dc64d2a23bb378055dcedcbef0e35d0bf2ca5634454ac9240:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2NGQwODZhMGI0YzdkOTk2MDViODY3YzQ5ZjE3YzAxNTA1MjYxMzg3N2UxMDEzNjBmMzIxYzdlZWJjOWVhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTJmMDg4MjFmYjBlN2YyN2I4ZTZjYjM5ZWY4ZDAzMjI3YTQ5N2IyYTU4MjY3MWYyYjhlNDExNjYwZmQ5ZGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_68be8f2dc4e6444a83817359308ad594",
+      "statement": "For a 422 the client parses FastAPI's {\"detail\": ...} envelope in either shape — a plain string or an array of {loc, msg} objects — drops the leading request-location kind (body/query/path/header/cookie), joins surviving messages with \"; \", preserves numeric array indexes, and falls back to the generic ErrValidation sentinel text when nothing parses; the result is truncated to the same 512-rune limit.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/errors.go#L103-L178",
+          "version": "repo-lines-v1:sha256:f1c2313d1b09dde8e5633e51964b80ed501ac055f2722c34e9c5f5129783ef6d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0M2RmNmIzYjA2NjExNjI2OWZhZWExMWFjYjhmYzk1YzQ5MzQwMzYyZGVhNjVkM2YzZGIyMmE5ODk5ZGU4MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4YTY3YjYzMTk1MDEwNjQzYmNhYzllNjczZTJmM2MyMGVmNWEzM2M4MDgyYjM4NzcxNTBlODllYmE1MjRmZTcifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L413-L456",
+          "version": "repo-lines-v1:sha256:536bd8dab51792eba9d00f577e6e66a21ce3e9a86c4e99ea19885110113023a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmOGM4OWM5YThlMTM1NTgxZGZhYWIzYjFiYTJlODczM2FkMmRkZjc1NjgyYmRlYzY3YjU1NzA5MTkwYjVlYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkZTM4ZTNjMGJmZDVhOWMyM2RjYjNlY2Y5YmM3NDNjN2YxNjVmNjkyOWNmOWZhZjRiZDZjYzNjOWZhY2QxNjYifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L276-L283",
+          "version": "repo-lines-v1:sha256:44e66e9be4d482d7f7e32c4970e99ea8560f2fae93b07a28f2d64e49fdf71e84:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODliYzc1MTFiMjJiNTM4ZGYxNDI4MzM3NTFkNGEwMzc0MWJiMjgzOTNiNDNmMTlmOGQ2NmQ0OTFkYWY1MmQ5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJhZDdjYzJkZmFmYzIxNzVmYTJkOTcwNGUwMjAyZjk0MDgzYTlkYTY5YTU4NWIwYjE4YzQ4YmVhMjM2Mjc1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZmMjRmNGUxZDUwYjBjZWM1NjVlNzBhZjk3OGJlNmQ4Njk3MGUxOTkwNTkzOWM5NDA0ZmRhZWVhYWRlOGRmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGUzM2YzOTBlODlkMGU4YWEyODFlYzhjMDE1OTY5MGZhNjVlMDAxMjIwOTMzOGMzYTM2OTNhM2VhNDY3YjJiZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6353113772a64c8195b365fafc047880",
+      "statement": "Two tools synthesize ErrNoData client-side rather than passing a backend 404 through: get_fundamentals returns it when every requested section is absent or null, and resolve_symbol returns it when the search list is empty. resolve_symbol also ranks candidates locally in four tiers (exact symbol match on the preferred exchange, exact symbol match anywhere, first result on the preferred exchange, first result) and returns best_match plus up to 10 alternatives in backend order; its exchange input is used only for ranking and is not sent to the backend.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L106-L132",
+          "version": "repo-lines-v1:sha256:5b83cf8cb101a5510e75483bfe30e78a6d20e024a8a2a85545c13f19fd8bfbca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlNzhjYmNkMmQwZDZlZjFmODdmNGVkMWFmMGEzY2JiZDMwMWIxOTQ5Y2ViMTEyMDA2ZTQzM2FhOTgyOWE2YWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNDQxODU0YzNlZTQ3ZjliNTI1MzkwYjkxZWFiZTdjNTE2OWE4MTU1MTgwNzRiZDgyNWUzMDMyMGIxMjQ3OWMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols.go#L101-L176",
+          "version": "repo-lines-v1:sha256:00810633614bb35a5179d862c7e24ac6249f217e3cb59f98a01c8dabf5535555:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzYTUxMWY1Yzk4NmNkNGRjN2UzZWEyMzYxOGExMDgwNDBiZjA5OTQ2ZGQ1OTI1YTI5YTU4NWU0NDY4ODg0YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZTMwODIyNjI1MWUyNzY5ZDljOGNmYmM2Nzg4ZjQ5YjRlZTY1YTIyZGIzN2M2YWU3ZjBkZTFiOWIzMGQ3ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1YTliMTgwOGMxNTdiNzJmYTY4NjNiNjI2OWIzNmYwZDBmNTljOTNiNTYxYmFmZDk1OGE0OGFkMDYzMTJkYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols.go#L30-L56",
+          "version": "repo-lines-v1:sha256:99e37b54a168e048ead8e3b66fb7050b6475174c83e45884d9c1480927f0911d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyZTA2NTc3NDU1OTVkMTdlYTAxMDRmOWMyZjJmMmViOGE4Y2Q2ODdkMTE3Mjc1ZjM2ZGFiMWRiNDQ1MGY2M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyNTZiZDVhNWViNGZjOTYyNTUyMWUxNDRlMTM2OWU0OTE2YmRjNGMwZWJkYWVjNjE0ODcwMGEyYWQ2YWQ4YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyY2Q4MTYxMzRlYjRhNzQ2Nzc5ZTNhYzA1ZjBiNWJhNjBiMTIxM2JiMjg4ZTgxOWE3YzBiZjYwYThhYTJiOTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_94fd8725a3fc4364846fb8afe534ff9a",
+      "statement": "Result shaping is deliberately uneven: get_quote, get_price_history, get_technical_indicator, get_option_expirations and get_options_chain return the backend JSON as-is (including decimal-string currency values and the options truncated flag); get_fundamentals is filtered to the requested section keys with absent/null sections rendered as JSON null and unknown fields and exact numeric representations preserved verbatim; and get_financial_statements decodes the bare list via backend.DecodeStatementList (every item must be an object with non-empty date and symbol strings, all other fields untouched) into a statementEnvelope echoing statement, symbol, period, limit and optional exchange, where a decode failure is a generic provider failure rather than \"no data\".",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market.go#L284-L325",
+          "version": "repo-lines-v1:sha256:fc38ffe197f550a193b226e8fe502d62d2354e7e18bcce1dd78df661e86b661f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZWRmOWEzMGYwNTA5NTc1YTMxMDM2YTQ3NjhlY2FjZTE1M2M3OGQ0NTU1MTI3M2M1ZWI3YjliOGM5ODhmYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlNmFhYzJmZWU5OGFjNTgzNjEzMjYxMzk0YmU4YjBiNmVjNTQyMjUxOWU5YjY1NmZjNDAyZmRlMzAxMWY0ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L204-L212",
+          "version": "repo-lines-v1:sha256:2e4e630dd1f4c001cecd20e40cfb6494f2520318ebac8e0f51849d9779bef765:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTE4OWExYTQwZjcyMjViMDQ1NTUwZmY2ZDc2NzBhMDQ0MDhjNDZhYTQ3MzdkYTY2YmUxNjYyYjMwYmU5YjA0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2U0ZTQyZjcwNDAxN2JmZjExZWI4NjE4NDVkMzJhMDQyNGE2Nzg4YmExZTc0NDI4YWIxMjYwMmM4YTNmYTJmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWJkYmYxZGRkZjU3NTBjNjZlNzk1ZGI3ZDYxNzgzYzUzNGZlNDg2YjJmNzQxMzE3NmYxMmJkZmQxNWVlZGU1OCJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L64-L132",
+          "version": "repo-lines-v1:sha256:25c07c9c598a9ab80a034a5514350b9ed66bc23a467bd3b670a4744b20f41f9c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmMzZiMzgxMjYwNDFjMzc1ZDhmOWY2MTI3MmQwNTVhNjBjNDdkY2U5NjMzZGEyOGVkODllMjE0ZGYyNWIwMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4Yjc5MDA2ZmJlZGRjN2VkNjJhYmRkMzdjMDJmMmM3NmU1ZTNjYjY4ZDY4OGNjY2Q3M2VkNWUyOGZiZGE3ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNDQxODU0YzNlZTQ3ZjliNTI1MzkwYjkxZWFiZTdjNTE2OWE4MTU1MTgwNzRiZDgyNWUzMDMyMGIxMjQ3OWMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals_test.go#L236-L330",
+          "version": "repo-lines-v1:sha256:b99e01a0ddcf0edd6f81b92416f4f45d956c4585eaf7a8ebe403eb18b92a6dfa:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZjE1NGM5MmE3ZTFjZDQyOTQ3MjBkYjc4OWU1YjBjYTc1MjMyNmFiY2FjNGY3N2Y4OTVmNDQ3NTAxZTEzNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlMmRmM2Q3ZmY5ZTg3NzI1NzFiMTdkNDM3MjkwYzljY2UzNGZkNGY2NWVmNGNjNWMwYTQxOGMwODFlZjgzOTUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals_test.go#L331-L396",
+          "version": "repo-lines-v1:sha256:a6aa0a92eada9e793d69bc0d1645ba99e6811f3f78fac029514a5884fd7e3ab8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzYjg5MTExMDU3Nzg5M2M5NjYwN2Y2MWQ3Zjc4MzhlMGZmMWM4YTBhY2NlYmYzMGE1OTY3ZmE1MDA3MTI4ZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YTNmNjg3ZmFjYmM5YzVmNGViNTBkNWU0ZGFlMTk2NWQ5Mzk1YzJjOWY0NjBjMmJkY2IxZWQ1ODg1ZDM2NDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bbf182bd5e2242f682817dd9fd1048da",
+      "statement": "Tool descriptions follow an enforced four-section convention — \"Use when:\", \"Examples:\" (at least two query → parameter-JSON lines), \"Returns:\" and \"See also:\" — and the surface contract test also requires resolve_symbol to say USE THIS FIRST, get_price_history to state the 2,000-bar cap and suggest interval, get_options_chain to explain truncated plus how to narrow by strike range or option_type, get_quote to mention timestamp, and every See-also target to be a registered tool.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/fundamentals.go#L23-L61",
+          "version": "repo-lines-v1:sha256:723386782ef810dd20f756980827811b3a5ecd51f3c195fde46ffae838a5d233:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YjRlZGJmNTJkYjIwMDllODYzYzJjMDU4M2FhZjc1Y2MzZDBlYTk3MzE3OWFmYTQ1YzM0YjNkNDdlMGZmYzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYTgwZDcxYTZlMDRjZTViZGU1YWVmNDExY2U3Yjc3ZTAzM2Y5NWE2MzEwZmI3ODAzYWMwZDljYjMxMjI5MGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmNmIwMmZjMWJhZTUzN2VjOWI2Y2Q5MGY2NzZjNTQ1MDMxZTEyY2RkMTY5ZTI5MzY3YTlmZDQzYmNhZDAzMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0MDk0OGE1NWUyZDJhNjYwMzljNmI1YjI2Yjk3YmQzYTZkMTE0Mzg4YzUwNjQ1MDZkYjYxZWE1ZGY2OWNiZjgifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/options.go#L15-L52",
+          "version": "repo-lines-v1:sha256:2986d20afa55c79c0189a7f4411c3eaa870d8882ba08669691815862c8757f57:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMGU2YzUyN2EyZDFmNmU3MzE4OGM0MDI5NjdmZWVmZDRmZGUwNWUxZWYyNGQ2YjQzNjcwYzM3MDcwMmE3ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmNmIwMmZjMWJhZTUzN2VjOWI2Y2Q5MGY2NzZjNTQ1MDMxZTEyY2RkMTY5ZTI5MzY3YTlmZDQzYmNhZDAzMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMzJlZDkwZWFiMjc2NGMyNmVhMjRkYjcxYWFhOGM3MjkyZDA0Yjk1ZTdiNTRlYmY2ZjFmMGU3YzMyYTA1ZDEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/prices.go#L14-L77",
+          "version": "repo-lines-v1:sha256:3c9d698dbdc3311c2d2e6af14e32c22b2f25a7a3360fd2130bdc7ea6a50fe747:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwZDk4NmIwZGY3ZTljNDdhYTc4MmIwNjYwOTQ2OWJjOGVlY2E0NzYxMmI4MzhjZjgyOWRkYTRiY2RkZDMzMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYjhhYWFjZTY0OGU3OTgxZWY1NTcyYWU5ZjI4YWY0YmJkNjgwMTVlMjY4NGI5YTc4MDNlNDViNzgwNzg3MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmZTQ4N2Y5N2YzYWMzYzM1Mjg1YTViMTdiMTg5YzBiZjg1NWU4NjAwZmYwYjY2YWU1NmU2NzBkNjRkZmEzYzYifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1514-L1613",
+          "version": "repo-lines-v1:sha256:239735966e55a54876cd8cdc0a55207eac17f4c424d73354944a4b142a0bb244:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1ZDAyMTQwNDAzZTE2M2M4ZTc2OGJmZWY2N2E1NTM4MWI1ODNlYTRiNDFlZjQ4ZWFkOWJhODZjZWI1MjhlZGFkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMmYyZmY1ZmVlYzYwZjU4N2M4ZmFlNGU4N2Y4MDlhNjYxY2ZmZWQ2YjQ3YWFlNWY2ZDZhMjY1M2FhODk1MmVmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjOGJmZDhiYTRiMDAwMGI0NTU4OTA5YjAyOGEwMDQ0YzZhZmQ3YThhYzRmZTRkOTIwYjY4N2JmZmY1N2NmZDFiIn0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/symbols.go#L13-L28",
+          "version": "repo-lines-v1:sha256:0e7c939fa3bc4d65429541a0ffb99991b7728b64e6e0a895e0623a259477d7f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ODA5N2ZkNzhlZjhjNzM3MjhjYzA1NzJkNGE4OTVmMWUyYjU2ODY4NWY5ODQ1ODMwMWU0MmY2MmQ2YjJlZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkODNkNzMxOGJlZjYxNGE2ZDcwNTY5ZmVkMzNiYWIwYjA5NzFiZTAwMTVjY2EzNTE0Yzk3MjJlMmRkNjYwZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYjhhYWFjZTY0OGU3OTgxZWY1NTcyYWU5ZjI4YWY0YmJkNjgwMTVlMjY4NGI5YTc4MDNlNDViNzgwNzg3MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4OGE2MjliYjhmYjk1OTM2ZWM4MDliMDNlNGFiZDg1MTliMDYxNDFjNTgxYTJkOTczZmQxMzYyYmI5MDYwZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae2c8130f9504fecbbf76f9dc3d5e2eb",
+      "statement": "logging.Init installs the process logger via slog.SetDefault: ENVIRONMENT=prod selects slog.NewJSONHandler at INFO, any other environment selects slog.NewTextHandler at DEBUG, and a non-empty LOG_LEVEL overrides the default level for the active handler (DEBUG, INFO, WARN/WARNING, ERROR).",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/logger.go#L35-L83",
+          "version": "repo-lines-v1:sha256:7dcfeb3798f565354ae94b6a35e00d580f797aa56b5d01677db752ca70260ebf:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMzMwNTY3NmM5YTI3Y2ZlNmE2YzdkMjIyMzM4NWNhNTc4MzkyMTczMjQ3OGJlMDc4MjNlYTlkZmRiMjU0YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/logger_test.go#L56-L183",
+          "version": "repo-lines-v1:sha256:c00ba92cd61cdfa3c28f2b598bbcabede040e410ac1bd9591e0e27aae2d271d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkZTY4NTU3YWYyNzYzMTA1YjAwNTAwYTM2ODJmYzA0ZmYxZTViMmE1YmFiMDg2NzFkMDg2OGNlYmZiMjE5MDIxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjNTI1M2I0YTQ3YzhlNDg5OWNiM2IxZTc5ZWZkMGNiOGQ0YzVmNDBkNTJlMjBlNmVkMTRiMGQ5ZmI1NGJmNzM1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_08c60a63d7ab46e299287a6f4fb6cfe0",
+      "statement": "logging.Middleware wraps the whole router (both /health and /mcp): it always emits one INFO record per completed request with method, path, remote_addr, status and duration; in dev it additionally emits a DEBUG record with method, path, sanitized headers, query and up to 64 KiB of request body (the body is read into memory and restored so the handler still sees it); and its ResponseWriter wrapper implements http.Flusher so streaming SSE responses are not buffered behind the middleware.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware.go#L38-L119",
+          "version": "repo-lines-v1:sha256:23e40909ac4bab7d12bc3373129d4e691818c6953bc85bf717c16e2d3f9c967c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlOWFjNjhiYWRhYzU0NzgwZjllNjM1MGJjYjJiNmJjNTZjY2VlNGU5ZjExZWU0NTA5MWJhNmFmMDJmMjhlZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNjYwMjJkOTM2ZjgwNGM0M2ZkODRkYTU5NDUwZWJhMDg3ODBkOTAzMjg2ZWM4OThlZjBmOTQ3N2M5NDI3ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware_test.go#L132-L226",
+          "version": "repo-lines-v1:sha256:07f59d6abedd813faf1950af991aff5fa4366bc196def3b21fd07c6386f61300:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NjlmYjRmYjRjM2RlM2VhOGIxOGRhMjc5ZTRkYWU0MTkyY2IzNDE1OTc0NzVjZTllMDU5NWZlZWNjNmU0NDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZDIxMmVjNjkwOTdhZDI1Njk0YmRlODA3MWM3MDkxMmI2ZWFhYzNjZTMwZTY5YjRjMDJlYzIwYzJjZTY5YzAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware_test.go#L23-L130",
+          "version": "repo-lines-v1:sha256:397628faf06732b3d694bf5771214eebbfe8f048e0b3bfdcaac3d03d13b1b3f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmFjNWY4OGRmZmQ4Zjc1MjEwNDBmYmRiODE3ZDc2NjdkOTkzNmE4ODhmOGUyNDkyOTc0YzcwNjNiM2IwZDBlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjOWZkMGYzYmFmYTQ0NmIxMTRhZjk4YzgxODgyMDQ1MTRmMmM4MjQ3MGRmMTIwMDI2OTMzYTU2MDQwOTgwOThhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMDQ2OGYxZTU3YzgzOWJiNWQ1ZWViNzg2Zjk0NzM2ODFlMmYyZmRhNjdiYjBhYTljOTBjYjJkMzdhZjUwMzYyIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_47bb57c21d0a4fd9a3b87744131f2a42",
+      "statement": "Sensitive header values are replaced with [REDACTED] before any header map is logged, for exactly Authorization, X-Service-Token, Cookie and Set-Cookie; independently, the transport and tool layers never log MARKET_DATA_SERVICE_TOKEN or any X-Service-Token value, and tests assert both the token value and the header name are absent from debug and error output.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L743-L790",
+          "version": "repo-lines-v1:sha256:5c47c376fed2e975040e12ee0cbf9fad68f1c49142fa6b1a2d7c1baecc275ae2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5OGM0MjQ5OWM0NzlmY2VlNTgyMTYyZjYzMGI5Mjg3YjQ0MTI2ZWY2ZWZmNWM5YWEwMDUyOTZjYWFhOGRkODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYTYxMTMwYWI1YmNlNjVjOTA4MTU2MGJmYzFiNmM1N2FmNDA3ZWQ4ZjdjYmMyMWY3YTc2NWY2YjZiYmRlZjQifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport_test.go#L360-L421",
+          "version": "repo-lines-v1:sha256:d12a09ffda50a13a7b62e37b7df4a39768a855780e61060ed97329273b28aada:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZDM4MjQ3MTM3ODUxYmZhMjQ3NzI0YTQ4MDY4ZmNlMGY0MjhmZWMzZTgzOTA5NDM4YmYwN2ZhNzJjMzg3YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2NzQ3NTM3NjQ4ZDA4YjQ5YjE1YTA3ZTkzZWZmODZjNDM1OGMzODA1YzgwNDI0YjY3OGZjYzYxYTY0YTBhNDAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware.go#L14-L36",
+          "version": "repo-lines-v1:sha256:d82fd2b296b6bcc700c26429fbe15f1ee0065274278c862c04d3da9b4c1a1c2c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4YjE5MDI5MTI1ZDgzMWMxZjQ4OWJkYjYyNTI5ZjAwNmI0ZjJkNzg1MDIyYjFmMDg2MWJkYTg4NGEzNGQ0YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMjAwMGM0ODM4MTIzMmU4OGYwMTk0M2NiMmVjNmEwMTNkMjhkYzAwYzNiNTExNDZiYjIyYzgxNjJhZDAwZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3NjJiNWM4OGY5NThmNjA5MjllMWI3YWY4N2EwMDljNGJkODQxNzVlZGY2OWI1ZjIwMzc2YjhhOWUyODdlZTgifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware_test.go#L132-L193",
+          "version": "repo-lines-v1:sha256:d9082256d00425c08b5d003a379c94523d9a4a11db1a0cc7278afa036d0e089b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NjlmYjRmYjRjM2RlM2VhOGIxOGRhMjc5ZTRkYWU0MTkyY2IzNDE1OTc0NzVjZTllMDU5NWZlZWNjNmU0NDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlNDQ0MTJmZjE3MmQ5ODE3YjMxNDg3MTMwZmQwMmRjNjQwNDJlZWJiM2JmNTc0ZWZjZjg4ODg4ZGY4OWMzYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0df8a7f1934e4fe7bb4e57e5dee234d1",
+      "statement": "Component-level log records are level-gated rather than environment-gated: the transport logs outbound request (method, url, query) and response (method, url, status, duration) at DEBUG, every non-2xx including 404 as ERROR with url, status and detail, and semaphore saturation as WARN; the tool layer logs invocations (tool, arguments) and completions (tool, duration, response) at DEBUG and failures as ERROR with tool, arguments, error_class, status and detail, where error_class is ErrValidation/ErrConfiguration/ErrProvider/ErrUnknown, a local prepare failure logs status 400, and detail is backend.Error.Detail() when available and err.Error() otherwise. With LOG_LEVEL=DEBUG — including in prod — those debug records reappear, so tool arguments and full responses become loggable.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L792-L865",
+          "version": "repo-lines-v1:sha256:b399ea2daa43f74b0665c12eb2171c609296ed8d2852e9e4ac93f8d2e7449084:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlM2IxYWU1YTgzMTk4MWIyNmUxNjZmNDA1YzAyNGIwZTNjYmY3OGI4ODk3OWMyMTZmNGJlODdjZDI5ZjU5ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3YTliNWU5MDE5YzhkYjg3ODNlYzljM2ZlYmIwYTJjOTg2MmY2MWEwNWMzMDhmZTg5NWU0YTliZWQwM2VkYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiOWVmMDdlNzVkZDNhMGU4YTBmNmNmY2ZiNGYyYWViMzEzOTc4OTdkNDYxOWYwNDBlYTQ2NjBkY2JjZmU0YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1NTYzYjAyYWQyMjExZjQwOGEwMWU2ZWVhODg2YzI3YWE0ZThhZDE1ODNkN2FkYTZkNDU0ODc5ZWJjNDZkNTUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L199-L248",
+          "version": "repo-lines-v1:sha256:624c4e1db1e757d042182016ae958ea542f95a7957dfb637015bd9f0fe8711d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5M2Y5MTIxYzhmOTllODM0NTkxYWE3YTRhMzk3OTlhNGRkNzJiMjAwN2M1MWViNjJmYjBkMzQ5MTVkN2QwYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyMjRiMDljMzIxNmM2YmE1MzdlMjM4ZjA1MzNkMGIxYTNmODc3N2E3MmQxZTI5OTExOWRkMTgyMzg0YjlmYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyMzYwOGQ0MTc4YmRhOGEyNDQ5Mzg3M2QzNzI1NWU0NjkyNjhhYmNiNDAzYjZlMDQzNjI0MWY4MzRlOTk2MjUifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry.go#L92-L151",
+          "version": "repo-lines-v1:sha256:d13e2385af93381507a98264949eafd5fb09a6d45d97a9d69a52a1ab98b55e59:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiZDYwNWI3YzdjZTJjYmExMWRmZGE0NGE2YWY4NjhmMWYxNWMzMzQ3MmExNzhlOTFlMTAwZTFmYTVmZDIzZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyYWM0OWY3ODkyMzYxZDMxNTdmNmNjMTZhNjYwNWRjY2Y0YzZmYTA3NjZiMTBkNTUzYTk4YzgwOTViZmI4MTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZDc2ZTY0ODdmMWFiY2Q4Njc1YjNjNTUxYTBmZDU0M2ZjY2ViYmY1NDZjNGUxNjM0MWNiMGRhYTE5OTVmMWMifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1156-L1249",
+          "version": "repo-lines-v1:sha256:a99f45b2411dcb94d33d91da8334610adfab136748ddd10edb830a385d4f5c80:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhNjBjZTdlMzQ2Y2FhM2RkYjg3MTVmNmIwZGYwOTgzM2M1ZTA4ZmEzZGI1Mzc3N2U0MGVkMjIyZGZhYWZjMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5N2RkZWZmMzNlZTllOTMzYzIyMTllYzBjMWQ5OGU5Y2ViODY5MWYzY2M4MmY5ZDQ0ZWQ5ODg0ZTMyNGM1NmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmMmU5NmFlYTc4YzNkYjg1ZDllNjk2MDAyNzFkYTY4YTg5YTRiYmQ3YjE3NDBhNWE2N2Y4ZmVlMjI0NWEwMzAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1251-L1300",
+          "version": "repo-lines-v1:sha256:434659b43afd442dc1b5f96e146f9c0781033f6a42b5d2dd366192e65b712ff8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2OGQyNTg4NzlhZDg4YzE4M2E2ZmIxZThkZTcxZTQzZjc0NjBjODIxMmVhYTNlNzBiM2U0MzcxNGNjZmQ0NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhMTFiOTU1YWM1NDUzY2FkODhhYmIzNzI5NWM5MThhMTg2ODA0NjlkYTI1ZmNkZjY5MjRiMzhiZGM2YzdiZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyY2ExN2Q4ZGJkNjEyMWUzMGMyZGRiZWZkM2NmM2EzNDZjNWJkZjBmOTE4Y2ZjNDk0Y2RkMWVlNzgwNmEwOTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ccef5ca7dbb43a69d3fa91786c92c1e",
+      "statement": "Provider-agnostic vocabulary is a hard module rule: tool names, descriptions, titles, marshalled input schemas, log lines, error strings, the MCP server identity and the module's test files must never name an upstream data provider. It is enforced mechanically by compliance assertions in internal/server/server_test.go, internal/tools/registry_test.go, internal/backend/market_test.go and internal/logging/middleware_test.go, and each suite builds its forbidden-name list by concatenating string fragments so the module source stays clean under the same assertions.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L133-L137",
+          "version": "repo-lines-v1:sha256:48d6b3374ddcb64fcc5a2fcbc5c05cf46ef111e66665a738e1019dc3b27953a7:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUxN2U1ODIxYTg4ZTY3ZTY4MTE5MjRlMzM4MjI3ODE2YjI0MmE2M2JmYzdlMjI0NWU4MjBhNzQzZjIyOGQwNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzcxMWIzMjIzMTZlNGIzNDliNzAxZTMxOTVkMmUxNjEyMDM5ZjgzOThkMzFhZjRkZjUwZDJmYTM3NTEzYjQ5ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmQ1N2ZmZDY2YWYxNTQyNTg4NmU5ZTQ0YzZhNDU2ODI4ZDIxOTlhNTNjMjdlOGQyYTczZDIxYzhiYzliYzBjMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzNjZDNkOTRhMDc1NGU5YzEwYzM5YTVkZjBjNWZmYmU4MTI2ZjllNTg0M2U1ZTk5MjA3NzhjZWVkMTk1NzMwOCJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/market_test.go#L697-L741",
+          "version": "repo-lines-v1:sha256:55024acf5a1672fe082c3afe1f92c55c67d92cc51cf095c898dfbce59342d066:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2N2RkMDcwM2ZhNGUxM2NhMjg3OWNhMzEzNzJjN2M4ZWViNjMzNTI4NTc0ZjAxMWMxN2YwNjdhODU3NWRlNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyY2M2NTMxMDc4YTJmOTEyNzllNzZhM2U1YjA5NmIzZmRjYWMyYjlkZTZjNzgwY2YyN2IxZmEzZTU5MmQ0OGIifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/logging/middleware_test.go#L229-L270",
+          "version": "repo-lines-v1:sha256:9a7b67a76ecd54cf9ea0e934c2cc5d7f80359b98e322d86b8909320a8af8571e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5OTYxYmQ2MTUxYzUzMTY1YTQ0MjY1MzgyNjMwNjZmYjI1NTZkMmZlMTY0YWNkNDRhNzFhNzJmMmMwNDNkZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L149-L153",
+          "version": "repo-lines-v1:sha256:c687f8e670952db28697f0e39b660c9c109ef4df6da3f24ff0399a745622eff6:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWU5ODE5MmU5Mzg3NTcxNjRlNjM2OTIzMjY4OTFkYmQxMWI1N2Y5NmMyNWVlNTM0ZDAyNjBmMDI4MjgxYTAxNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjBiOGYyNWMxMjgzNmU1YTUwMGI3NjU4NjNkNTE0Y2NiZDliZjg4OTA3NDA5NTg2NjkzNmIyZGUzNjY3ZmRkNyJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/server/server_test.go#L18-L54",
+          "version": "repo-lines-v1:sha256:42d3ed33b811b35d06fc097cd1ba6f9dd6fec4a31e42999c7b893430835fcf76:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3NzA5OWFjMzI4NTRhZjE2ZDk4MjRhMDBiY2QwNGI4NmYxZGUzYjc3ODUzZGM5NzgyYjYxYmExYWYyMDFhNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMjAwMGM0ODM4MTIzMmU4OGYwMTk0M2NiMmVjNmEwMTNkMjhkYzAwYzNiNTExNDZiYjIyYzgxNjJhZDAwZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmYjE4Njg2YzNmNTNhNjA4ZjczODQ5ZDFhM2QwMDBjZGVkMjY2NmY4MjgxMGMyZjEwZWJiNmJkNTMzOWM5OWYifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/registry_test.go#L1438-L1475",
+          "version": "repo-lines-v1:sha256:5b8e0dd82a60a6ed8db6af798f75f757d0b8f55b685592aadc25656bd3a81d39:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1ZTlhYTBlNmViZjQ2MDVkNWRjMTFhOGQ3YzNiOWMxN2M1MjA3NWQ4NDA5Mjc0ZjllODI2YWI5MjhlZDRjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYzhjODdlNTc4NGY3YmM2ZDRhNTJkNTQ5YTdkZjQ3MGY5MmExNGNiYTdkNzkxNWI5ZWFjZWM5M2Y2NjUxNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjYmM5NzYwYTRiN2YzZjc1NTFkMWI3MWI3NTU5OWFjOGUzMGI3NmE2MTE3MzRjODlhYTMxMzIwNTgwZDhlNDAifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/tools/test_helpers_test.go#L13-L17",
+          "version": "repo-lines-v1:sha256:11ba8e2e2b62279e810ac892fda5f5c94ef891b5536fdb761df1030187a1242f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc3MDk5YWMzMjg1NGFmMTZkOTgyNGEwMGJjZDA0Yjg2ZjFkZTNiNzc4NTNkYzk3ODJiNjFiYTFhZjIwMWE2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZiOGFhYWNlNjQ4ZTc5ODFlZjU1NzJhZTlmMjhhZjRiYmQ2ODAxNWUyNjg0YjlhNzgwM2U0NWI3ODA3ODcwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDkwNDFiMGVkNDZhZjY1MDZiNTNiNDU2MTU4OWFjZGEwMzc4ZjgyMmRkMDA2NTM2ZDJmYjQzYzJmYmVhOGZkZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ef3a6e2562da4ac388c01916be498411",
+      "statement": "Dev Compose declares the mcp-gateway service as build ./services/mcp-gateway, restart unless-stopped, ports 127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080 (loopback-only on the host so the unauthenticated /mcp listener stays off the network), environment ENVIRONMENT (default dev), BACKEND_BASE_URL (default http://backend:8000), MARKET_DATA_SERVICE_TOKEN (default dev-market-data-token) and DATA_PLANE_PATH (default /api/v1/market/data), and depends_on backend with condition: service_healthy so it never starts before the backend's own probe passes. Its CMD-SHELL healthcheck probes http://localhost:$$PORT/health, but the service does not set PORT, so that resolves to an empty port inside the container while the image-level HEALTHCHECK and the prod override both use localhost:8080.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L29-L64",
+          "version": "repo-lines-v1:sha256:fc1e193a9e4f295330bd14562da3c861ba0ee8e5d2875cb521e494ed4f085e9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ODZhM2NhNzc2NmQ4MTdhZDYyZmQ3ODUxZGEwZWY4NWNkODlmM2NjMzRiNDFhYTkzNzc1ZGMyMjQ0YWQ4MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZjg2MWY1YTZjMDYyMTcxZjBmYWNiZGM2MjM2YzQ5OWVjZDk0Mzc2NmQ0MTk2ZWFmZjYxMWE2NWMxNDE1OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyNWJhOWU3MTViODZjZTVlZTdhOTY2MjllZDA1NTc5MDk2MzZmMzI5N2QxOTUzYzZiYjJiNDExODZlMzEwM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiM2Y0NjM2ZDdmYjgxNzg3NTEyM2JmNDhiOWMyZTY4ZGJjOGVhODgzNTVlMGQ1ODE4MTQxNWIyNmE5N2NlYTcifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L125-L143",
+          "version": "repo-lines-v1:sha256:840367053f6b474e8b40ad4b12ccd5d7cb4bb09a10c056f17b136b9c673cf67d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/Dockerfile#L27-L32",
+          "version": "repo-lines-v1:sha256:01a7ed70ad249793fac88727b95bdd9e026bdaee3f72b4d13e67966172a9ec92:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjhkOGY5YjY2OTM5OGFiZTgwNWM4ZDc1N2JjM2M2MTBjYzJmMmE3Njg0NzMyNTgwZWNhOWQ2ZDM0OWFjNDgxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzUyMDZkNjBlOGQ2YTgyMzg1YWU3N2Q0NjBiZDY0MGVlMTlmZDI4YWVjMGU0MzZlY2U1MTg2NzQ0NWFhNWVjMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmE2MmY0OTZkNDliZDc3MTFhYjM5ZGU0Mjk2YWFhMGEwNjU1NzVhMDAxYzk5YWUxMzIzNzJkYjg4NjczNWE0MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ca699aae67248a0b0eaa12c7e7f3c5a",
+      "statement": "Prod Compose publishes no host port for the gateway (internal network only by design), fixes the container name retail-portfolio-mcp-gateway, uses restart: always, defaults ENVIRONMENT to prod, pins BACKEND_BASE_URL to http://backend:8000, requires MARKET_DATA_SERVICE_TOKEN via ${MARKET_DATA_SERVICE_TOKEN:?...} so production refuses to start without a real secret, waits on a healthy backend and healthchecks localhost:8080/health.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L64-L82",
+          "version": "repo-lines-v1:sha256:3590118f38626e1956d11aa458f82eccdb5da43e639309e447fbddb1623fe8e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_196204c4f19f4d0c898c3456ab6963dc",
+      "statement": "The service image is a two-stage build: golang:1.27-alpine compiles a statically linked binary (CGO_ENABLED=0, -ldflags=\"-s -w\") and alpine:3.21 adds ca-certificates, tzdata and wget for the healthcheck, creates an unprivileged appuser, EXPOSEs 8080 and installs a 30s/5s/3-retry HEALTHCHECK against /health. Verification is wired through just test-mcp-gateway (go test ./... in services/mcp-gateway), just lint-go (gofmt -l over both Go modules plus staticcheck and govulncheck in each) and the CI job mcp-gateway, which pins Go 1.27.1 and runs go mod download, go vet, a gofmt -l gate, staticcheck, govulncheck, go build and go test inside services/mcp-gateway.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L147-L211",
+          "version": "repo-lines-v1:sha256:694099eaf9a683b9d0b3fa4e620192e17dfdfab663965e173eff77f9fd8d88b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMzdkNTdhMDRiMzY4YzkxNTc4NTRkZmM2OTE4NWY0YWU2ZGFkODFjNDI2NWI0ZjYxNDMwOTE4ZmQ0MjFkNTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://justfile#L18-L40",
+          "version": "repo-lines-v1:sha256:44469114fa64ac2934c17771e91f1719d4e0e7e7cd59f3364dd2284a2d3a4ee1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjBjYWRjYmJlOTdhNTVhMzgzMzRiNGI2MzNiYjZkNGM0MjQ5ZjZkMWMyNjI0ZGNjMTVlODQ1NzBkNmYzNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYjQ0ZWQ1MGZlZTMwMDJhNjAxNGE4MTg2N2YwMjkyM2M1ODU4ZDNkYzg0MTQ4Nzc4Y2ZlNmMyOWVlZjA2NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlMDJjZTk3NTQwYWVlYWNkNmVhMTBmZDFhMTUyZDc3YmEzZmUxMzc0ZTBlOWMwMTEzNTRmMGFlNmJjYzAxZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhNjBiMTFhNzNhZThiZWY3NGY5ZWIzMjQwZTA2NmJlZDhkYjIxMGYzMzFmMTJlZDg4OGQyN2U5OGU0YTM2YjcifQ"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/Dockerfile#L1-L32",
+          "version": "repo-lines-v1:sha256:63875cb1265ec4ae8d3fdb9ba319049567beaaedff3cad903e4ab8fcc5bc79bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWYwNmQ5NWRlYmQxY2RkZWYwZjliODMwZTNiMjUzMzY1YmVmZWQ1ZWY4OTA3MDE1ODBjYTJjOGU2YzFmMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1MjA2ZDYwZThkNmE4MjM4NWFlNzdkNDYwYmQ2NDBlZTE5ZmQyOGFlYzBlNDM2ZWNlNTE4Njc0NDVhYTVlYzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-15T13:03:07.448Z"
+  }
+}

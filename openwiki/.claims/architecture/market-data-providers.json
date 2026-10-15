@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:aa364268f1b6c41e2b28bd259f8934e1f0d9953222537e551a67073fc7044a00",
+  "claims": [
+    {
+      "id": "claim_c6a0cc3c52a047b5b504e4d9e8d752ce",
+      "statement": "`src/market/gateway.py` defines the provider-agnostic `MarketGateway` ABC with four abstract price/search reads (`search`, `get_price_on_date`, `get_prices`, `get_intraday_prices`) plus optional capabilities that are deliberately non-abstract and whose default body raises `MarketDataProviderError(\"capability not supported by this provider\")`, so a provider that only serves prices and search stays concrete and instantiable while any caller still gets one neutral failure instead of an `AttributeError`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/gateway.py#L28-L99",
+          "version": "repo-lines-v1:sha256:292fb54cfef9031a8ab2e371bf7cea2bd0ef60b3cce8ad387f89985c14b05032:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYmEzZTVhZDcyYjIzMGY2MDUxYzgyMTJkMzU2NWNiNmMwMTI4MjZiZjY1MTc5NzU2YjkzYjYyMWVmYTUwMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWRhZmNjOTcyOWM1ZmY1MTg0YjU5MzEwNTk0YjVjZjc0ZDU2OGI5Yzk3YzRiZDIzMDgxZjk1MGQ3MGI5ZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0ZmYxOGMyOGM4MjU3ZTdjMjE3YzZmMWY2ODUyZDM0NWVkYmFiOWY0ZTMyYjRkNWU0NDNkMGFjOTQ0MzY5NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZWM1MTcwMzM1ZmFmM2UwYTlmYTE5MTNiMmIwNmY5Nzc1NmVkZTljMzZmYmEzMTY0MGNhNTE3YjgzODI2MjMifQ"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L86-L94",
+          "version": "repo-lines-v1:sha256:65df5293699d1d5c577f3e2976d9ec9a52cc092b08fe3ad5a9d96756f580358b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODZlZjVjZDE3MzhhYTQxOTAzNDVmODJmMTM3NDg0NTVkMzhhYjQ2N2Y5YWIxOTVlMmExNmIzZDY2MjM3Njc2NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODZlZjVjZDE3MzhhYTQxOTAzNDVmODJmMTM3NDg0NTVkMzhhYjQ2N2Y5YWIxOTVlMmExNmIzZDY2MjM3Njc2NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUyYjQ3MDhmMTQ1YTcwMTliZTUyN2FkODM1MzI0ZGRlMzQzMDBjZWM5OGE5ODdkZGRmZmFiMDE1ODI1M2E1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTNlZDY2N2I0YjQ5YWQzMTU4MDZkOWM1YTI3MTcxMDdlNmIzZDE4MzJhYWZmN2E2MGRhZDBjMGY5ZjQ2YzU2YSJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_contract.py#L223-L243",
+          "version": "repo-lines-v1:sha256:41790f18ce3eeacff5b1a8fbfb129d139e34fb940c178f34a3270dd9eccd1b99:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNWU3MDE4MzZlZTU4M2E1YmRjYmY4MGZmZDRmZTJmNzc1NzRlMjU0Yjc4MTQ0OGE2MDBjYmNkZjBmN2RiNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4N2Y1MTA0ZDgzMzI0MjUwZjhkYTUzN2JmYWQ4ZjM2MjIzNjc5ZDZhMWFiYThkMmU0MGJhMjc0YWQwYmY5NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNTI0Y2VmZDkyZWRmZTgzNTk1OWRmMmU3MzJhMzc2MTg3ZmMxY2E1YTUxNTJhOTRiOGU3MmNhMTA5OWNmYTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f9b8fad9afd428eb5cbf8f98391eb05",
+      "statement": "`DataPlaneMarketGateway` is a behaviour-less `MarketGateway` subclass that exists only as a distinct svcs registration key: the legacy `MarketGateway` key stays bound to `eodhd_gateway_factory` (EODHD, or its stub) so existing price-fetch/search flows are untouched, while `DataPlaneMarketGateway` resolves to the FMP/Polygon composite, and both keys are registered identically in the live and stub registries.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L136-L137",
+          "version": "repo-lines-v1:sha256:621ca4a927b78256f1895fcaacca860ffb21730c2093d44dac94f28579187e86:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM0MTkwZWM3NjhkMDVmNTExYWVkYjc3NjIxMzYyNDk3NjgzODhlZmFkMGVlOWI0N2QzZjhmM2JmYjcxYThkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk5MWI3NWY5NjM0ZmUwZDRlMzBhYWNiM2E1OTQwYjQ4NzllMjhlODBlOWMyNTMxOTNlODU4YmU4MDY1ZDg5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L68-L70",
+          "version": "repo-lines-v1:sha256:8bf47fbf521d93944f110168f8644b1bfba4810687175c4bebdd5e5aa7627b2c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmMzNGZiZWZiYTIxZDcyZjk3NDcwMzcyY2FmYzNlYzMwMzM1MGU2YzYwM2E4ZDM5OTc0NzRiZmZiMDNiZGY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM0MTkwZWM3NjhkMDVmNTExYWVkYjc3NjIxMzYyNDk3NjgzODhlZmFkMGVlOWI0N2QzZjhmM2JmYjcxYThkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk4YjA2M2Q5YjQ3ZTY1Mzc5NjI1NTcyY2NlMTk3NjY5ZDU3NjdlMTJjMThiZTA3NTY1MmI4Y2Q5ODFjZThkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L231-L243",
+          "version": "repo-lines-v1:sha256:1f053bf6e7016b111e8dbd636e2ae5861d25ed748055c24e5275efd7d6c554be:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNzkzMTg2YTIxYzY0NTgzZTFiZTlmZjZmYTYxMTk2YjcxMmE4MTU4ZmU5MjIwMGZjNTg1NTU0ZGI1MzkzN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhOGUzYzc1ZjBlYzIwODNjZTYxZWIyY2ZiODE4ZTQ5NjVjZGIwYjBiY2U1Y2NhOWM2MGExNzI0NmJiZWZlMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjN2I1ZDIxNmY3MWUyNGZmZDg1NTRmM2QyZGE2NGUzMjkzYWZhNzE4NmY5ZmJlNTZlZmNiMmRkNWFmYzFkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L35-L71",
+          "version": "repo-lines-v1:sha256:1b0d42d22aac9d0710547530b3b8dd6257297f91728c1c406ec068c3ba83a84e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1MDVkZDQxZTg3ZjZkOWUzMjk4MTVkN2YyMzczOTJjNjg3MGVkMGY4N2RhZDY5OWM0ZjM5ZmUwMDQxZWZjNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyMTEyNTI3NDkwZTRjNjYzZDdmNzBhODc5NzA0NzliMmM1NTExZTI3OTkxZGQzNWZkNDViOGRjYWIxODljM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNGI5YWMxYTY2NTNkMzk0ZmU3ZTQ0NTBlNmU3MzlmNWJiOTY2Y2FkNGIyNGNmMzc1YjM1MmFlNDUyM2ZkYTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_96d91041226242ae81617e93c287474a",
+      "statement": "`CompositeMarketGateway` routes each capability to the vendor that owns it — FMP for `search`, `lookup_symbol`, daily prices, `get_quote` and every fundamentals capability including institutional ownership; Polygon for `get_options_chain` and `get_option_expirations` — and forwards `get_intraday_prices` to FMP, which keeps the capability unsupported so the provider-agnostic error surfaces unchanged.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L59-L237",
+          "version": "repo-lines-v1:sha256:2bd0dff977a3a03fef28e4f7f06005c5af6045021a97d971b6f5f4bdbee27895:eyJzZWxlY3RlZExpbmVDb3VudCI6MTc5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4NjhiYjY5YzUwNjE2ODUwN2Y4MTA2YjYzMTMxMTdiYWQ2MzhiYjMxYTY2MDEyYjEyNWRiMWUwMzYyMWFjMGNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzZGYwNTY2Mzg0ODNlNDIwMDc4MGVmY2JiYTEyMTdjZGJhZGQ2OWJmOTgwNTJhNjU0NmVjZDZjYWVlZmM4N2ZhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1NmMyYjIxN2VjZDRiNGIxZTk3MmYwNTVhZTBhMjBmNjYwMTVhMzIwMWI3ZWE4MzFmYzFiZWViYTQ1MDhjYTM2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiN2RkNTIzZWVhYWQwYTg4Yjc4MmI0MjY2OGJiZmY1ZmJmYzVlNzUxYmVhYWNkYmE5YzQwOGNmMzQ3ODgzNjIwIn0"
+        },
+        {
+          "resource": "repo://tests/market/test_composite_gateway.py#L234-L337",
+          "version": "repo-lines-v1:sha256:741d7eb1de90f65f0de350cebb1b27fd6fc1df51e73eff1f3c67a14a715a4f87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiNDBmMzJlYWJmZWYzY2Y4NWRkNDU2ZDMzZDIzZmY0YzY3NTRjNmMyZGYyMjE1NWZlMDI5MDQ1NDRlMDg4YjNlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3MzE2NjBiY2E5NGQ2NGE2YWViNTk4NTc2MmIwNWFjZmQyMGJhMjc0OWExOGU0NGZkMjg5NWY3Y2Q4ZDQ3M2E5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3Mjc3OTMwOGZkYzE0NzE5MTExNjAwM2MzZGUwMTAwNzJhOGQ5ZWQ3MzhhNTRkOTNlZjAzMTg5NTFlZDFhNDhkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e55d4cdc5e743979fc1e460ec2fddd2",
+      "statement": "The composite adds no caching of its own: repeated identical reads reach the owning provider every time and no `market:gw:*` keys are written, because the only data-plane cache is `EndpointResponseCache`, one layer above the gateway, so each response is stored exactly once.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L59-L66",
+          "version": "repo-lines-v1:sha256:ea34fdf8ef68be0a892effcc9dad9207323c82fa78071f7486e26219da03cae6:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY4YmI2OWM1MDYxNjg1MDdmODEwNmI2MzEzMTE3YmFkNjM4YmIzMWE2NjAxMmIxMjVkYjFlMDM2MjFhYzBjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZhNzE1MjU3MmVlODRmMTA5MDZjNzRiOWYyYTkyNDM0ZGRhYjBlM2M0MjgxM2IwNGU1OTdlZmNlYzk1MWIyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTZjMmIyMTdlY2Q0YjRiMWU5NzJmMDU1YWUwYTIwZjY2MDE1YTMyMDFiN2VhODMxZmMxYmVlYmE0NTA4Y2EzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmRlOGFlMWFmOGE2NzE1YzM2YmQ0NzhiZjIzMTcyMWIwYzZlNzJjOTEyNjJjOTA2MDgyMWJjN2U3NzcxZDAwZCJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_composite_gateway.py#L339-L354",
+          "version": "repo-lines-v1:sha256:4cc923ba29d5866cdd64183dd0d5ada6e2284d83918c87b02e9d32ba766efcee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiYjI2ODM3NjRkODdjY2E3YWU4MzhjZDUzODhlNDU4NjAwOTBjN2I0OTQ0MTk3ODcyMmVjMjNkNjg0MDA0ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDI0NDU4MmI2ZmIwM2QyM2I4NDE1YWJlY2QzNDZiMGM5ZjQ2NmI2Zjc1MmIwNjgxODljZTdlOWEyZGMzNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyYzA0ODc3OTNkOGQ4N2RmYmE0YThlYTg0Yjc3NTBiYzI1Y2EyNDVhOWYyNjYyZGJmMmFkZGY0YjJmYjc1Y2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyMzE3NDNiMTRlMWFhODlkZWI2ODMzNGM1MzVmMmM4ZGUwMTczMzIzZjFmNjRlOTkzNzczZGI0NmMzMGUyM2UifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L85-L105",
+          "version": "repo-lines-v1:sha256:3a1c86923f71aba483dd91f4fa69ec945cbc6bf489c8b2bb0f803a6ecf7b9b87:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyZDkyZmYxMTQ2ODIwMTQ2OTU4OWRjMDY5MjVmYzgyZTcyOWU2MmE5MzgwZmFhYzJhZTliOTg0ZjhiMmY3YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NjA4NzMzNGNhOGI3MDU0OGZmOTk0ODFmMjhiM2FmYzA4ZGNmMzNjYTI1YTI4YWI4ZDJhMTRjMzI4OTY0ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyMjAyMzkxYzQ0ODZiZTk2ZTE1ZDQwYWM4NDdjMjY2ODY3MTlhNGQ2ODY2YWFiNzAwYmRkYzg5YWQ2N2RkNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c096abfcce5a44aabffe9e9e573f9aab",
+      "statement": "`composite_market_gateway_factory` is a sync closeable generator factory that builds the FMP gateway first, closes it with teardown errors suppressed if Polygon construction then raises so the original error wins, yields the bare composite, and calls `gateway.close()` in its `finally` so svcs container teardown releases both provider clients.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L240-L277",
+          "version": "repo-lines-v1:sha256:d01e586f810550491b55e40cb0c447bee06af9bfa1bfdd37d7c3166e3ace7c37:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4YzExMTFhNDRjNjJkNzA1ZGZkZmZmY2Q2Y2I3YTU0MDE2OGY0YjFhMTUwOTEzZWY4NGQzNThlMWI0YzMzODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlMjk2NjFjOTM1Y2UyNzU0MGZhYjFhYmVlZGQ2NDY1MGIyNDgxMzM4MGE3NWFhNWI4NWVhMmE3MmE2ZDg5NjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxOTJjYWIxMTQzNWNmNThiZjhhYzE4ZTVmMjIwNmRmMzIxOTNmOTgxNzllMzRlNGZlMjZjODEwZTFlZDVhZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_composite_gateway.py#L401-L458",
+          "version": "repo-lines-v1:sha256:54dcd9a1fe8a8718006849b00f3bf824c0407a02d6e5c0c0afbd64023f09e379:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMGQxNzIyMTJmYTBiMGFmYTVkN2JjMDFkZmE0NTMxOWRjMTU2NmUyYzI1NDZkOGZiMWY2YjBkZjVkZjZkMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNzAzOGFjOWVhMjdmMWE0MzEzY2QxNWU1N2E3OTViZTJhN2M4NWMwOWRmODhkYTBjMzM1MmE3N2JlNzg5YWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2ZDkyMmJmYTNiOTQ4ZDk4MTM1NzMzMTc0NDNhMzE0NWZmZTU3ZDg4YmI3ZjQxZjRlNDA1ODk0MzQzMzkwMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a754961a33064abd9678308b44886e0c",
+      "statement": "The data-plane gateway factory must stay synchronous and resolvable through the sync `services.get` accessor, because `data_router` handlers resolve it that way and svcs refuses to enter an async factory through sync `get`; resolving it with `aget` is reserved for the boot probe and tests.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L251-L258",
+          "version": "repo-lines-v1:sha256:8553cab74c794618e16058d0cff910f2f2be5e27489f8c6c3e97f1c8d37f0a16:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGJkNzExZWUxMjhkYjMwNmRjZDZkNjA4ZWZjYjJiODkwNmQzMmRkYmI5Zjg4MWU5OTUyZGQzNmE2OGU2YWRiNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjFkNmY5MmZlYTliZjkzNTgzMjU1YWU5MzhlNTFjNzE1NWZjZTIzNzFlNmM2Nzg5MWU0MGZmMDY0YTgyY2MyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWJiNzRjY2UwMGRmMTJkYmQxZWE0N2Q3ZTQ3M2MwOWQ3ZjIyMmQxMzJmNDkwZGI1MzIyMTBjM2UwMzc0MzhkMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTBjYTE0ZWFkYjdiZTExZDYwMjllMTkzZjkzMTZiZWFmYjA5NDdiYWFlYmRmOWZlN2I5YjE0YjdkOTk2ZDBmNiJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L149-L150",
+          "version": "repo-lines-v1:sha256:3434c0fce370fbe622a74b400651e330a4ae2676915eaeb7d801226c6dd416a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzlhNThiNjhiOGNmNTE0YjY4ZDBkZTgwODc0ODk5NjczNjYzYjUwOWNlMGI5ZDdhZTNmZjc5ODNlNTEyYzFhMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUwOTBmYTg2Nzc1NDdjMjM2Y2ZjZWUwM2ViYjljY2ZkOTRhZDNiY2QyYjA0ZGMzMTQ0ZjVhNjQ5YmE0Y2RjZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2RjN2NjMjgzZjM4NDg5NmVkNGY0MzRjMjI5NzM4YTQ0MGU4YmNjMjg5YTExZmM5ZWQ2NTcxNzg2MzQ2N2VlYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTlmYzdlOWFhMjE0NDZjNDcxODhhN2I2MmVkYWNlMjYwZGYyN2FkOTUzOWZlOGI5OTExNzRmNWVjZTcxNTZkYyJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_gateway_registration.py#L108-L121",
+          "version": "repo-lines-v1:sha256:39cc1248fc237d9bedbfef6cbaf778af71c0bd42819a6214c1dfcca2654e225f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYjg1YjUzMjc5ZmVkZmY3MTg0MzI3ZTE1NDgwNGY1MzUwNGIyYzczNTBmNmE2ODViNmQyMDdiYmVkNjNlNGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NjA0MmE3YTQ3Y2QxYzNhNDZhYTI4NDVkMThjYzhiZDVjZTE1MTZhZWIyNGYxODAzMmY5NmQ3NTIxMzRlNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYzI2Njk5MjZhYTMwZjAxYjdkOGJkODdhYTRmMDAwNTRhNzM3Y2E0Y2FjMDZkZWVhMzhiZjE1MTA2OWQ2MjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c648487a2c2a47febf05cdedd6c1c303",
+      "statement": "`CompositeMarketGateway.close()` resolves each provider's `close` hook at runtime and skips a provider that exposes none, because provider lifecycle is structural rather than part of the `MarketGateway` contract, so teardown never raises for a gateway without the hook.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/composite.py#L47-L82",
+          "version": "repo-lines-v1:sha256:ab2a17ed031db217e7a94b79856e1a9d916dca80a2f1f51666f460b32bfbb1f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjYzkyMTdmODI5MGM5NmMyY2NlN2MzZDIyNWRkYTIyMTc4NGRmOGUwODFkOWUwYzQ2MzMzNDQxMmQ2ODRjOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4ZTExODI5OGJiYWE2NzU0MTYzY2RhZDQwMDdjMzg5NzQ5NjE3ZDM2ZGUyZmJmZTMzYzBlZmI3MTJjMTk0OTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNDI2ZGZjMTlkYjQ4ZWE1ZGQ1NDQwNjMyODRlMzZmMzEyYzRiNjM0ODhiNjE2MDRiZGZjNDQ5NjliYzViMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ODJlMzY2MDQyMTUxNDg2MTgxYTZiODVhZjA4ZmE0MjEyN2U2NzEwMDYwODM4ODU2NTJjN2ZmYTJjZjcxOTEifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_composite_gateway.py#L357-L398",
+          "version": "repo-lines-v1:sha256:0316e2136cc5e5626dd97c1c4f28035923bacc0168c95e0d28ea21f28cd27f1f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MDg0NzQ0OTgyYzA4NDYyNjVmZTFiMTdiOTg3OWNiMzBhNmZiZGRiYjQ3ZDhhYzY4Yjg3MWQ1NTU4MTkyYWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmOThlOGQ5NGI2YzA1Y2JiNzc4NGQ0MzIxMjY3MDFmOTkxZmNlZTMwYjkzZWUxNDkyNDk0MDc5MjkwOTk1YzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhODJlYmU5ZWQ0MDdjM2E2YmE0YjAwMzQyOTJiYWE1MmMxMWNlNWFlMjg2MTA3NDAyZGU0NzkyZWVlY2FjZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMWI2MjYxZTA3Yzc2ZWI1ODQ5ZjU2ZmZlMjMzODQwZDBlOTFiOWQ4MTI2YmI4M2RmZjVmMjhlZTFmMjU5OWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90122a3f47ae46e6a3ee35ec49ceeb4a",
+      "statement": "The FastAPI lifespan resolves `DataPlaneMarketGateway` eagerly inside a throwaway svcs container before serving, converting an unregistered key or broken provider factory from a first-request 500 into a startup failure; the probe does not validate credentials, so a wrong-but-present provider key still appears at request time as a configuration error.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L125-L153",
+          "version": "repo-lines-v1:sha256:8909c0d822eedad5beccced1c262af4e38a539c4ec0ba2183258301e632ad8bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNmFjYTFmMGZhZWJlOWViYmQzNWRhNTdkNGY2NGY0ZGYwYWE1NGQ1NGQ2ZjkyMjFkNjc0YzMzMjg4NWI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNzM2ZjJiZWUwMGVkY2U5MGUyMjU3M2M3ZmIxNmRlNmZiZmZmYzQ0MThhMDBjNThmYTdjMWQ1MGE4Y2U5NTAifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L52-L66",
+          "version": "repo-lines-v1:sha256:e37342051788a7c92978c311c7c26dabe1a8dce86744f277ecc21a9cc2abe9a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxY2YzYmFhMzBhODljNjE1MDBhMDAwZjVhY2RlZTVkODE1MjNjMjUyZGU2NzlhYWRmNDU4OWRiZDE4MDNlMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZjA5YWE4ZjIwYzJhYjg1ZGQ2MGEzZTNkMjA2MjAxYWU3YmI5YzNmZmI3NjJlOTg4ZWI2ZWE1ZjVhNGMwZjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a9af19d28cd4ae39f9cef50071f9f17",
+      "statement": "`EndpointResponseCache` is the single canonical data-plane cache, storing entries under `market:ep:<data_class>:<endpoint>:<40-hex sha256 prefix>`; the data class and endpoint stay in the clear for debugging and `market:ep:*` pattern invalidation while the canonicalized request parameters are content-hashed so equivalent inputs (date vs midnight datetime, `Decimal(\"10.5\")` vs `\"10.50\"`, whitespace/case-different queries) share one entry.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L40-L51",
+          "version": "repo-lines-v1:sha256:f5da141387cbd2e2b1b3cb0ce5492bb113a21f473bb2d46b6f94f9f64af876a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlNTNkZWFjNTZkZjFhYjAyYjYyOTBmZmJhMzI4Y2IyNmMxNzVhMGIwYzllODMwOWIyYzQ0NTc3ZmQ4MDkzNjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4MDNlZTI0NDA0ZDdjOWExNTRmZTI3NmZjNjYyOTdiZmQwODIyOGMxMTlhNzdkNjIxNjgwZjlhNzIzN2ZkM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzM2IxMDg0YzJiNzllMGFiOGQwMjdlN2Y5NDM0NmI5MWYzYjYzMzkzN2ZlZWY2YTk1ZDBlMjcxOGUzNmEyYmQifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L93-L132",
+          "version": "repo-lines-v1:sha256:e5a03367d46a49742922c90c3f9761164e32297d767ddddf878110c58d4daa5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3NGMzNGQxZjNkNjNmYmZkN2Y2OGVkM2Q1OWM4MGExMDk2MDdjYjc0YmU1MDUzNDgzNDcyODgyZTc4OWU3MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3OTExYjU4NjdjN2RhOGRkOTQzZDNkZTVmYmUxODk4ODY5OTAyZmMwMzhkYWEwYzY4MWIzOWI2ZTVkY2NkODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlMDhjOWRhNGJkMmZjNDRjZDQ2MzkyY2QwOTgwZGU0NjdmMTA5NjE0NmI4YmFhYWZmYzQyMTkzZGZkZjhiM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4N2Q5OTFmMDU3ODQ5NTVmOWU0M2M4ZjVhYmE4N2EyZWFiYTc5M2QwMTBiNWIxYTU2NzZjNDZlMzQ1OTVmYmMifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L149-L249",
+          "version": "repo-lines-v1:sha256:d0db6f64ec19adc4789cc7972612f2f976c52705518a9ae5d344bbfcc475ff22:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MTFkZmRlNTRiOTk0ODQ2MGIwNjMwZGIzNDA0NTAwOThjMGM1NmY2OWZiOTM4Yjc1MmM5OGUyYjg5MzAwY2ExIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwN2EzZTI0MDc2ZGVkNDk3Nzg0YTc3ZDRkOWY2MmE2OGVhNGUwOGE1YjYxYzliMWMwMGVlNTMzMWI5OGIyZWFiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJkZTU0Zjc2NzBiZDc0YTUyNmE4N2Y2ZTYwMjhhYjQxNGIwOGFmMDg0ZTM2MThlMjVjMGUzODIxYzk2NjYzZTZjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_51026449e7b742c7b4644df3296de5ca",
+      "statement": "Endpoint cache TTLs are per data class, mapped by `_TTL_SETTING_FIELDS` to `endpoint_ttl_*` settings fields and read at call time so a configuration change applies without a restart; an unknown data class logs a warning and falls back to `_DEFAULT_TTL_SECONDS = 3_600`, and the defaults are 1 h prices, 1 d statements, 1 d metrics, 30 min options, 1 h search, 30 s quotes.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L59-L68",
+          "version": "repo-lines-v1:sha256:297d2c5f92a57a577ad6f609faab235036d31c5993bdf2fab918741170db92e9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMmNkNjNkZDE0YTQ3NGE5MTI1NzIzNjMyZGViYWZlNzExYjkzNWNlZmNkYTBlODMzMjIzZDgzMDU0M2UxYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0NWIyZDk3YjE2ODQzMjk2YmEwY2NmODNiZDVhNTc2OWI0NGVhZjUxMWRkZjY5ZmE4NTBlNWQyMmQzYzczZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjZjdmYTZiNmQzM2JmYzI2NTUyOTcwYzRkOWUyMTAyZTAxN2QzZmYzOGFhNzBhZmM1MmQ3YWE3NmJjMDU3ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZDU5MTM2YTNhNmI0MmI5ZjY5YWQwYjU2OWI3ZjVkNGNiYmNkZTNhYzM5ZDMzNTI1MjYxODdjODg5NjYwZDYifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L135-L145",
+          "version": "repo-lines-v1:sha256:d4de8948f458fddfc9717d41b0123743b74a1d8dbcfb077ba97629b113d6f7ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMDhlOTRmZTNlYzNhOGFlNzhhNmUyYzBiOWU3ZGNhNmZhM2FkNjNmM2ViOTNiNWM0NTJiOTNkNjBhZTA0MWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZGIwN2UwZGQ1Nzc4NDcyZWVhZmU5ZDM3ZmUzYjlkZDM0OTdmYzU5ZDFiNDRiNzZlMzFiMTE2N2NlYWY1M2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjNDdmNjhhNmMyMDAxMTJhODMyZjEzOGZiN2ViZTUwZTA4OTNmNWUwMmZhMTM0NWYzMWQxM2JmNmM4NzZhMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjNjYzMTkxZmNmNjI4ZWM1OGNhZmZlOWY1ZDZhMDM0ODk5ZmRkODIyNGQ5NWEyOTI5MTY5ZTk5NmI4MmYxNjIifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L42-L54",
+          "version": "repo-lines-v1:sha256:20ff894f517d46868fb4fc66a7e394be0f3ef49e1b7d5ecb2e4f6f5f75f41cfe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZjZmMTIxMjk4ZTk2NjVlMTE5YmZjMjA4MzExZDQxMzZkYjE5NDllMGFjYzZjOTVkN2MyZDQxNjgwODVkNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjODhhNmJhZTU3MmFlYjYxMGMzYzg1ZmEyNzVlZGUyMjJjNDAwYTg4MGMyY2VkZWU4NTViZDBhYjQxZWY1NWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzYTYxMjk1NGFiOTA1MzlhNWNiOWY5ZWVmNGQ4ZDBmYmY2ZTA4MzU1ZTU2ZGNmMjg4Y2I3M2U3YTYxNDIxMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5NjU0YTBkOWFkZjIwMWI2YWFiYmE2YjhlMDQzYzZhZjY4MWU2YzU3ODQ0MGQ1NjNmNDgxZjIwMjMxYTIyMGQifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L271-L343",
+          "version": "repo-lines-v1:sha256:a275378d48f8e1265fa0ca14de37fa4f89bed035d85c6173fcb6a9250575c002:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2MGU4ZWY1MmM5NGM3MGFjMDFiYTNmNWU2NWNhM2M2ZmU4ZTI0NGFjZjk3ZmFmMWU5OWUyZWRiOTJhNWRjZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxOTAyZjJjNGMxZWJhMmJkOTE3ODQyOWUwNjgwZjUwYzg0NTFiMjI0ODNkNGRmNDJlYmMzMmJlZjQxZDUzYmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_46756226f4f4487680fd75040f86bf92",
+      "statement": "`cached_response` stores a `MarketDataNotFoundError` raised by `fetch` as a one-key `__market_data_not_found__` marker under the shorter `endpoint_ttl_negative_seconds` TTL and rebuilds an equivalent `MarketDataNotFoundError` from that label on a hit (detected before model validation), while every other exception propagates uncached so the next request retries the provider; the direct `get` API reports a cached negative entry as a plain miss and never returns the raw marker.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L236-L272",
+          "version": "repo-lines-v1:sha256:12df0e459b0c7f6a381466df83aa8112668634f9eb4b3495f4d23b993c1e036b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZDE3ZjhjMmNlNDE3OWNlNDc2NTlmMDE3OGVjMjJkN2RkNmNkZDBkNmJmMDFjOGVkNDE5OTIwMzA4Njc0NjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MmY5Njk1Yzc0NjdjNzQ3NzNjOWNlN2ZjNDI5YzVkMGQwZTQ4N2YzYzUxZDE1ZDY2NjhhM2QyNDA3MmJiOTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxYjZlNzYzZTdlOTgyMzYxZDU4ZThkNWQ5YjA2N2VhYjE2MWU2NjM1MjgxNTcwOTdiODJjMGE2ZWE2MGEzMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkY2YxNTgxYjk1ZGMyNjU5MzJhOGIzMmNhYmZiN2ZkMmYxNDViZTExYWNjNTFjOTRhYzYyOWIyYjJhYjRjMjYifQ"
+        },
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L56-L76",
+          "version": "repo-lines-v1:sha256:a7fa46c8823e17a66433bb177c1e3ba3a76d2141223ce3ad95dee153540a9513:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ODQ1MTFlMmRjNTVhMzkyNmQ3ZjQ1MmYwNTQ3NjcxNWVjZDA4OTlmOGYxNmFjMDk3NmU3NzEwYTE0YjI4NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTYwMGE3M2QyZTAyZjM1MmI5MGZlZjFkOGQ2MzgxMWJhNGE4ZWUwYzFiZWFhN2FlNDY1OGYzNmFhMmUxOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlMTFhYzFmZDE5ZTgwMjY3MjJjMWE3ZmJlYmUxMGU2ZWEzY2E1MzQxMzNlMDA1YTA0NWRjNDkwOTFkZGI1YzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNmVkY2QyZDliYWYyYTE5MjYxMGY5NTRhZWM4NTFkOGFjOTNhYzI1YWFhM2JiMGQwZTlmNTNkYWFjNDQ2MGYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L974-L1010",
+          "version": "repo-lines-v1:sha256:d8e7b5fe64f953aa4a27fab533128b27b7a3a2b710abea90be0ac0d450b1be9e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlNjMzNjBlYWRlNzQwMjgyOTZjNmE0OTYzNjZkMTNkODQ1NWI0ZTc1ZTJmNmZkYzM2NjY2Yzc4MjM0YmQ4ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhZGFmMDc2NmMyYjcxYTEwYWNjODIwMWQyNmQ0NTgxOGE3ODUzYzU2YjEwYWRmYzMzOGQyNjYxNzc5OGJiNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3ZWY0OTYyOTA0Mzc3YmY2Y2VlODZiYTQzNWMzMmFhYmRjMGZkMWI2N2I1OTg3NTNmMjYyMTkxZWQ1N2FiMzQifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L483-L590",
+          "version": "repo-lines-v1:sha256:1b276d71b69aa8fbc066625ee7eed59c8200243cf1eaa4ba46e088ecddac6cba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmMGEzYmNjMTBlMTFmNmY4N2YzNjViYzhiODE1NDk5N2E1YjhiMmZlYWQyOTRiZDU5YjI3NDlkOTNmYzdjMzg5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwN2EzZTI0MDc2ZGVkNDk3Nzg0YTc3ZDRkOWY2MmE2OGVhNGUwOGE1YjYxYzliMWMwMGVlNTMzMWI5OGIyZWFiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YTliYjRiMjNlMWNmZTdjMmVmMGYwMmYxNTVjODcyNjg2NGQzZTA1MTU0MmZkMzU3Yzc4ZGY2YTEwYTRjM2FmIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_b83db4f292754754b70b47221582699e",
+      "statement": "Endpoint cache Redis failures never fail a request: `_lookup` catches every exception on the `GET` and returns a miss, `_store` catches every exception on the `SETEX`, and an undecodable cached payload is logged and treated as a miss — so reads and writes both degrade to a live fetch.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L276-L310",
+          "version": "repo-lines-v1:sha256:0f7401547ad9ab285f202ad3d4addd3651fba0255e741df380470bc0795021f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGJiNTJjYzY0NzI2MjQxNzFlMjE1NmVkNDU3OTE5NzBmYTViNjliMzM4YzgyZWFjODMxZWU5Mjk2MzBlZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZDVkMzhiODAxNDg0YWE4NDliMGY0Nzg1MzkxZWI1YzUyNmE0ZjE3MGRjNWMyYTJkNjRiZjRlMDU1Zjg4ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkY2YxNTgxYjk1ZGMyNjU5MzJhOGIzMmNhYmZiN2ZkMmYxNDViZTExYWNjNTFjOTRhYzYyOWIyYjJhYjRjMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0ZDRjMzhlMTU4MWFjMWU4YTU5MTA5N2VmMDMyOTJhYTg5ZDdkYmE5MThmOGM2MmE1NWIxYTk5YTU5MmVlMTIifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L350-L405",
+          "version": "repo-lines-v1:sha256:e0ee7adf7588c7df9311df86613a8b2f7e685647bbc629d570a0880f80c07302:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMmQ3MTI4YWVjYjJkODJiZTA2NDJjMjg0YWUxNjBlMjI1MTk3NzBlNTU4NWExODlmNTAzMGRmYTBkYmJhZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab786e2a85d04275917e0acb3ac997cb",
+      "statement": "A legitimately `None` fetch result is cached as the shared `_NULL_SENTINEL` (`{\"null\": true}`) and decodes back to `None` before model validation, so a cached \"no result\" is a hit rather than a miss and is not re-fetched.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/endpoint_cache.py#L148-L182",
+          "version": "repo-lines-v1:sha256:2592c17944ec09a60b7a012d375456f2684412378144e2421a05af2743ff6f19:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMzYzMzgyNjBlYTY3NjExODkyYTgwODRhMjNiNjdkY2FhMTA4ZDU1Y2M4NDMxNjMyOTU0OTU5MjgwNTkxZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNDgwMzZiMzRhZDk5ZWNjNWZmMmRlOWM1YWFlNDk4YTBkMmY1YThiNzBkNzE1MWQwMWIzMjU2YTgzYjZlMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmMDYyNmRjYzI2YWUzOGQ0NWU2ZTBiNzZlOTI4ZTIxNTg2MDQyN2E3OTY3ODY4Y2M3YWMyM2M0Y2UyOTQ5N2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzMmE1YTJkMmI0ZTUxYjA5YTExNzNhMGYwMWEwYTkxN2VjMjMxYjhmM2M1MGFmODZlMzNlOTMxNmRjM2NmM2QifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_endpoint_cache.py#L455-L474",
+          "version": "repo-lines-v1:sha256:dee0f339abad196cd57cbbaac66fabe5e9903157ac40939a80e2419f4443834d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMDhmNTQxODllNmMyMTQxOGQ1Y2ZkOGUwNzQ1YTBlYjcyYTdlYmE0ZWYwZDM4MzY0YWNkYzVhZjIxNzZlZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8de3e9baeb2b47d293b23200b83fe262",
+      "statement": "`src/market/data_router.py` exposes eight GET-only routes under `APIRouter(prefix=\"/market/data\")` (mounted under `/api/v1`), and every handler depends on `require_service_token` as its first parameter, carries no user identity (no `current_user`, ownership check or rate-limit decorator), and resolves `DataPlaneMarketGateway` plus `EndpointResponseCache` rather than any repository.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L174-L183",
+          "version": "repo-lines-v1:sha256:c9178db93485ea4d52e5e2d91488e75b69250ecf2b56d798eb9bcc500a4da05e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MGVmZTA2OTlhYTliOGYyMGJjOWUyNDMwOTdiZTkwOTZlNjhkYzRmNDhiMmE2MWExYWRiMjU0N2ZkNGZlOTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1Y2Y1YTg3Nzk5ODM2MmU3ZmNkYTNhNmY4Y2MzZTVlZDQxZTg1NGNiMDRkMTI3NDU1MGM0MWM3MWM4YWRlM2IifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L135-L150",
+          "version": "repo-lines-v1:sha256:9137821930ccf8f36b1815cdf8a897e16f679a67e85c59749a1a0b90d5112c44:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZWU2M2ZmZDU2ZTU2MDE5ZTRmNDNlYWU3ZjM2ZTg5OWI0NDc5OWJhMTgwODM1N2YzNzNkYWI2YTc5NGI3MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1MDkwZmE4Njc3NTQ3YzIzNmNmY2VlMDNlYmI5Y2NmZDk0YWQzYmNkMmIwNGRjMzE0NGY1YTY0OWJhNGNkY2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZmM3ZTlhYTIxNDQ2YzQ3MTg4YTdiNjJlZGFjZTI2MGRmMjdhZDk1MzlmZThiOTkxMTc0ZjVlY2U3MTU2ZGMifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L92-L93",
+          "version": "repo-lines-v1:sha256:7bb3d579e2f4994a8d97112e050600aa2cd20ac30e19f8ecd4020a126e72d54a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDEzYmMwOGQ2N2VmZWE1ZGQ4YTkwN2ZmY2QzZWQ5OGYxZDE2NDFkNzkxMTQzNjNmZjFjNjcxOGRkZTRhMTA0MiJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1062-L1108",
+          "version": "repo-lines-v1:sha256:5ffc83dae70c4a40fd1ab66e26493f5e690c0e5d428f79239a1e82fd9549977f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd063ef916564db0a3ec8881f2117d44",
+      "statement": "`require_service_token` reads only the `X-Service-Token` header and compares it against `settings.market_data_service_token` with `secrets.compare_digest` over bytes — the byte encoding deliberately avoids the `TypeError` (and therefore a 500) that a non-ASCII header can produce — and it has no cookie fallback and returns `None`, so the data plane is deliberately independent of user-JWT auth; a missing, wrong or non-ASCII token is always 401.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L308-L326",
+          "version": "repo-lines-v1:sha256:0f7b715e4b98265227b8267f2ea5c175f1af8fd3f025b77afb8042833c8a055b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YzE1ZjdjNWU2ZGRhZTQyZDA4ZGZkNDVlNDBiY2YxMDg0NGU0MzRjZDkxOGZhZmI0MTc2NzgwODU5YmRjN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZmJjY2ZjODVhMGEyZmM4Njc5NDU2MDBlMDAwYjkwODcwYTQ4YTRjOTIyODhjNjYwNDZlNDlkYTRmY2IxYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzQ4ZmZiOTY5ZWEzNDEwOTIxNTRkNzc0NDNmZDhmM2VlZmQ3ZTdjYjE2NTVhNTRkY2FkOTdiYjczYzg5ZjcifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1062-L1108",
+          "version": "repo-lines-v1:sha256:5ffc83dae70c4a40fd1ab66e26493f5e690c0e5d428f79239a1e82fd9549977f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8a21db09da8454a8c9431cf99b3abb7",
+      "statement": "`_map_market_error` is the data plane's only domain-error translation: `MarketDataNotFoundError` becomes a 404 naming the symbol, `MarketDataConfigurationError` a 503 and every other failure a 502, both 5xx bodies using the constant `_PROVIDER_UNAVAILABLE_DETAIL` so no raw upstream message, URL or provider name can reach a response body.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L94-L111",
+          "version": "repo-lines-v1:sha256:05e1e02d4d6373f90dacf0ed76a0b635e462253ff216f5fd3774df1ad4e7658a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNjZjYWJhMmRhYzU1NDVkYWM2ZTc0ZTQ4YjI3MjQzNThhMzBlNmMyYzNjMGZmY2Y3ZDY1MjVjMWExYTc5M2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NDY4Yjc4OTQ3ODNkNjY4ZjI3YjY0MWIzNTJmZmRmN2VmODQ1MDQ5YjFlYWY5NjdlZGZjZjUwMDkyZjY5YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlMzA5MTJjOWEyMzI1YzFmNTJiZTA5YTg2MDNjMThkYzllY2Q3NWI0YTI4ZmMyYWUzOWIzZTc2NmExMmEwMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyMGZkOGE1NTQ3NjhjZWZmNmQxNjFmNDUzNzA5OWI1ZTcyY2IyM2EyNTI3ODdlMTA3YjBkODQyZTcxNWQyMWYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L989-L1054",
+          "version": "repo-lines-v1:sha256:204fc12af3dda3ddfee272b52e98659aece80be5b7a80a63a9af35d0e422710b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5YzFkNGU1OGQxNmJhN2I5NTBlMWNmMTBjNjNkYjA2OWZmYzU4MjliMDAyMTIxMjYwNzFmNTRkMzZiNWZmYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2ZGM2ODZlNDA5ODRhMTQ0ZDFhNDNmNzMwNmU1YTAxNmIxNjU2MTQyMzg0NjcxZjRlMjVlODgxMGNiMTY5NzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ac3953d747e04cb9b8b3ec70b9cfe5fe",
+      "statement": "A successful-but-empty result (empty price window, empty indicator points, empty search, empty statements) is turned into a 404 *after* the cache wrapper, so the empty result is cached under its class TTL and repeat requests are served as a stable 404 instead of re-fetching.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L215-L223",
+          "version": "repo-lines-v1:sha256:0f3ff398fb58fd57168744719ab1aa10148c0b23e630e46e84f41e51cb9681de:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmIyYjU3YjViZTU4YzA4MGE5MWNhM2Q5NjEwMzMyOGY1NzI3OTkwYzJkMzMyOWIyODk0NzVjZTMyN2MyNTI5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzIwODUzMjkxMGNmY2VmZTU4NzAzZDQzNDQ1YTljMjAyYjEyNDg3NzJmMTZlZjVhMTYzMGU2MmYyNWRmMDI3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTlhZGEzMGQxMjg4ZGVkNTdkYmQwOGM5NTFlMTI0NjdiYzFkYWU0NDljYzk5NTNhY2Q0ZWU0NmI1OTBiYzI5NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODEzNzYyNzUzMGU1ZTdjZjcyOWUyZjk4MzNkMzkzMDFjMDc2MDg5NzdmOWY3ZjRiMGYwM2Y5MjlmMDAyZTNhNyJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L796-L803",
+          "version": "repo-lines-v1:sha256:545b1cee4ed7990605c55dd6693d8b54f7b76566b618abab6bbbf9fe154dfbc5:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJhZjgxOTRlZDM0MTQzOGFmYTI3NzJjMzBlZGY3YTVlNmU5ZGQxYmExNzlmZGIzZDQ0ZGY0MmI2Y2M1ZWQzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTlhZGEzMGQxMjg4ZGVkNTdkYmQwOGM5NTFlMTI0NjdiYzFkYWU0NDljYzk5NTNhY2Q0ZWU0NmI1OTBiYzI5NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBlNGZiNGQ0MjNlYzNlNjBhMWQwM2RiMDg4ZTU3ZThiMzUyMjFkOTEzODQ5MzZhODhmZDkzODk3OWVkOWQ5NiJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1017-L1030",
+          "version": "repo-lines-v1:sha256:f3946b73f2e50b8ab21d67ef92e8fe8dab606923d9ef565f3b388a3797311c08:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MmYzZDNhYzEzYThjZTExMzk2YTE0ZGJmODk5MGIwZjQyMWU4ZDMyMzI3YTIwZDFjN2FlNjQxMTNkY2Q4NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiMTViNDBkZDhkYjdmNTcwOWIyMjNkNzU4ZjUyYjU1ODBmZTUzMDc0YTIzMGRhNmZiN2U0ZDYyZmNhMWRkOWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b8ad2e37b63247adb60eec94c606ee65",
+      "statement": "`resolve_listing_currency` resolves a listing's currency from the company profile first and then a deterministic exchange fallback (`TSX`→`CAD`, `LSE`→`GBX`, US venues and `None`→`USD`), normalizes provider pence (`GBp`/`gbx`) to `GBX`, caches the result through the endpoint cache as `metrics`/`listing_currency`, caches the fallback when the profile read reports not-found, and returns the fallback uncached (logged at warning) when the profile read fails with a provider or configuration error.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/currency.py#L22-L113",
+          "version": "repo-lines-v1:sha256:632c8f784797bcc24846fa459f526407217150969a8a4eab47a136ac4d63731d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NGFlMDU3NTIyMTBiNTEyYmFiYzVhOWZhM2IzMjMwOGFjNDg3YTk0MjBmYjEwOGFlODU0ZTE1NzhiYzkwZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5MjdiMTAwZDMyYzdhYTA5NjI5ZGIxMTg0ZDlhN2Y5OGY4NDJjM2ExZWU0ZjE5ODhjY2U2YzI0YTcxYmJmMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_currency.py#L25-L169",
+          "version": "repo-lines-v1:sha256:0d7e66c20e2cde323e7fdc9bc619e36700a8224ee2954ac176aa4e29bea1c612:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhNzZmNzg4YmUxMzcwOGY5MWIwZDFkZDgyN2VlMTQxMTIwODk0YjBmNjEyNGIyZTg2ZTU0NmJhNGM2YjQ2MTk1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmE4MzgzMjAwZTUwYWRjMjk0N2UwNzk4MjA1NWZhY2MzYzAzYmU3NmZkYTliOWZmNTI4MTQyMmE5NWY4YTBjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhY2ZhMzFhM2EwNjNlMjJiMWQyYTI5OTdkMTBhYmRmZTdiZDU0Nzg2OTYxMjBjOGZkZWM3ZmU0YTg0NjBlZTFkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3MDY1M2E3MzM0ZGYxNTE0MDE2MjMyY2NiMDIzMDBmODFkMWM0NTU0OGIxOWQwZTI1MGFjZTIxMTFmMmJhODBjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_fba7b6bb18a44aed8ca21892b2aa8231",
+      "statement": "Route handlers apply the resolved listing currency explicitly so every price-bearing response carries a required top-level `currency` (`Quote`/`OptionsChain` patched with `model_copy`, `PriceHistoryResponse`/`IndicatorSeriesResponse` constructed with it), bridge the synchronous gateway reads onto the event loop with `asyncio.to_thread`, and issue independent reads (prices plus currency, profile plus metrics plus ratios) concurrently with `asyncio.gather`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L114-L132",
+          "version": "repo-lines-v1:sha256:c60bb9462ff08355194bdc633baad9bccf25f08dfd2dcf2acfe11a51d6b2860d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYjdkMmE0YzBmNGI3YTRiODRhZDRhZjAzYzg1OTIzOTMxMzg3YjQ1MWMyNzBkNWNjNjJmMTFiZTJkM2I3YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1OGI2NGFjN2RlNGNlODk3ZjYyYTY4Mjk5OTM2MGI2ZTdjNjU5ZTgzY2JjMGNmMWE3MmE1OGUyZDBkMzFhMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmMmY3MDMzYTcxNDM1OTRiNmJlNjEyMTAzZjE1Njc4ODljMDg0MjkxNTZiYWY5NmVjNGNhYTI0NThmNzI0ODMifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L163-L200",
+          "version": "repo-lines-v1:sha256:474348f38d0acf32707b76d2892e71832d2b4259c3c8d35237e5093a4fb50285:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NTIyYTE5ODEwZjJjZDRiNzA0ZGJhZjNmNjY2M2E2N2I1Njk1ODA0ZDg3NTZiZGU0NzE3NDQ4MDIyNTNlYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmY2Y5MTRiYWUwMzdmZWVhNzFiYjc0ZWY2NWFkNzk3MTZjZjk4ZTkxOGI3MGM5NWQ1OWNkZTlkNmVmZDNmNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4YWQ4ZTE5NjY4MGQ5MTY2OGM0MmJhOWM1MGU1MTc5Yzc4NTMzZjcxNWIzOTE3ZTZhM2VjNGRlZjA0MmZkYTAifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L243-L260",
+          "version": "repo-lines-v1:sha256:5036283e1917b3a43b48c388612a551cc48e1b51a241bf5f7618c167105787d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwMjBmZDQ5ODdiY2RlMDkxYWZiNjgzNjEzZjdiNGMwMDVkYzEyOWMxZWQ0MTdiOTgzNDNkYjdjMGJjMzg3NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5N2IyMzA4NGIxYjU3MWM4OGM5MDg1ZWFkYmM3NWUzNjQwMTE5MDJlNDFiMzVhNmM0YzM5ZGI4NDUwM2E0M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkOGY3ODRjN2NkYTM3YTBhNGFiZWY5MGZjNTg2MmZhMDM4YjBkOTU3MzFiYWU3NTI5ZmYxNDcxMzFkN2JjOWYifQ"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L606-L626",
+          "version": "repo-lines-v1:sha256:88f717101b941c758cc99487ad5c0733f0dc0d319eece3cf4713a75bd3346c82:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkNTliNjJhMWY2MmExNGY2Nzg3YmI5ZTE3YTAzMWQwZDM3MjVlNWVjYjExMDg1NTA3OGU4NDAyZmUzOGI0YWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MmY3NzQwMTAyMzM0MjE5MmU5YTE1NmI2YTdiZGVhYjE5MGVhYWU4ODljYWM3YTc1YzQ1NmYxYmU4NTU2OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4MmVhN2EwMjhkODIwZDlhNmY0NTI0MjJhMzFlYjk3MjA1NWYyZmJiODMwNDNhMTE2Y2FiOWNhYTMwNTU1MjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkOGY3ODRjN2NkYTM3YTBhNGFiZWY5MGZjNTg2MmZhMDM4YjBkOTU3MzFiYWU3NTI5ZmYxNDcxMzFkN2JjOWYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L173-L193",
+          "version": "repo-lines-v1:sha256:6a24fccb13b38e895056c4f77a01204ff51b7d28bc5e21be2748e4029b992361:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczNDI0ZTE1NjJmNzdmZDY5ZThmYzM2OWU1ZTZiZmU4MjNhODUwNDdjZDIwZTc2NDE3OWU0Y2FkMmU2ODVjOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2ZGZiZjQ1M2Y3ZjFiZWJhYjcyODM2MWIwZjM5M2VlYjRjMWZiNjY4ZjllYTIyYjkxNmRhY2Y1ZGZmODFkODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmNDNmNjAyNWUyYzhlYTJiNGE1NzgwODg2M2IwYTNkMDA0ZDhlYzAwOTI4MTYyMmYzYzUxODkxNDgxZDA0YTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b3e15e0f76d4b5ba221a7585d5a7b55",
+      "statement": "The FMP gateway maps an internal `(symbol, exchange)` pair to a provider ticker through `FMP_EXCHANGE_SUFFIXES` (`TSX`/`TO`→`.TO`, `TSXV`/`TSX-V`/`V`→`.V`, `LSE`→`.L`), while US/primary venues and unknown exchange codes pass the bare symbol through unchanged and an already-suffixed symbol is never double-suffixed; every data-plane route that accepts `exchange` forwards it for exactly this mapping.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L35-L39",
+          "version": "repo-lines-v1:sha256:ccd202b4668d4567e67b4b73e1368a7bf1c95989cebab8a1d73fad67839a044d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzU4N2I2MGRhMTYxYzQwNmZlYWNlNGRiNmFhZmE3OGE3NjRkMTE1NTgyN2MyOTRiNzllOTNkMDQ4NWVhNTU3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzEzOTAwYWY0ZTllMGJjNDI2ZmQ4MWNhNGYyMTY5OWFmYTE0YzY4NmQxOWVmMzNiYzA3MjkzNTM4ZDU5OWQzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWNlMjFiMTZmZmFkNzhiMjFmODU5OTQ5MzI5NzQwN2NmNTJhYWFhMzI5Yjk5YThlNGUxMTJhNTc3NWVmYjBmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFhZjc2MzdjYjZlN2U1ZGI4NWQ2MzQyNzQ2MDE0ZGYwNDFjY2Q1NThhOTIwYjI5ZWI2YWM3MTlkN2JhZjVjMiJ9"
+        },
+        {
+          "resource": "repo://src/market/fmp.py#L59-L110",
+          "version": "repo-lines-v1:sha256:a9abbd9ab3d4d5520c4960b6c398d7883f8163ec1411c129286ddc7116f45885:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhZWI3MTUxOWExZGMwZjY2YzMwOGQ1ZjI4NGZlYzNiNmRkYzViNzk1MTVjZjNkMThhNmIyNmNjZjE2ZWYwMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NWJjYWMxNWEzM2NlZjFhNGZhNGU2Y2E5NzJkNDFjZmYyOTc0YjFiYjk5NWMxNmFmYWZmZTBlZWVjMzc2ZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OGRjYTY1NDc1MDY2NjcxMTk1NmEzNzExYjJkMjYxYzIzZTJiZGQ4NDJhNzcxOWRhZjI3ZmYxNzNjM2Y5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMDQzODY1MjI2YmRiM2IzNzdiMTIxYTI1ZTI3YTE5OWJjMzk2NWZkOTNhMDI2OTg1NGU2ZjU4OTU1MjU0MjEifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_fmp.py#L109-L247",
+          "version": "repo-lines-v1:sha256:bbf83116f290fc9de891616ed6aec44d78acd9492edc4bcb2fd64105ca6140d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxOGVlY2FmMjdiYmRjNWIxNTI0MjEzOGQyYWM1YmUyMjJlYjkwOTU2NzQyOTY1NTZmYzU3YmUzMDA2NWM5Njc3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5Y2Q4MzZkZGIxZDQ5MTNkMWZjODhhMTllNjBjZTY5YWVlOTk1NDlhZTk0YTRjOTJkMjNhZmNjNzkwMDMzYzU3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwN2EzZTI0MDc2ZGVkNDk3Nzg0YTc3ZDRkOWY2MmE2OGVhNGUwOGE1YjYxYzliMWMwMGVlNTMzMWI5OGIyZWFiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlZmRjODg2ZGYwZWM0OGRjNzFlYWIxZGFmYWRlOWRiZDc4MTk0N2RiM2RhNDRkNjA1ODdjYTZiMjNmMTFmOWEwIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba551fc683654fbb9ca1981c28fb5e1f",
+      "statement": "FMP errors are translated provider-agnostically: HTTP-200 `Error Message` bodies become `MarketDataConfigurationError` when the message matches a credential/quota token (`invalid api key`, `limit rate`, `limit reach`, `requests count exceeds`, `legacy endpoint`) and `MarketDataNotFoundError` otherwise, transport and non-2xx failures become `MarketDataProviderError`, malformed scalars raise the generic provider error, and raw upstream text is logged only — with the additional case that `get_institutional_ownership` falls back to a shipped stub fixture when the endpoint answers HTTP 402 Payment Required.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/fmp.py#L1166-L1196",
+          "version": "repo-lines-v1:sha256:99277301972764465ec3d07fdd09b111d85ecfff589cf15bdf43dbc08c9f9113:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5NzJjYWUxNDNhZmE3ZTlmMzJkMDE0ZDQxMzgzNGFkNjcwMGQwYzE0MDY1YjY5ZWFlYjdkY2ExMDY0MGE1OGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0ZmY3YzI1YzRiOWEwOGUxNjY4MTdiZWJiZTc4NWVmYmY5Yzk5MDAxM2I5OGMzODU4MDdhODk0MmY4YmU1NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxZDJmODE1ZWJkNDk5ZDE5YWViMDViYWVkNmJjMzRhYzJhY2QzZDllMTMzY2FkY2E4NmYyZmZhMjY4MGYwODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NmEzZTJhNTlmZTIwOTcwYzc3ZGNiZDNkODQzMmM4MDg2OTYzMmYwM2Q3N2M4YWViY2FkMWRjNDE2NzU1OGQifQ"
+        },
+        {
+          "resource": "repo://src/market/fmp.py#L399-L456",
+          "version": "repo-lines-v1:sha256:ab43162b352a2a0f7c86ceac5d2c7309bae275fdae541b3c31945b01a052a808:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDgyMDdkNDVlNjUxMzczMTQ1ZjdlZDkzOWM5MTEwOTMzNzM0N2Q5YTllMDU5MjdiZmY3OGY4NmMzMzBmM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MjczNjMwNDM3MjllZTJiNWUwMDdjYWNiZmY0MGNlODg1ZTVkZTg3M2ZhMTU4ODE1YmQ1YjFjMzdiMGNjYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YWI5YzJiN2FlM2FiYjJmMDliNzNhMzNkMzdkOWFmMjRiODBkNjdkNzliMDI3MDkyYjhiNWYwZGVmMTI3YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMzU3OGJjYTY4ZjNiM2MwYzU3OTEwY2E5MjFiNmQ1YjY1N2EwN2NjNGFkNGEwNjg4N2RmM2UwZGFlNWJjYTEifQ"
+        },
+        {
+          "resource": "repo://src/market/fmp.py#L82-L91",
+          "version": "repo-lines-v1:sha256:1074429d9014a686b4c9467129fabed2fe11b12101d431f174abb3fd0334d915:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YjU1OTg4NTIxYjJlOTIzODAzMTk5MGQ4NDA1M2M0YjhmNzZjOGFlNjU4YTYyY2NhODk3N2I1ODg0ZDY2NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4ODliOTM2MWFlZDRiZGEzNmFiNTc4MjVhNGVkMWE0ZDQ4Mjc5ZjkzY2MyNWQxY2RjMjFkYmZkMDU5MDI0NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlYTUwNmQzMzMzZmEyNDRkZGJmYjZjMGZmOTYyNTk3MDc3ZjY4MjcyYzQ0YTA2OWEzOGMyNmE4MjY0NTZhOWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b7d1d853e154ef69100749e0b84dbac",
+      "statement": "The Polygon gateway maps options responses into the provider-agnostic chain types with a fixed error taxonomy (`404`→`MarketDataNotFoundError`, `401`/`403`→`MarketDataConfigurationError`, other statuses/bad JSON/malformed entries→`MarketDataProviderError`) and follows paginated `next_url` pages up to `_MAX_PAGES = 10`, setting `OptionsChain.truncated` when the cap is hit so callers can distinguish a complete chain from a truncated one.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/polygon.py#L211-L239",
+          "version": "repo-lines-v1:sha256:a1cc3813c6d80cd1082c75149ea678fb9243ce0199ee16889f21c73dcd74517d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0NmQyNWQ0MjU2ZDlmZjA4M2VkNjU2ZmI3ZDNkMjQ4YmFmYTQ2YTE5ZmFkOGI1YTA2OWFhNjA0ODM4ZjU1OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1ZWVlNjE4NDMyODkxYjk4M2ZhNjNlMmFhMTg0YWY1YjA5M2RmMmY4NDc3N2YwYzc1NWE5ZGU2NzUzNWNlNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4MzEyMzA1MTEzNWFlMDdjZTZjZDMxNzI0OWU4YTUwYzJkNzBiZDM4MjhmNmM0MzhlZTUwMzc2ZjllZWE5ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmOWJkNDJjZGYyMzhjOTQ5NzQ3MjdlODYzNGYxZjgwNDU4ODJkMzc0OTY2ZGU3YzIzODYwY2Q4ZDU2MzI1NDEifQ"
+        },
+        {
+          "resource": "repo://src/market/polygon.py#L332-L358",
+          "version": "repo-lines-v1:sha256:a072667538d2e0fd5e876c040e9aaaf95da937425c6cf7a14e3e6d6b9c0eda6a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkMmMxZjIyMjJiNWM2MDdlNzYzYWE1NjExN2U5MWM1ZGQwNGU2N2I3Zjk2OWEyODY4ZTQwNjUyZDc5YTgxYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExOTI1MzcxZGI1OGQyMDk1M2IxNGMzNTljYmI1MWRjMjM4MWQ2MzY0ZmY4NDkwM2JkMzRlODcwOTdmNjZiYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyNDE1YjkxNzg1YmVjMjliNTUyMTFjZTNmNzM3NTQwMjFjODM1NTYxNmViZDIyYmZmMDA0MzhhOWZiOGY1YWUifQ"
+        },
+        {
+          "resource": "repo://src/market/polygon.py#L62-L74",
+          "version": "repo-lines-v1:sha256:fcd10712ca491cc70896074ccc3f171fa5331cb06ee6697f8adb95a79eebd705:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwYTUwNWJmZDM3OTg5ZGYzYWMzODE1YTgwODUxM2ZkZWQyM2FkMTc1ODdhNzMxMDc0M2I4YzIxMzJmYjU3ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlYWE5MTk0NjI1ODRhZWVlYTg0YTAwYjg1MDI1MTk0M2I5NTg3ZjFmOGM4N2UwMmNiZjQ4M2QwNjU4NWRmOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2Y2YzZjRkNGRiM2EzZjJmZjhjNDQwNDcxZWNhOTQ1Y2U5ZGU1MWVlMGFkNGNiNWMwNzBkYmNmMDM5ZmM0OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiZDA3YjI3NjhhYTM2Zjg4ODk1Yzk0ZTU2NGMxMjk3M2ZmNDU2YzgyN2FmYmY0NjFjOTFmY2ViYWM4ODc3NDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_652850082cd043e48ec0e1213dace568",
+      "statement": "The committed snapshot `tests/market/contracts/data_plane_openapi.json` is the source of truth for the data-plane contract: `src/commands/export_data_plane_contract.py` slices every route under `DATA_PLANE_PREFIX = \"/api/v1/market/data\"` into an OpenAPI document titled `Market Data Plane Contract` version `1.0.0`, `test_data_plane_contract.py` asserts the live schema matches it byte-for-byte and covers exactly the eight expected routes, and it also asserts that no provider name (`fmp`, `financialmodelingprep`, `polygon`, `eodhd`) appears in the schema and that `currency` is required on the price-bearing response models.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/export_data_plane_contract.py#L13-L49",
+          "version": "repo-lines-v1:sha256:62ba9a3cf5215c5fb56d0127134b8e8031080d8bb8750d79018d9fb37a190555:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MjcyM2M2NjIzOTQwZWM1OWM5Mjg3MTZmMDU2NWEyYTI5ZmE0ZTQ2MzhmOWQxN2Q2ZjYwNTYxMmIyOWZmMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhY2JjMjU0NDU0OWNmOTY4OGUzZjIwNjhhNmFjY2Y3YWEzMmMzOGQ2YjFkMDRhYTY1Y2IzM2ZiMTU2ZTE1N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYjRmOWE2NjYwODc2NDA3NzIzZTRhMmJjZDljZWNiMjdjZTMyYWM2MWM4MTllNjVjY2RiM2U5OTQxNWQyNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L156-L196",
+          "version": "repo-lines-v1:sha256:bb898f4722142d2170e16c7e552c6869c64ccd3db2c7a538332fadf92e5a24f7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzMDFhOWU2OTRlYzM2NWQ3MzRiNjNkMzRmNmE3NjlkMWYyZDFkZjZmODAyZmFiNzRiNTZhMzU2YWNmYTNmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNmZhMGUyZWQzYTExNWZmZWE3OGY1YmM3MzczYjQxZWZhOTNkODg4YjJiZDViYThlOGFlY2Q2MGYxMGI4MjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MzUwMTk4MTFlY2E3NmU4NDJhZjgyMDBjYzQ2NDkyNzk0NThhNDI2MWJjYjBjMGRhNTU2NjRjNGQ1MGRkYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NThlYmU4NWMxM2ZhMmQwZDRjNjdlOGNkODg2YzI0OWZkMGI5MGQyMWZiZTVlYzY4NjJhODQxMTc0ODE2ODQifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_plane_contract.py#L17-L62",
+          "version": "repo-lines-v1:sha256:a2372983fff701c7198c2f904b72a0edbcfe3e2834c270b7e7b0f1384a94c327:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmZDA3Mjk0ZWFiNDA2MmYzYTYyZGM1ZmY0ZTI3MTEyNWMzMDUxMDVhYzUyNjAzNGYwODNlZDNkYmZhZDNhYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmMDBmOTUwMTI1OWI0YWQ4NWI3N2MwNjYwODljYjNiOWNhNTVkOWI5NDA0ZmE3OTVlNTcxOTM1NDQyNzBhYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExMWVkMGE4OWYxZmQyN2JhN2U1YzZmNjJkZDFmNmY0NjNhOTIyMDAwOGYwNTgyNGY1NDhhOTkzNGI5Yjc4ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4NDA3MGFiN2NlNDhjOWNkNTRiNzVlNWU5MDA3MGE5YzU4NjI3MDk1MDMwNThhNjI4M2RiYWFlNjE0YWE4MGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e017f1d9df014ed080334374ca619b8a",
+      "statement": "`services/mcp-gateway/internal/backend/contract_test.go` verifies the opposite direction of the same artifact: it loads the snapshot, requires all eight routes plus non-empty `operationId`s, drives every `MarketClient` method against a stub server requiring 100 % route coverage, compares the `exchange` enum on the five routes that accept it against the Go `supportedExchanges` list, asserts `expiry` is required on the options route, and runs negative drift cases (missing `X-Service-Token`, unknown route, missing required query param, unknown query param).",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L169-L352",
+          "version": "repo-lines-v1:sha256:89f2fa15a15e3616f66328d5507e0c4dada0918dc4836a755288929551d67e55:eyJzZWxlY3RlZExpbmVDb3VudCI6MTg0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5ZDdkMTg1NDQ0N2RkNDRmNDQ0NWMwOTliNTlmZjliZjdlYTdkZjZhOGI2MzJhY2U2YzNkYWM3NmZlNGRkOWM4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4ZmIyYTgyODYwODAzZjFiZTA4ZGFiOTFiYzgyMmI2N2JlOTc3YjE2MjQzOWY3NTZjYmYyNTdmM2M2N2U2NzJjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4ZWJiZWIxMjcyYjFiYzljN2FhNmQxMzQ2ZTg0MGFiYTFmNWVkN2M5ZDdiMTA5NjRjZTYyMjdjMWJhNTdjMjg0In0"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/contract_test.go#L354-L501",
+          "version": "repo-lines-v1:sha256:e51d85815556f23b685796ab0b27edcb8a6736d64275db754ba8c479e9c14c70:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyZTk2NDIyOWFjZjBlYWY3NGI4NjMxYjNmY2Y5YTc4NjQ2ZjJhNDVmYWZhN2M4MTc3MGZkNzFkNmMyNTBiMGQ1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmMjk2NDA3OWMzYzVjODE1MjBlZjMzYTJiOWQyZTE1YTFiODRkNzI4MGRiODU5MGRjZDY1NzQ3ZTNlMDEyYTQwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxZjE5ODExNGUxYzlhOTE3NmFhMzBmMDEwYzg0NzYyOTg3MjBhZTVmMTFjOGYzOTM3NzI2NjdjYTM1MGRjMDRkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_d59ad2652433485c9b3748540c437c5c",
+      "statement": "The data plane is service-to-service only — no frontend code references `/market/data`, and the user-JWT market router is the frontend's door — while the composite gateway and FMP provider code are still reached from that router: `GET /api/v1/market/securities/{security_id}/institutional-ownership` reads `DataPlaneMarketGateway` behind its own `market:institutional_ownership:{security_id}` Redis key (TTL 86 400 s) and degrades to a null-filled response, and the logo endpoints call the module-level `map_to_fmp_ticker`/`fetch_logo_image` behind `LogoCache` rather than the composite.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/fmp.py#L113-L175",
+          "version": "repo-lines-v1:sha256:16a6a26af55db747de326ea02b986edb21c97b0baaa91d4bc8600f8b46d7c217:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNmQ0OGUzNGE5MGVmNDA0OTc1Y2M2NmUxNjdmZDBlYjE2NzVmMTg3MGU0NzYyMWE0Nzk3M2U3YjUyYWIzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTYwMGE3M2QyZTAyZjM1MmI5MGZlZjFkOGQ2MzgxMWJhNGE4ZWUwYzFiZWFhN2FlNDY1OGYzNmFhMmUxOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1OWVhNjExZmRiZTM4YmQyMTM5MjMxNjRhOTE3OGU4YzJjNjExM2M4OTA2YmUxOTM1YmVjOGFmMzBkNjk5NzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L340-L373",
+          "version": "repo-lines-v1:sha256:b4a91ba316fbdeaec0f782570e28b1c5835879c84554c558485f2b01707f12fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NGI4YTY0ZjY4YjVhZTQyZWNiMDRlNzVlMWFlNzdkZDYxMmY1YWU2OTU1Zjg5YzYxNDRlZjg0MjliMmM0MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxMmRjZjA2YWFhYmViNTI1NmY4OGQwNmYzOTkxNzVjN2Q0NGQ0ZTZlMDUxNGY4M2JmNjIxZGY4OWRlYzY3MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ZDJhOGNiM2JlZjhiNmViZjlmYjNiMDc0ODIzOTZmNGQ2NWZiMmViNzk3YmQ5N2Y1ZjUwOWRkOWMzMzA3M2EifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L403-L472",
+          "version": "repo-lines-v1:sha256:fc7fa5c5fe5b427c59d983034706762be1440060d6a8b0ab13eef52b16a0c89b:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MjJhMjNkZGZjOGJhZmRmZWJiN2EwMmFhZTg2MWZjZjNlMDMwNDgyNzYxYTY5ODJiOTQzN2UxMzc5OWY3M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjZjYxNjViYjAzM2JlNTRhMjE1OGY4YjBlNTcyZDg2ZjJjNTU5ODQzNTRkYjI3NDNmZWNhOWNhMjIzYjVkMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlMzYxZTdmZDE3ZDM4ZWQwNDdlMDEwMzgzNjkyNjYwM2MzN2MwYjYzNTk1YTljYjY2M2RmM2YyMTNlZTFjZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4MzE0ZmJkMGNhMWRmNmE5YTFhMjM1NjEzNjRkZDQ4YzY4NGM2YjNlZTIyMGI1ZGM0ZDdiMWE0ODU3YTVhY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7fe29e006fbf40738ac5819da84bf856",
+      "statement": "`FxRateProvider` is a separate concern from listing-currency labelling: it builds a `currencyconverter.CurrencyConverter` from the ECB history zip that a daily Huey task (`daily_fx_refresh`, 17:30 UTC) stores in Redis under `fx:ecb:zip`/`fx:ecb:fetched_at`, parses it once per fetch date in a process-level cache, and falls back to the bundled snapshot when Redis is empty, unreachable or holds an unreadable zip; it feeds FX conversion in `PositionService` and the broker-sync cash-balance conversion, not the data plane.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L537-L547",
+          "version": "repo-lines-v1:sha256:7daac7a3738027580b6fcf62e86c5248819c648b1dc214d88453bfd8994b182b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYTE0NjIxNjVkMjE2OTQ4MTU3MzdlZWRlMmI2MDk3MGI5ZDEzYTA0NmIyNmQ4N2U0OTFlNTZiZWM0MTJhMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ZmNlZGVlNjVkNGE5YzFjMmEwNDYwM2FiZjhkNzZkY2I2YzMwY2ZmMjgwMjgyZDZkNTc1YjEyYmI0NWRiOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/fx.py#L1-L13",
+          "version": "repo-lines-v1:sha256:46a6d4e5b9100d01d42954541f49a9f8d2d3ae2e2f41883a22221c217922c480:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZWNiY2U2Yjc3MTRmMWE1OWQ1ZjY2YzQ3NzljM2ZmMTUxMTcxNmE1YmQxZGIzNzU2Y2I2YzZmMmZmOThmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExYmI0ZDhiYzIzZDkxYWRiN2Y5MGU2YTM5MDhmMGE4YmJjMjU4MzcyNGVjNmU5MmQyYjhlOTRkNzMwNzhhMDgifQ"
+        },
+        {
+          "resource": "repo://src/market/fx.py#L154-L222",
+          "version": "repo-lines-v1:sha256:ce14b0cbc74a9441cd9ce6a5c6c175846e5865f9a7f6107e3ec57f19063689be:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMThmZDQxN2VjZTcwNjQ1OGRmMzU5N2M2OTA2MzljYTEzODFiMzA0OTYyNzk3NDFiNzJlYTllZGRiZTAxMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhNWQ5MzJmMTQwNmFlZGRiZWNmNzkyYmVlMGVjZmRkY2NkM2NkN2I0YTM2ZTQ4OWM5MjI5Mzg0OTBlYzFhMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5YTNjMzc2YTgwYmIwOGQxMGNjYjc0MWVlYTA1ZjliZGUwOGRiMzBjNjI3NDc2M2I4NThhMWMzZmE4MjkxYmYifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L92-L105",
+          "version": "repo-lines-v1:sha256:e70596914e893186df3148d9262a84c2a518a13e427cf41e041bada141d4ad2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlM2M2ZjYzZTYzNjQxY2Y4M2Q5ZGMwYjdhYmYzNDRkYjk1YjdlNzBiZjQzOWE1M2Y5NGZlMjYyYzc5ZmRhNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ODdjYmNhNGQwZmVhMTE5ZGI2MWNlNmVjMjk4YjUwNGQzYTYwNWU5NWQ4NTBlYWU3MzkzNjU5NDMxZDQ1ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwZTMyMGI2YTg0OWNiMzM5ZTdkMTk3N2NkYzQ0YzAzYjU0ZDMyMTVmMjdjMWM3NWQ3OWJiMjExZWFhYjU5NzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5314f35dffba472ba76af94a4495f0bc",
+      "statement": "Every test suite in this area is offline: FMP tests drive outbound HTTP through an injected `httpx.MockTransport`, Polygon tests patch `src.market.polygon.requests.Session`, data-router tests register a `MagicMock(spec=MarketGateway)` under the `DataPlaneMarketGateway` key while keeping the real `require_service_token` dependency against an in-memory Redis fake, and `tests/conftest.py` sets `STUB_EXTERNAL_API=true` so all three provider factories return their deterministic stubs.",
+      "evidence": [
+        {
+          "resource": "repo://tests/conftest.py#L16-L16",
+          "version": "repo-lines-v1:sha256:8aa27700e5649ed47623d8a5d37c5c158d86a554fab8696aab9c39715546d897:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFhMjc3MDBlNTY0OWVkNDc2MjNkOGE1ZDM3YzVjMTU4ZDg2YTU1NGZhYjg2OTZhYWI5YzM5NzE1NTQ2ZDg5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFhMjc3MDBlNTY0OWVkNDc2MjNkOGE1ZDM3YzVjMTU4ZDg2YTU1NGZhYjg2OTZhYWI5YzM5NzE1NTQ2ZDg5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjRhM2E1MTU1YjY1ZmMzMjk4MDA1NmY0N2JiYTE2YjdmMDg4MWQ4NTkxODMzNjUxYTk3NWVkMTg0MzYwMGMzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTg0NzRhMTRiMWE5ODZlOTk2YjIwYjMxOWM3MzFjNzA5ZmI2YmJkZDQxNWM1NDc1ODNjMjViZDVmNTc3MTliOSJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L105-L129",
+          "version": "repo-lines-v1:sha256:985b705c7088a4e9cedf9e45b3f329d5df5d741ea4016248c4c206074e092ce4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ODg0YzM0YWRmYTk2MjIzODFiMzg1ZmE1ZDJlNDk2NTgyOTUwNTEzY2NhMGUwMzQyZjA2ZTljMTEwODJmZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MjA0NWUyMWJmYTIzMGM5OTVmZjkxMGE4ZGU2NjgwZWI3YTNjY2ZiNTcyN2M1OTNhYmQ0OTRkM2Q1MzhiMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZWVkNmQ2N2MxZThiYjkyNDY3YjE2NWNkOTY1ZjIyMDg2N2QzNWFkYmFlODYxODAzNDZhMTI4Njc4ZTk2MDMifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_fmp.py#L1-L6",
+          "version": "repo-lines-v1:sha256:cb10c76e05864562117f39bf598a6d1cfc0e8adae1466d1268c86572aa3c2de7:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjdiODUxODI1ZjM5NjYzY2Y5YzY4NGFjNDljMGEzNjBlMTE4ZjI0YjliOTIyOTEzMzhiNjk0N2VkMjY1YmMxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWRkZmUzODQ0NmQzNGE5NDM3ZDcyZWRlNjYwZTg1YjgzNjZkZWUxOWQ1ZjNkOTY3MzM1YzEyNDYzMjAwMjAyZCJ9"
+        },
+        {
+          "resource": "repo://tests/market/test_polygon.py#L1-L7",
+          "version": "repo-lines-v1:sha256:c7d704f0d3f05213974f6e35b8ab536dff39a3f7ed696f8ffbebea7c2bad6580:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjdiODUxODI1ZjM5NjYzY2Y5YzY4NGFjNDljMGEzNjBlMTE4ZjI0YjliOTIyOTEzMzhiNjk0N2VkMjY1YmMxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTFhZTRkNzcyODY1NzA3MTBmZmJjNDlmZDQzNGI5ZDQxMzZhOGZlZmMzYzNhMDJkNmY4YWNjYzU1NzhlOTc3MiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-15T13:03:07.448Z"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:57b6a87f12650ce170bcc4f1a6d6bd01a9b86c21ca49d5341e1fbf56ac525c67",
+  "pageVersion": "sha256:bb116885711ab428bd4fb84c1c16172a662a55dc99b1e4c325b7cb66d8bb6f90",
   "claims": [
     {
       "id": "claim_ceb913d68ca541f89ee4b6829bd092a2",
@@ -11,8 +11,8 @@
           "version": "repo-lines-v1:sha256:eb0a801dfd3ea0746836997f367ecf19e0ed6f3ef42963bff6f4f988e235bdd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0Mzk5NzNhNzVhYjFlNGRjNWM3MGI2MDY4ODRiZWZlMzM3MmRlYmRhNTdhY2RjNWNmMTM1OGM0YThiNDZkNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNjdkYzI4ZTcwNTNkMjQwYTc1NWZkNWVlY2I0ODI5NWFlMmUzMmJkNGM0MmQ2MmZiNzYyNmMzMDMxNGM5MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/main.py#L167-L177",
-          "version": "repo-lines-v1:sha256:b66ab3c7c9677095729c27f4c6b1e651b2f0c6fc24ad24ac21753223cf11dc88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+          "resource": "repo://src/main.py#L174-L185",
+          "version": "repo-lines-v1:sha256:696365c50264d6be7d62e899a4f825b43515c7c8b60b3128dea2c99578f1c035:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
         }
       ]
     },
@@ -21,11 +21,11 @@
       "statement": "Access tokens are HS256 JWTs signed with `settings.secret_key` carrying `sub` = email, `user_id`, `exp` (24 hours), `scope=\"access\"`, and a random `jti`; they are minted by `UserApi.create_access_token`.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L38-L41",
+          "resource": "repo://src/auth/api.py#L39-L42",
           "version": "repo-lines-v1:sha256:b99108e14ab10751a73f57a63a2ccc4d1983ec3d88828813ba9284bf32093d9a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODYwM2ViNGU0OWUwMmM2NTM4YWEwYzkyMWVkMGY4NGM4YzViZjVlYjA2OWEzM2RiY2I5MGIwNmJmM2FkMDA0NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMxMTZlMGJjNmYzMzg5NGExYWU4NzdlZmMxY2M3NjRkMzVkZDZkODc2ZTliYTM1Y2QxNTNjODJkMmQzMmYxNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM0N2ZkYzMzYjQ1N2UxNjQxYzE1NmRkOGY5MDU5NDRlNGRmZTgwYjBhZjU4NDBiNjY2ODE4M2M4NzIxOGY1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTkwOGJjYzFiNDZjMmFhMGJlZmJkMzZiMmIyMDZjN2E1OGEyMmRlYjc2ZGE4YWMzYWFkYTA5ZWIzMzczY2MyYSJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L87-L111",
+          "resource": "repo://src/auth/api.py#L88-L112",
           "version": "repo-lines-v1:sha256:47fd096814a9d46f7683a59cdd03c2bfa14d923809e4db9b909d2d8f9da7376e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhZjEzYjI2NTY3MmJlMWJkOGU3YzZkZThlODBhODcwZmFhMjljZTE2Yzk4ZGNiZTFkMGE4MTEyZWMxZTlmMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYWYyOWM4YmMyMjA0NWNhNjY4Njg3M2M4ZTc2YmNmYzVkMWJkMTI0ZmFlN2ViOTI1ZmFjYWZjNWNjMzFmNGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4NDk3MWYzNWI4OWEwZDdlZWYwZTAyMDFkMzIzMDlmYjY3N2I5YWM3YWU4NDgyNWE4MjdiNzllYzU2ZDAxZDEifQ"
         },
         {
@@ -39,7 +39,7 @@
       "statement": "MFA tokens are HS256 JWTs with a 5-minute expiry, `scope=\"mfa_pending\"` and no `jti`; `UserApi.verify_mfa_token` rejects any token whose scope is not `mfa_pending` with 401, so the scope assertion is bidirectional with the `access` check.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L113-L142",
+          "resource": "repo://src/auth/api.py#L114-L143",
           "version": "repo-lines-v1:sha256:7c83dfd4eb5bec80fc42e38052504086b2ba19a6314fb71bf2f8ee3e033214c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNjhmYzUwMDhkNjdhYjFmNDdmYTUwMmRiNGVkZmRmYTBjNDRjYzQ3MTI5ZmI4MDY0N2ExNmE3YjFlZjI1ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkMjA2M2RmMzAwNDBmMTJiNjRhMDA1NDMyNTkxNWExZjM2M2NhY2U2NzQyOTg3MDljNjlkOTJhOWRjMzM2NmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDYxODVmMWE5NTJkNTliNjE0NDA2MDExNzQ1ZjBkYTBkYzYwZDIyNzY4Njc4ZjY1N2EwMWIzMWRmY2JhMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNWYxYWU2OWQ5YzYwNzk5ODA1MDRlZGMzN2Y1ZjdiZjJlOTIxOTI4MDMzM2YwMGViZmIwODgwZTZiOGRlY2UifQ"
         }
       ]
@@ -49,11 +49,11 @@
       "statement": "`UserApi.get_current_user_from_token` rejects expired tokens (401 `Token expired`), non-`access` scopes (401 `Token invalid`), denylisted `jti`s (401 `Token revoked`), and emails with no user record, returning a `User` only when every check passes.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L245-L255",
+          "resource": "repo://src/auth/api.py#L255-L265",
           "version": "repo-lines-v1:sha256:8c15b832d43021d1bc49e791eb77999e7a52f5a03aaa289d1c3258829447e089:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTgzNTUyMmI0OTZkNTIxYmFmMGE2MGQzNDVkOGFkZjg5MDJiMzY5NWU0ZjdiODdiOTBiYWE1YWEwNWZlMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YzNjZTZjMGE0OTZjYmM5MTI5NjVhZWUyZDBkMjkyNDcyNTRlNDQ1Y2U3Yzg0MjkwOTk0N2U4ZTY3OTkyZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzODNiNDM3OTc0NzY1NmJiNTRhM2Y4YjM0NDc1Nzg0MjMzNjczMDQwYWJhNmZjMTViZTIyMzE4MjMzNDg5NTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlZjZkOGE5MDFhMmFmOTM5MTZhMjk4ODRlNjc4MWEzYzg0MzQzMzhhMmUzNzcwYTFhNTQzNDU3OGVhMTMwZWYifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
@@ -63,7 +63,7 @@
       "statement": "`UserApi.revoke_token` writes `token:deny:{jti}` to Redis with `setex` for the token's remaining lifetime so the denylist cannot outlive the token, and silently ignores malformed or already-expired tokens.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L225-L239",
+          "resource": "repo://src/auth/api.py#L235-L249",
           "version": "repo-lines-v1:sha256:0273b8426531f952944c20582278936b41083595bbb50cafb7d30c929a81cda0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5Yzc3ZmEwZjhjMjM1MTlmYmFkNjBkOTQxMTg5MzEwNDY0NDM1MTk0ZWY5YmEzY2UxYWIzNTk4MDZhYzU1NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZGZjZGI5ZjRiZjI2ZGJkNzhiNWRkYzQzNjhhNzA5OTU2ZmRhYTQwZDAzMjFiNTE0ZWE2OGI4MDc3ZDkxM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NmUwOWU4ZmUxNWM2MTRhYmI3M2RjZDIzMjcyYmU2Njc5YTE1MjQwMDE2NTA3MDE1NmNiMzM4NzVkMzNlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwODRmMzk1M2I1N2RhY2ZiYzM4Nzk5YWY1Njg4YzQ3Y2JkNGUwNGVkMTJiNWM0MjYyZTJkMDU2ZTQ5OGNhZTEifQ"
         }
       ]
@@ -73,11 +73,11 @@
       "statement": "The `get_token` dependency resolves the session from the `auth_token` cookie or an OAuth2 Bearer header and raises 401 `Not authenticated` when neither is present; `current_user` yields the `User` produced by `UserApi.get_current_user_from_token`.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L298-L313",
+          "resource": "repo://src/auth/api.py#L329-L344",
           "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L42-L42",
+          "resource": "repo://src/auth/api.py#L43-L43",
           "version": "repo-lines-v1:sha256:ec9e245e06f6e83643a6ef70e25f6ee05ee2bee9afca7f58ccaf692f4541c731:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDU2YzczMDliZTE3YjM4MGQyZWRiMTNhNWM1OGNkN2I1ZjkwNWU4ZDkzNTZmMTBiYTY1MjgwMTg4M2RiNDYxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk5Zjk1MTdlNGI1ZWJkYmEzYmU0YzcwZGU1MTllYWUzNjhkOWUzZDY1NzZjYmYyM2ViZGJlZjVlMmIzODlhYiJ9"
         }
       ]
@@ -87,7 +87,7 @@
       "statement": "`UserApi.login` returns 401 for unknown emails (after a dummy argon2 verify that equalizes timing) and for wrong passwords, raises the unverified-user branch as 403, and returns a 2FA challenge (`mfa_token`, no session) instead of an access token when a verified TOTP record exists.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L161-L194",
+          "resource": "repo://src/auth/api.py#L162-L195",
           "version": "repo-lines-v1:sha256:20821432e31d9ea26b69ff8b27ee155240bb64e9cbb79a6499e619b87aeab868:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1NmUzMTI2NmVhYzVjOWU2Nzk3ODhjMzNkNDdkYzlmY2E1NjIxNGVmZjkzNmYzMTUzZTU4OTMzYTc1ZjMwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YWQ5ODExODkxZTQwZjBlOTU1MTQzMjgyNzI4MGY4Y2MxMjhlN2QxYjdhNjY0MmUzNTFlZjg1OTA0NDFkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
         }
       ]
@@ -201,7 +201,7 @@
           "version": "repo-lines-v1:sha256:413f4f583399c805fdec1feffd80d3562dae2727b78c50064d8f49c360e4b703:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzYzJjNWU5ZTMwMWYxMTg1OGZhN2JlM2M3OGVhMTAwNjEzNTI1MzczYTY4Yjk3MTdiZTA5NjQ2ODNkNTE3OGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZDRiODUxMWQ0MzU2OTYyZjgxNjJhMzI5ZDViOWY2ZTc3YjNlMWUwNTBhMDVlYzZlOGI1OWU3ZjkxN2U3NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1MzQ2NDUzNzA2YWQzNmVlNTI5OTFkN2NkMmI5NzUxMDk5MTdkNGMyYjFhYTNmYjgzY2YyN2VmMjJlOWFiMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzMzI2OTU4NGY3OWE5YzIwNTBkM2IyYmNmYTFkNWI2NDcwMzI3YTA3NWIzYjc0MjU3OWEzODBmN2QwZTUxZTQifQ"
         },
         {
-          "resource": "repo://src/config/settings.py#L50-L52",
+          "resource": "repo://src/config/settings.py#L70-L72",
           "version": "repo-lines-v1:sha256:fe9f95cf3b5ce25caaef61fc548de17756744780ab0cc4b63b9a1a6ed6306257:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYwZjEyNDUxZDRlOGI5ZmRlNTg4MGFiODBiZjFkOGUzNDYxODI1YTNmNmE4NGNkNzE0NWM4OTU5YTFiYjBkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzcyNWFlOTE0YmExYzZkMWM3NjIwYzU4YjI1YjdhMGRjODU5MTI3ODQxMDRiNTVhZWM1ZmMxZDRmOWY3MjFmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGNmN2ZhNmI2ZDMzYmZjMjY1NTI5NzBjNGQ5ZTIxMDJlMDE3ZDNmZjM4YWE3MGFmYzUyZDdhYTc2YmMwNTdmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzgxMDlmODVhZGIzMjlmMDlhMTk0NzlmOTQxMThhOWE3YjkxOGZlNjAxZDU3YjYwYmY1ZGVhMjcwNGU2ODFkNCJ9"
         }
       ]
@@ -271,15 +271,15 @@
       "statement": "`AuthorizationApi.check_entity_owned_by_user` raises 404 `Entity does not exist` when the entity is `None` or owned by another user, account/portfolio/integration routers call it instead of comparing ids, and `src/main.py` maps `AuthorizationError` to 404 so existence is never confirmed with 403.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L110-L110",
+          "resource": "repo://src/account/router.py#L112-L112",
           "version": "repo-lines-v1:sha256:ef07bdee681d3156f3edff350ebfc35ffe4bbb340115102f4ad06d619d859a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWZlMDhhZjE3N2M4NzM0MWI5NzIyOWQxNWNlMTU1NThkMWQxZTQ3Zjk4Njc0MDc3NTIzN2MwMWJhOWFkZmRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDc0OGU5NzZiYTQ4NGQwNTZhZjkzNjM2YjFiZGE0NjMxY2M3NGUyNzhmNGQ4OWQ4MmYzOTBhOTg2YjkwM2FlZiJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L274-L287",
+          "resource": "repo://src/auth/api.py#L284-L297",
           "version": "repo-lines-v1:sha256:25daa0df6386103c79c8adee6ba24f0d544f997f0dfffc9ce65b59d20c2536fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjc3YjViMDIwZTQzMWJmMjI2MjlmOWZjN2U0YWQwZDY5ZTBjYTM4MjczYjljNjYzN2M2ODNlYWJhYzM2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDk2ZDM5NGQ2NTAyYzIyMWY5ZTljZDYwNjE2Mzk0YjdlOTBhOGE3NDA3MjM5ZjdkZWIzOGRkNDdlMDBkZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmQ0ZDMzNjQyNTY3MWI1ZDFjNzNhMjk0NmQzODI0M2ZmMDRlOTdiMjZkNmVhNDU4ZjA1NjFjZTczNzM0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Mzc5ZTQzMDMwMjNmZjA5Y2JkNzgyMWIyZmZhM2EyOWVmNDUxM2VhYTQ2NmFmNGY0MmVlZTNmNDgwOWYzZWYifQ"
         },
         {
-          "resource": "repo://src/main.py#L254-L261",
+          "resource": "repo://src/main.py#L262-L269",
           "version": "repo-lines-v1:sha256:d9490d83e019cd6126e13f9a5f7e5a118ee0ab298dcb48cd037a1a8b7ee406c8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ2YTE2NmU1Y2NkMmI1NDExZDg0ZTYwZTUyZTJjNDQyZTkyNDI3OWQxMmQ2ZTY3ZDg0ZTc4MGQwNmYyOTIzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAyNTY0MWE1MDIzNjJiMjQ3OTc4NWE5MTQ1ZTE0N2UzYjdlZDZmYzNhOWI5Y2I4NzMzNzgxMGI3NTE2ODE2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTJmM2QwOGMwOTM1OWFkN2YxNzRmZWExZWVhYjY3OTI3Y2ZmYjU3MDNhZjlkZmM3MDViYmMzNDRhMTg4NDhlNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
@@ -405,16 +405,16 @@
       "statement": "Startup configuration rejects a `SECRET_KEY` that is empty or shorter than 32 characters outside `dev`/`test`, and `docker-compose.yml` passes the same value to the frontend service as `JWT_SECRET`, so one secret signs and verifies access tokens, MFA tokens, verification tokens, and WS tickets.",
       "evidence": [
         {
-          "resource": "repo://.env.example#L48-L50",
-          "version": "repo-lines-v1:sha256:4c504f9a32812c84cd0b1bf7615b998aec07a052139f4ebd204c98728adf8d93:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzllZTExYTQ5YTAzYzdhZTg4Yzk3MTlmYjI5Y2ZiNzY4YjBiMWQwNDMwMjcwZDA0NTBjYzVlNmI4Y2RmYWMxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjc5ZjBiMGE0OGM5ZWU4YzcxMDRkYTdiNWUxNzVjYzA0ZGUwM2ZmOTJhNjA1ZWJiODVkZmVjZDVlMWFmM2NmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZiYTRmMTQyYWY0ODMyNjU1NTAzNjVkNGQzMWEwY2JiNTY5MjBhZDU5OTdlYjVmNDljMWI0NzgxNWZmZGMxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDllMmMxZTc3YzRmNDM4MzhlZDM2NDFmMjgzYjY0MzRiYzViMGE0MWEzN2QzY2MyMjc0MDgwNjg0N2M5NjA2MSJ9"
+          "resource": "repo://.env.example#L5-L8",
+          "version": "repo-lines-v1:sha256:3534af7e076fd73473d7a122259804e9ceef82be0b215fe1abc3857b297d0e31:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2JlODJiYmQ5NTBiNWVkZWMwZjA0ZDhiMDliNTU2MjkxY2QwOGNhNDdkMWM1Y2FiMzJhMDFhODgyNjMzNDM2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZmZTJhMzRiMmNlYzI3MmE2MjlkYjg2ZjdlNzUyNTEzNTQ2ZWE4ODkzYzQzZTIwZDBmMjI0OThkYTE2MDBkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzc0OGFlYjkxYTIwOTFmZmI1YTQ2NzFmNDViYWNlNDljNzE5MWUyZjBlYWU2ODU2Yjg0MTVkYjE3YmIxYzNhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzYzMTU3YmE5YmEzZmRkNTNmODRkYmI5ZWE5YWY5M2QwNmY5NzJjZWIwODJkYTVkODU1NTgzZTFlZGI1MzgyNCJ9"
         },
         {
-          "resource": "repo://docker-compose.yml#L86-L86",
-          "version": "repo-lines-v1:sha256:6b6e0c4665e8e0fdd126939f7fb027ef4713e21f497590d87ff07251d19fd247:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGI0NjljNWMxNWNhNzZhMDUwODg2NDhmNmU0ZWVlNDMwZGI1MTI1YjQ3NTZlYWY0NjM3MzE0MmJkZWMzMzNhYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTEwYjYyYmVmZWIxNGM2NzlmMGRmMjNiOTBkN2EwODE3ZDNlNTJiZjA0ZmQ1ZjU3ZmMyNDM3NmZiZTA5YTlkNSJ9"
+          "resource": "repo://docker-compose.yml#L83-L86",
+          "version": "repo-lines-v1:sha256:971a6d9a95b01b9e9bd8f3af88484a1122aa81aae83a714617fe7a6a391120a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQ3Y2YwMGZlZmFhMzFhNDM4Y2FmY2IyNmE4NTNhNjYwOWMwZTljMzYyY2MyNWEwZWUzOGFiZjkzZGYxMWI5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjU2YmFiYjJmODM5NzkwOTk0MWVjNmVlMjRlZGE4NTlkNDllZjkyNjgzMmY5NjY3ZTBjMjViOTMzNjQ5MzI5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTEwYjYyYmVmZWIxNGM2NzlmMGRmMjNiOTBkN2EwODE3ZDNlNTJiZjA0ZmQ1ZjU3ZmMyNDM3NmZiZTA5YTlkNSJ9"
         },
         {
-          "resource": "repo://src/config/settings.py#L76-L88",
-          "version": "repo-lines-v1:sha256:6e7d2ee3553f028b1edf5ba2e3e5dc3cb419b0209ffeb12ac9705842b070fbac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmNzM2ZjJiZWUwMGVkY2U5MGUyMjU3M2M3ZmIxNmRlNmZiZmZmYzQ0MThhMDBjNThmYTdjMWQ1MGE4Y2U5NTAifQ"
+          "resource": "repo://src/config/settings.py#L96-L108",
+          "version": "repo-lines-v1:sha256:6e7d2ee3553f028b1edf5ba2e3e5dc3cb419b0209ffeb12ac9705842b070fbac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2YzFjMjkyNjU2ZDQ2OThhYTg2Yjc3ZTA1YjQ5MmNhYzhkMDgxM2ViOTMwOTUxNTFiYTYwMDQ3N2FkNTdlZjkifQ"
         }
       ]
     },
@@ -485,7 +485,7 @@
           "version": "repo-lines-v1:sha256:5fd11596b1e865826efb4bd7bd512d12513ad5c3c523fc03ba41525a0a194ae9:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA3ZDdjODQ2ZWY2MzYxZTE5NjNhMTc5NGQ5MjJkZDA0NjU5YjM5YTBhZTBhMjAxNmMwYzE0Nzg2MTRmMzE1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWNjZmJlM2U4ZDA3MTIxZTAzYjkyNzA4OGY0Zjc5N2UxMjIwNWQzZDEyZGUwZmI0MDY4ZGY4NTZhZWUyZjQzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWMyYTNkNDkzZTY2MjMwNGQ3NzFhNWFiNWU2MjM1ZTExZTM4N2MxOWU3YzA0ODMzN2Y2Zjk3YWRlYzQ1YWZiYSJ9"
         },
         {
-          "resource": "repo://tests/fixtures/redis.py#L119-L143",
+          "resource": "repo://tests/fixtures/redis.py#L125-L149",
           "version": "repo-lines-v1:sha256:f96d6e08e2da82ea24f808ed5bb679127853be4a6fc120a08df8e63ad86ee9d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMDg2NmY0MDExZTU4NWZmYzA5MDkyZWRmMDgzMmUxN2I1MmY0YzkwYzRjYTBiNDJkY2ZhMDUwZmEzNzViNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMTNkYjM3MDJkYzljOGRmMGRmZTI1NGNiYTdjY2FiMjUyNzAwZDZlYTU1M2FlMzhjNjg0ZDRiZTk2ZjU1Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyNDhkY2Q3MzE3MTBjODBlMjgzYjVkMGNiNzVmY2Q5Mjk2NmJhM2EyYTkyOWM3ZjY5MjI5Y2EyMGRkNThjYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -565,15 +565,15 @@
       "statement": "Authenticated backend endpoints obtain their identity through a two-dependency chain in `src/auth/api.py`: `get_token` reads the `auth_token` cookie first and falls back to the OAuth2 Bearer header (`OAuth2PasswordBearer(tokenUrl=\"token\", auto_error=False)`, which is what makes a missing credential an explicit 401 `Not authenticated`), and `current_user` then yields the `User` produced by `UserApi.get_current_user_from_token`. The cookie-first order means a request carrying both a stale cookie and a fresh Bearer header is authenticated with the cookie's user.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L298-L313",
+          "resource": "repo://src/auth/api.py#L329-L344",
           "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L42-L42",
+          "resource": "repo://src/auth/api.py#L43-L43",
           "version": "repo-lines-v1:sha256:ec9e245e06f6e83643a6ef70e25f6ee05ee2bee9afca7f58ccaf692f4541c731:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDU2YzczMDliZTE3YjM4MGQyZWRiMTNhNWM1OGNkN2I1ZjkwNWU4ZDkzNTZmMTBiYTY1MjgwMTg4M2RiNDYxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk5Zjk1MTdlNGI1ZWJkYmEzYmU0YzcwZGU1MTllYWUzNjhkOWUzZDY1NzZjYmYyM2ViZGJlZjVlMmIzODlhYiJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
@@ -587,7 +587,7 @@
           "version": "repo-lines-v1:sha256:7d2aa940099cfe02da82e349e9e61592cafe76b7ed3b47a25cb36560018b8a9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViY2UxMWFjZDFhZmM5OGRhMjliOTVmNzdiMmYxMWJiZDJjZDUzYzZiOGYyMTcyZDViNmFmMzdjMjkwZmNhMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlZjU5NjViMDM1MjQzZTliNWY1YWUxNWQzNDUyOTkxMzMxYThjOGI5YWJhMmEzYzgxMzYxZjk0ZDkxMDkwN2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYmM0NmE2MzViNjVjYjZjOGNjYzA2MTQ4ZmEyNTFmMTVkMjU3YWRkMDE3MzkzMGJiNDYwNTUzNzY2OTE0ZmUifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L65-L85",
+          "resource": "repo://src/auth/api.py#L66-L86",
           "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
         }
       ]
@@ -601,11 +601,11 @@
           "version": "repo-lines-v1:sha256:31286cc0865398567ad0257d7f2372b7a015fdc63ac5fb2e9084feb0a3bdff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4YTQyODhhMmZiY2I4ZTAwMzA4ZDdlYTYzMTViYTRjZTkzNTQwZWIwOWQwYzBmMWYxNDZlYTQ2OTYxY2YwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzFhOTQzMDNiYmVhZTM0MzNiZGY4ZmVmMTU5ZGFjODgzYjY4ODljMTNmMzc0Nzg0YmNiNDYxODY1OGRjNTNlMCJ9"
         },
         {
-          "resource": "repo://src/auth/api.py#L274-L287",
+          "resource": "repo://src/auth/api.py#L284-L297",
           "version": "repo-lines-v1:sha256:25daa0df6386103c79c8adee6ba24f0d544f997f0dfffc9ce65b59d20c2536fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjc3YjViMDIwZTQzMWJmMjI2MjlmOWZjN2U0YWQwZDY5ZTBjYTM4MjczYjljNjYzN2M2ODNlYWJhYzM2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDk2ZDM5NGQ2NTAyYzIyMWY5ZTljZDYwNjE2Mzk0YjdlOTBhOGE3NDA3MjM5ZjdkZWIzOGRkNDdlMDBkZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmQ0ZDMzNjQyNTY3MWI1ZDFjNzNhMjk0NmQzODI0M2ZmMDRlOTdiMjZkNmVhNDU4ZjA1NjFjZTczNzM0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Mzc5ZTQzMDMwMjNmZjA5Y2JkNzgyMWIyZmZhM2EyOWVmNDUxM2VhYTQ2NmFmNGY0MmVlZTNmNDgwOWYzZWYifQ"
         },
         {
-          "resource": "repo://src/main.py#L244-L261",
+          "resource": "repo://src/main.py#L252-L269",
           "version": "repo-lines-v1:sha256:747a393263e289c6ad37b985accad9eb56d4228dcb755fb40877c9efcf3f6436:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYmI5MDg3ZjQ2MTI3NmRhYjRjY2M4Mjc3NGY3NjVkZGQzNjgwYjQyMzAyZWQyY2E3Njg3ZjFlNThmODE4MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -615,7 +615,7 @@
       "statement": "`is_active` is enforced in only two places — `POST /auth/2fa/login-verify` and passkey authentication, both 401 for an inactive user — while neither `UserApi.login` (which gates on `is_verified`) nor `UserApi.get_current_user_from_token` consults it, so a deactivated account can still complete a single-factor password login and an existing session survives deactivation until token expiry or `jti` revocation.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L161-L194",
+          "resource": "repo://src/auth/api.py#L162-L195",
           "version": "repo-lines-v1:sha256:20821432e31d9ea26b69ff8b27ee155240bb64e9cbb79a6499e619b87aeab868:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1NmUzMTI2NmVhYzVjOWU2Nzk3ODhjMzNkNDdkYzlmY2E1NjIxNGVmZjkzNmYzMTUzZTU4OTMzYTc1ZjMwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YWQ5ODExODkxZTQwZjBlOTU1MTQzMjgyNzI4MGY4Y2MxMjhlN2QxYjdhNjY0MmUzNTFlZjg1OTA0NDFkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
         },
         {
@@ -633,7 +633,7 @@
       "statement": "Tokens minted by the dev command `src/auth/commands/create_test_token.py` (365-day expiry) carry no `jti`, because `AccessTokenData.jti` defaults to the empty string and that command never sets it; `UserApi.revoke_token` and `get_current_user_from_token` both skip the `token:deny:` denylist when `jti` is falsy, so such a token cannot be revoked and lives out its full lifetime.",
       "evidence": [
         {
-          "resource": "repo://src/auth/api.py#L225-L239",
+          "resource": "repo://src/auth/api.py#L235-L249",
           "version": "repo-lines-v1:sha256:0273b8426531f952944c20582278936b41083595bbb50cafb7d30c929a81cda0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5Yzc3ZmEwZjhjMjM1MTlmYmFkNjBkOTQxMTg5MzEwNDY0NDM1MTk0ZWY5YmEzY2UxYWIzNTk4MDZhYzU1NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZGZjZGI5ZjRiZjI2ZGJkNzhiNWRkYzQzNjhhNzA5OTU2ZmRhYTQwZDAzMjFiNTE0ZWE2OGI4MDc3ZDkxM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NmUwOWU4ZmUxNWM2MTRhYmI3M2RjZDIzMjcyYmU2Njc5YTE1MjQwMDE2NTA3MDE1NmNiMzM4NzVkMzNlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwODRmMzk1M2I1N2RhY2ZiYzM4Nzk5YWY1Njg4YzQ3Y2JkNGUwNGVkMTJiNWM0MjYyZTJkMDU2ZTQ5OGNhZTEifQ"
         },
         {
@@ -645,10 +645,198 @@
           "version": "repo-lines-v1:sha256:91296b0448610e5725194555e9b30ccd2d88b4021a818cb04ed41fb5e9a13c43:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyZjlkN2RlMzc2MzQ4ZmM4MzY2OWMzNzk0ZjU1MzJmNTQxMjBkMTZlNWQ3ZGQ3ZTdhM2M3YjEyZGY4ODJmOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMWQ3MjRkOGE0ZGZiMzMxODM0YmVkMTdhMTM3NzhjYTA3ODc2ZjQyNTE5MTA4Yjk5ZGUyNTRhNDU2MDgxN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_02cf0f93b953471585c9ce5230edd8a7",
+      "statement": "`require_service_token` (`src/auth/api.py`) is the entire authentication of the service-to-service data plane: it declares only the `X-Service-Token` header (no cookie parameter, no `oauth2_scheme`, no `UserApi`), compares it with `settings.market_data_service_token` through `secrets.compare_digest` over UTF-8-encoded bytes — byte operands because `compare_digest` raises `TypeError` on a non-ASCII `str` and Starlette decodes header bytes as latin-1 — and answers 401 `Service token invalid` for a missing, wrong, or non-ASCII value, so a valid user JWT cookie can never satisfy it.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L308-L326",
+          "version": "repo-lines-v1:sha256:0f7b715e4b98265227b8267f2ea5c175f1af8fd3f025b77afb8042833c8a055b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YzE1ZjdjNWU2ZGRhZTQyZDA4ZGZkNDVlNDBiY2YxMDg0NGU0MzRjZDkxOGZhZmI0MTc2NzgwODU5YmRjN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZmJjY2ZjODVhMGEyZmM4Njc5NDU2MDBlMDAwYjkwODcwYTQ4YTRjOTIyODhjNjYwNDZlNDlkYTRmY2IxYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzQ4ZmZiOTY5ZWEzNDEwOTIxNTRkNzc0NDNmZDhmM2VlZmQ3ZTdjYjE2NTVhNTRkY2FkOTdiYjczYzg5ZjcifQ"
+        },
+        {
+          "resource": "repo://tests/auth/test_service_token.py#L39-L94",
+          "version": "repo-lines-v1:sha256:18fdedd08a83fb5786ea7e23d97aee0e3b9d942cb48a897fce6a21892c91f808:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4YmRhNWM4ZTQzYWY1Y2UxZDg5NjdjNTllODE2ZDhkNzM4Y2VlNjA2NDRhMjdhZGJiMzUyZDYyMjRhNDYwZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NDc2YmE4NWUzNzAxMDY3YzI2ZjJiZDE0ZGU3OGM2Mzk1OTM5N2QyMTI2YTkxYTQ2MWYwZWNmOTE2NmNlZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc89879e2ffd43058f3f395ceea56a80",
+      "statement": "All eight routes of `src/market/data_router.py` — `prices`, `quote`, `indicators`, `symbols/search`, `options/expirations`, `options`, `fundamentals`, and `fundamentals/statements` — declare `Annotated[None, Depends(require_service_token)]`, and the router's `/market/data` prefix sits under the `/api/v1` mount, so the shared-secret surface is `/api/v1/market/data/...`.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L174-L181",
+          "version": "repo-lines-v1:sha256:40bdce062758cd782b8db3d55ccb4b1edb5cef91d741f1f46c9f919c7a583fa6:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDljYTQ4MjQ5OWZiOGI3YmZhZTNmMGVhOTUzYWIwN2YzMDQyM2VhNWVjYjlkNDJiOGQ0YjU0Mzk4NTQ0ZGFlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGZiZDRlNzg5YWMyNzQ4NzViNDIxYzRkNWU4MmZiYzc2N2FkMDIxZTYxN2NiMzk2NTg1NWIyYzQ5OWEzY2I5YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzQwY2Y0ODU1NjJhOWY3ZWEwN2Y5M2I1OWZkNTllZDM2OTFmNDYxNmFjYTYxZjgyYTAzZTA0Mzk1YTVmZDJlNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzhhYmI3OTQ0ODVmYWE1ZTcyZmUwYzQ1ZmUxMjJiNDQ4Mjc1NjBhZGUzZDE2ODg1Mzk4ZjZkY2I3YjI2NWYxNiJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L135-L137",
+          "version": "repo-lines-v1:sha256:b389e6cd237919ed26c86460ccc61a5c9d84a482ebdd93ff0f1e8cce29ba1908:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlZTYzZmZkNTZlNTYwMTllNGY0M2VhZTdmMzZlODk5YjQ0Nzk5YmExODA4MzU3ZjM3M2RhYjZhNzk0YjcwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGUwMWI3ODQ3NmY1NDVmNGRhNTgyZmFiZWE0ODMzNDc2ODRhZGU4MjJmN2IwMDM4ZDUyMzU3ZmU5NGZhMGE2MyJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L226-L228",
+          "version": "repo-lines-v1:sha256:00c2664c34150d8b8f7ceff09ec6df2e5691c8157224cd3b3a6b90ccf1e488e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGU4MzBmYjdhNDE3MDIzYjRiZDI2MTMyOWJiOWFiNTViZWMyMzU2ZmYwYmNiYTQ4Yzc1NGE4YTNkYjI1YTVmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMwMzI1Zjk4MGI0YWJlMGE1YmZkZWIyZDNlYjkzNDg3NmQzYTA0MzMyNTY0NDQ3MmMxMzZjY2EwMmI5YTgwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIxMThkMDhiYWY2OTAwMjg0ZmRjYzU5ZDcwZWQyMzFkZGM1YWI1OGFjMjEwOGVjZjI4MmEyODBlYWNjNjU0ZSJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L391-L393",
+          "version": "repo-lines-v1:sha256:e142064832015d0538375005984b08139f695a775ffd54e5257eb20602c94e0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGU0YjUxODkzM2Q2OWU0ZDQ5YTVhMGYxZmFhNDZkNTFkYTg3YmI2MDg4M2UyMWRkOWViMGY0ZGU4MGVjNDQ2ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWE4MmViZTllZDQwN2MzYTZiYTRiMDAzNDI5MmJhYTUyYzExY2U1YWUyODYxMDc0MDJkZTQ3OTJlZWVjYWNmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzg5YmJjYmRjNmYzMTNkNjQzYmYxZjI4MDIyZjk5YWVmNTYwY2RjMmM0ZDYwNGUyNDVjNWZlNWZjZDI4OTAzNSJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L500-L502",
+          "version": "repo-lines-v1:sha256:52f95c12fb3322cbacdcfdfade91e41bcd040568bcd05a7c8deab161cbc6fcd6:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I3NThkY2Q1YmM5MTE0NDRkNDU2MzhiZmM4ZDRlMmExZmQyZjU3ZjJlMDk2MDdkNzQ0MjY5YTIyZDNhZDQ1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMwMzI1Zjk4MGI0YWJlMGE1YmZkZWIyZDNlYjkzNDg3NmQzYTA0MzMyNTY0NDQ3MmMxMzZjY2EwMmI5YTgwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDk3M2FmOTBhZjRmZGE1MDc4MjI0N2Q5Y2MxMTRlODQwZGE0ZGY1MTVhY2FhZTQ5MzRmOTc4NzU1MjEwYWRkMyJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L543-L545",
+          "version": "repo-lines-v1:sha256:e9177784cd011955d3229014a99499ba4a066260521a3b75055123788f7d66e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWY4Y2I3NTY2ODQxNzIwMjUzNjk1YTYwOTE2OWVhYWY3N2ZhNWRkZWYzOTBhYTE4MGZjNmM1NGQ5NjU1M2FiMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODFjMTliZTI1NGYyMzM1NTE3YWE4MzY0YmFhOTdkMzlmNGM3YWE4NjAxZDFhODkzMmQ2ZjAzN2ZkNjUwMTE3NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTgyMTczYzhjMWNmYmZjZjEwZThhYzE3NzAxNTMyNWNiZDZhZWEwNTZkYzZmNDVmYTJmYmFhMWRmMzlmZGIzNSJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L580-L582",
+          "version": "repo-lines-v1:sha256:0d738702f7594864389409b20526febd089abeb59f7b5a2dd5560979b717828d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGNlYjcyZTk3NmQ4YjQ2NTNlNTkwMGEyNTEzNWJkZDA1NzFiZWE1OTJkOWM4OGVhNjg4Zjg5MmE5MzY3MWYyMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTllYzdlNzM0MzlkYzZhOGQ5N2I3ZDA3NDZjMjExY2I3MDliMjNhNzUyMmRmNWRiZWNiNmU4ZGQwY2ZlYTIyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjYyNzY3ZTNjNGIzMmU2YWMwNTBiZGEzYzM2MmRkZDk2ZmJhYzJjMTQ5NDg2Njk2OTY1YTBkNzQzMjM3MjY2ZiJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L650-L652",
+          "version": "repo-lines-v1:sha256:5ae15efa569a2451c9e1eb9714106127456b2292c68a3d99c5d8157f474b295d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE2ZTZmNDllNTFlOGFiNDU5YzI1ZjM5M2VmOTdlMzQzZjY4YWQyZWVhNWNlODNmZGE1YWUwMmQ3NGZjYzFkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzMzZTg0ODdjODVkZmRjZjlmYTdiOTNjNzQ2Yzk0NjI1YWU0N2UxMjBjNzk3ZTc5MWU3MzdmOWVkN2ZmYzczZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIxMThkMDhiYWY2OTAwMjg0ZmRjYzU5ZDcwZWQyMzFkZGM1YWI1OGFjMjEwOGVjZjI4MmEyODBlYWNjNjU0ZSJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L719-L721",
+          "version": "repo-lines-v1:sha256:0884bac800a397e0333b94bbea2dcd9cb79f5308ddced93bc6822bdd177edd5c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjg5M2YzMmFjMzFlMTMwYmFhNzI0MzNkM2E1YmMyYTA0NWZkZmZhNDZkMDkyNThkN2M1ZWMxMzY2YjRhZTIxNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4YWU5ZTI1MGM2MmM3MzU1YTY1NTBiZGFjYTdjMzZjNWFkZmZlOTlkNDQxNjM3NmQ0NDM3YjU5ZjY3NmEyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTllYzdlNzM0MzlkYzZhOGQ5N2I3ZDA3NDZjMjExY2I3MDliMjNhNzUyMmRmNWRiZWNiNmU4ZGQwY2ZlYTIyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODVlOWM2Nzg4NGM2N2VjZjUzMWQwNTNkN2RiZDNmOGU2YmU2ZGUzNWQxNTJmNGZkYTM0ODNkMDdlZjQzY2YzOCJ9"
+        },
+        {
+          "resource": "repo://src/market/data_router.py#L92-L92",
+          "version": "repo-lines-v1:sha256:8277b522ea3b8f23d7af0ab994475aeee1ca5d208ec1d95a118d49bc9fd2c03e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODI3N2I1MjJlYTNiOGYyM2Q3YWYwYWI5OTQ0NzVhZWVlMWNhNWQyMDhlYzFkOTVhMTE4ZDQ5YmM5ZmQyYzAzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkwYzRkZmI5ZDc5YjFmNDk5NTYxNThjMmQ3OTgwNDEwYjRkNWRlYWZkODk3ZDdlZTM0YzNlOTZmNzdmMTM0NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6edd74058ac74104931175f55a9ece08",
+      "statement": "The provider-agnostic data plane resolves no user identity: `src/market/data_router.py` documents itself as deliberately separate from the user-JWT router and authenticates every route with the shared secret, whereas the user-facing `src/market/router.py` routes take `Depends(current_user)` (and three of them add `@limiter.limit`), so a data-plane request never carries a user, an ownership check, or a rate-limit identity.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/data_router.py#L1-L14",
+          "version": "repo-lines-v1:sha256:dbb3ddf24120c3d806a09f2b915e6b1c7075105a8cf7bcce34b91345b2695670:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMmM3MjIxZDE0OTNkOTE2ZmU2MmFmNGNmZDVkZTQ3NTkyMzBlMzU2OTQ0NDAyY2U5NTU4YjE2NTBjM2U5ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZGNlNGY4OGNkNDljMjNlODBkZjJjNDAxZjk5ODcyMDZmNzAzMTJiMTc0MzdlYmJmNjQ2ZWQxNTBhODNhNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwMWI1ZDFiNjc5MmE5NjVmMDQ1NDc1MmJjMWFlZmU4NWU5MTEwMzFhODBiY2E3ZjIxYjBjMGE3OWM4OTQwYjcifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L111-L111",
+          "version": "repo-lines-v1:sha256:de2941046816577f13cde001be8d83425e390ce3559b5c79a3906704583d2c3e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGUyOTQxMDQ2ODE2NTc3ZjEzY2RlMDAxYmU4ZDgzNDI1ZTM5MGNlMzU1OWI1Yzc5YTM5MDY3MDQ1ODNkMmMzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGUyOTQxMDQ2ODE2NTc3ZjEzY2RlMDAxYmU4ZDgzNDI1ZTM5MGNlMzU1OWI1Yzc5YTM5MDY3MDQ1ODNkMmMzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM3YjJlODFhZTEzMWIyZWI0NDIyN2M5NzFjMjlmMDhlNDZkMTFlZTg4YjQxMWFkNjBlNDhlNDRhNzM3Y2Y0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWU4OTUzNWE3OTI4NjIyNDlkMTQyNWNhMzc2MDUyNjIwZmIwOWY0NWM3YThhYjcyMTU5NWZiNzM1ODQzNjU3ZCJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1177-L1177",
+          "version": "repo-lines-v1:sha256:f25ec04066e5859607249ccff0d11a4d9d9b2ea7a2dd284cb6b5380abe3c483d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThmN2ExN2JhNjhiYmNhMTRjMjZiOTIyZTFhMTc4YTE2NjJkNjRkYzYzMmQzNTEzNjRiNjcyZTM2MjI5NTM0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVkNzZmMWNiNDlmMTYxZjE4OGJmODc5MTEwMDJmMDk5NzgwZmNmM2IxYzNjOGU1YzNiMmFhNjM4YzI4NzAwZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae13618a70fc411c9d91ff20d2089f9f",
+      "statement": "Startup configuration requires the data-plane shared secret outside `dev`/`test` — `Settings.validate_service_token` raises when `market_data_service_token` is empty or whitespace — and the value is wired end to end: `.env.example` documents it beside `DATA_PLANE_PATH`, `docker-compose.yml` passes `${MARKET_DATA_SERVICE_TOKEN:-dev-market-data-token}` to the `mcp-gateway` service while the backend reads the same `.env`, and `docker-compose.prod.yml` refuses to start without it.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L29-L31",
+          "version": "repo-lines-v1:sha256:250c6be8decf6cb6cd63579b0643263612823c003440168f4fd03583b8e00c5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDk4NmEzY2E3NzY2ZDgxN2FkNjJmZDc4NTFkYTBlZjg1Y2Q4OWYzY2MzNGI0MWFhOTM3NzVkYzIyNDRhZDgwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjFhZjZjOWExYTkyNGQyODdmYjQ2NzFlMzQzNmRiYzBhNjZiZjk2MDNjZGRmMjRlNDA4ZDk1ZTVhNTQzOTRjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzI1YmE5ZTcxNWI4NmNlNWVlN2E5NjYyOWVkMDU1NzkwOTYzNmYzMjk3ZDE5NTNjNmJiMmI0MTE4NmUzMTAzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTA4MGU1ZDgxZTc1YjE4OGI4MjkyY2YyZGRkNjhkMTg5Njg3MjQ1YmRhZWQwNGI2Yjk1MjhlNTFiYjI3NTQ1ZSJ9"
+        },
+        {
+          "resource": "repo://docker-compose.prod.yml#L64-L73",
+          "version": "repo-lines-v1:sha256:3c6bedb7ea20d5df17431fad64dc249e1494a5affcd0393431ccc4a0f666dffe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZGE0YmMwZDY1NTNkMjU1NjM2MWU2ZjFmZjE3OTFhOTYzZmQ0NDI4NWEyNDJmZjE2MDFiMTJhYTY3MTNjMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTNmZWQ2NTY2ZTgyNWIwMzY1ZTY5YTM1N2M4MzUxMmIzYTA1YTUyNzNlODljNGU0Y2E2M2IwYzZmNzkxMDQifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L125-L137",
+          "version": "repo-lines-v1:sha256:bad9f915e8154ef174d912e981403969d2b17f7d8e5f5d99d9aff4477ef8b5c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyZTYxNmRkNDBkZGIyNjg1NjM5OGY2Yzk1NThiODIyNjJkMjhjMzk0YzkwNTQwMGU2OWQ5OTMxODYzOGVlZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmMzJjOTA0ODYyYjcxY2MyM2MxNzg2YjVlYTA0YTIxNTc3ZTI2NmZkNmZmOWE3ODI0ZDcyZGY5NWQ4MGJiODIifQ"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L110-L123",
+          "version": "repo-lines-v1:sha256:fb7fb9f9bde3f01414433eab124be818f514c1119a7cbdc0e55beb6c4a605823:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYWIwOTBiY2QxNjIwZmE2MmVhZWUxNTdhNzRmY2E2MzVhYTI5ZTEyY2JmZmQ2MThiNTc5MmQ4N2JjMDNhM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxNmFjYTFmMGZhZWJlOWViYmQzNWRhNTdkNGY2NGY0ZGYwYWE1NGQ1NGQ2ZjkyMjFkNjc0YzMzMjg4NWI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMzM0YmNmMTMyMWQ0MGVmY2MwYzllNzA3OTgyOTA2ZGUwOGUxYjI3NTI3OTE3NjhiOGE5YzRiM2U3MTQwMDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_efdde4738e614834807b4a34f3dd673d",
+      "statement": "The MCP gateway's own `/mcp` listener is unauthenticated by design — only Go's `http.NewCrossOriginProtection` rejects browser cross-origin requests with 403 — so the shared-secret backend data plane, not the MCP listener, is the documented trust boundary: the sidecar is required to run on the internal network, `docker-compose.prod.yml` publishes no host port for it, and the dev stack binds it to loopback at `127.0.0.1:${MCP_GATEWAY_PORT:-8005}:8080`.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L64-L73",
+          "version": "repo-lines-v1:sha256:3c6bedb7ea20d5df17431fad64dc249e1494a5affcd0393431ccc4a0f666dffe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZjE2YWM1NTQ0ZDI4YzRjZDJiMWI2NzRiZWM1ODg3ZThhOWRiNDZhMzJmYjE5NzA3MDBjZDNlMDNkYjg4M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZGE0YmMwZDY1NTNkMjU1NjM2MWU2ZjFmZjE3OTFhOTYzZmQ0NDI4NWEyNDJmZjE2MDFiMTJhYTY3MTNjMzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkZDYxY2QxZjJiM2QzMWIwYzBjMDNmYTk0MGNmOTU4ODUxNThjYWM5MDM5Y2E3ZTQ0NzVhMWI0ZDUxMTNiNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTNmZWQ2NTY2ZTgyNWIwMzY1ZTY5YTM1N2M4MzUxMmIzYTA1YTUyNzNlODljNGU0Y2E2M2IwYzZmNzkxMDQifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L125-L129",
+          "version": "repo-lines-v1:sha256:6e2b4bd56e8898f5568353ec2dc1f753e14d09e5fbef312c59ac1b010c9b5954:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdmMTZhYzU1NDRkMjhjNGNkMmIxYjY3NGJlYzU4ODdlOGE5ZGI0NmEzMmZiMTk3MDcwMGNkM2UwM2RiODgzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4Y2JlNTUxZDU2NjE5NTIxN2NiMjgzMWYyOWM1YTIxODg0Yjc4OTMwMzIwOWI2OGUxMGFlYjc3NGY0YjkzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmRkNjFjZDFmMmIzZDMxYjBjMGMwM2ZhOTQwY2Y5NTg4NTE1OGNhYzkwMzljYTdlNDQ3NWExYjRkNTExM2I1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjVjNDI2YzRlMjk3YjUyMGExNzRkYWU3NDIzYzk4MDBjMDhlYjk3MWI5NGY2ODljMGI2MzhhMThhNWYwNGQ0NiJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L21-L31",
+          "version": "repo-lines-v1:sha256:6e797e7ed789c49fdff42235e1241365e8078cf8071f831297a5c9a3258808e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhZmQxOWZjNjkyZDM4NzI0ZDI3YmZjZGM3OWViNTQ4M2FhOTE1ZDAxYTFmYjJiNDc0YmY3NTFjZDhiMTU0NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTAwYjMxNzRkZDRhYzRmMjZkZjNkYTQ3Y2U0OWZmNmFjMDc5MmU1ZjA3OTU1MjBjNDcyYjlhNjc0NWIxMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNzc1Y2M0ZTc4MTVjZDY2YmM1Y2JhMWJjY2NjMjA5MmY4NmMxNGY5OWNlNWViOWE3MjgxM2I3ZmRiYzg4NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3ZDdhZjM4MGMwZDZlNjhiN2Y0YTlhZWM1YzMwOTNkMzE3OWFkNjNkZGQzYmQyYmExNTNiZTZhMDEwZTYyNjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c730b3734394c339a8256c6687340f0",
+      "statement": "Outbound, the gateway attaches the shared secret as `X-Service-Token` (constant `serviceTokenHeader` in `internal/backend/transport.go`) to every data-plane call, redacts sensitive headers such as `Authorization`, `X-Service-Token`, `Cookie`, and `Set-Cookie` from its logs, never logs the token value, and classifies a backend 401/403 for the agent as `ErrConfiguration` — an operator problem rather than a caller-fixable validation error.",
+      "evidence": [
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L123-L126",
+          "version": "repo-lines-v1:sha256:f4e04da372e037a82741a72fca523b033478330914a74ef9706fb2ed8ad1e137:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWUzZjlkZDFjN2U3ZTExODQ5ZjllMGUzOGZkMjBkODUxNDEzNmUzMDhmZTc3ZGEwNTU3MmVhMzA5ZDQxNWU4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQ1MmIxM2M0OGY4YzQyZGFmODcxMjNjNTc0MjI2Njc3ZGNkYjRkZmI1M2RkZTlmOWNjMGIyMGQzY2RhMjRjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmIzNDYyMTkyZTk4ZDIxZDhiM2FlYWVjYjQ3YjU3OWVjZmZjMTc5NzM5Yzc3NGJmNDJjZTI0YjBkMzM3NTBhYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2Y3OTA0MjJiNzFjY2Y1MjQ4ODg2NWVlYzVmNGQ5MjI4M2ZlMzZmZGU3MmJhZDg4YmY3OTkxZDI0YjUwMjc0NiJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L46-L47",
+          "version": "repo-lines-v1:sha256:8a56e6538eea2b4274b5a8fd644016e9c628c159020900c31f3125d5cc977c33:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2NkZTI1NzZkMjVlYzc4ZTBlNWVkZWZjNzNmNDBjOWZmYWQ1MGIwMTIxZjY2YzZhNTRlZGQ1ZjI1YmZiZTljYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzMyY2I4Mzc3NzE1NGViZmFmY2U4NjU5NWYyOTEyY2YxOWVhOTJlM2ZkMjY4MTAyMWQ1YmFlN2U2NzhkY2I0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2E1ZGE4ODhiYmE3MGM1ZDFkNjg0Y2ZkMTJhYWFlYmE5YTg4ZDAyMjQ4MDg3ODEyNTg0YzY2NjM0MGNmMzIwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzZiMDczZTU3NmMxN2Y3NzE2NjNhMDgwNWQ5Nzc2ZDgzMWE2NDU0Y2E0NDY4MTY2NWVkNzg2NTY5YTc1NWQ5NSJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L60-L60",
+          "version": "repo-lines-v1:sha256:51fea75197f6a66d9f701ca95f01cc5fc6da6b16f5bc3a728cf628bc38494d15:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTFmZWE3NTE5N2Y2YTY2ZDlmNzAxY2E5NWYwMWNjNWZjNmRhNmIxNmY1YmMzYTcyOGNmNjI4YmMzODQ5NGQxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTFmZWE3NTE5N2Y2YTY2ZDlmNzAxY2E5NWYwMWNjNWZjNmRhNmIxNmY1YmMzYTcyOGNmNjI4YmMzODQ5NGQxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWNjNDZmMDgxMmQ0MDM3YzNkZTBhMTRkYmM1MmY3M2M4YWY1ZjA2NzUzMjlmMDVhY2FmMTkzOTFiYWI0ODFjNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTdlNmMxMjkyOWJiNjFjZWM3MzMzZDVlNmNlYmI2MDBjYjJkODY3NWUyMzc4MWMyNmY5YzExODRiNDU4NTIzZiJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/README.md#L77-L77",
+          "version": "repo-lines-v1:sha256:ec7bb7577b88c8f36b8a717845e2df4db207891d2eafdb4a2a42a574de1574be:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM3YmI3NTc3Yjg4YzhmMzZiOGE3MTc4NDVlMmRmNGRiMjA3ODkxZDJlYWZkYjRhMmE0MmE1NzRkZTE1NzRiZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM3YmI3NTc3Yjg4YzhmMzZiOGE3MTc4NDVlMmRmNGRiMjA3ODkxZDJlYWZkYjRhMmE0MmE1NzRkZTE1NzRiZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWVlMGVjNzM2OTJjYjA5Zjc4NTJlMzRkMGM4OGJkYWEwODA1MDNlMjc4ZWMxMmRmYzU5ZWFlNGVlM2FjMWM1ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGU0YWE0ZWMwNjgxMGVhYzJlNTljNjBjYTMwNmY3ZTAxNDQ1MDljYmVkZjZhNTgzNDIyMDEzNTkwOWI0YmQ0NSJ9"
+        },
+        {
+          "resource": "repo://services/mcp-gateway/internal/backend/transport.go#L19-L19",
+          "version": "repo-lines-v1:sha256:8b6369b9ccb0096d079f28fd4d54bcb0041a8054dd34e2660ade9326024f69bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2MzY5YjljY2IwMDk2ZDA3OWYyOGZkNGQ1NGJjYjAwNDFhODA1NGRkMzRlMjY2MGFkZTkzMjYwMjRmNjliYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2MzY5YjljY2IwMDk2ZDA3OWYyOGZkNGQ1NGJjYjAwNDFhODA1NGRkMzRlMjY2MGFkZTkzMjYwMjRmNjliYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZiZTRkNGFhMTgwODYwYzE3NzhmN2ZjYjQ0M2FjYjNlZTNmNzUxMTlhNmM3YjZmY2ZjODc1Y2NmNjc2ZTZjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjJiN2I3MmY0OWFkNzZmMGQxNmFjZGI4MTJlZWM2OTFmNDUzNjE4NjBiZTQzNjgxODNhZWE5NDFlMmJmNmY1OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_02f16c621e054f73ae8aa6c0e7c3fc88",
+      "statement": "The service-token boundary is pinned by two complementary suites: `tests/auth/test_service_token.py` exercises `require_service_token` alone in a throwaway FastAPI app (no svcs container, database, Redis, or JWT machinery) against a monkeypatched settings singleton, asserting 200 for the configured token and 401 for missing, wrong, blank, non-ASCII (latin-1 bytes), cookie-only, and empty-configured-token cases; `tests/market/test_data_router.py` runs the real dependency inside the real app — patching only `settings.market_data_service_token` and explicitly not overriding the dependency — and asserts a parametrized 401 for every data route with no header plus that no gateway method was called.",
+      "evidence": [
+        {
+          "resource": "repo://tests/auth/test_service_token.py#L1-L17",
+          "version": "repo-lines-v1:sha256:295bef709d117f81157df5c827cca0bf32da501f3ad134ac809dcec6a9a5b839:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmMGFkOWQ1Yzg5YzdiMjgxYjQwOTE3MDZhOWQ2MTdlMWI0N2Y0MDNmYmI5NWQ4MjQwNjcyMjI0NjcxOWRjNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMGY4YjhlYTEzMGIzN2Q1MTMwNzAwNGYzNDY5MGNiMTJiMDEzMjNmNjcwYzIyODMyOTY5NjQ0YmY2NTc4MzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIxMThmOWRhMTNhNDU3MzAzMWNiZjIwZjNlNmJkNTkyZTE1NDI3ZDYyOWRhNmZiZWVjODQ4ZGZhZjZmNTgzYzAifQ"
+        },
+        {
+          "resource": "repo://tests/auth/test_service_token.py#L39-L94",
+          "version": "repo-lines-v1:sha256:18fdedd08a83fb5786ea7e23d97aee0e3b9d942cb48a897fce6a21892c91f808:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4YmRhNWM4ZTQzYWY1Y2UxZDg5NjdjNTllODE2ZDhkNzM4Y2VlNjA2NDRhMjdhZGJiMzUyZDYyMjRhNDYwZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NDc2YmE4NWUzNzAxMDY3YzI2ZjJiZDE0ZGU3OGM2Mzk1OTM5N2QyMTI2YTkxYTQ2MWYwZWNmOTE2NmNlZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L105-L129",
+          "version": "repo-lines-v1:sha256:985b705c7088a4e9cedf9e45b3f329d5df5d741ea4016248c4c206074e092ce4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ODg0YzM0YWRmYTk2MjIzODFiMzg1ZmE1ZDJlNDk2NTgyOTUwNTEzY2NhMGUwMzQyZjA2ZTljMTEwODJmZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MjA0NWUyMWJmYTIzMGM5OTVmZjkxMGE4ZGU2NjgwZWI3YTNjY2ZiNTcyN2M1OTNhYmQ0OTRkM2Q1MzhiMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZWVkNmQ2N2MxZThiYjkyNDY3YjE2NWNkOTY1ZjIyMDg2N2QzNWFkYmFlODYxODAzNDZhMTI4Njc4ZTk2MDMifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1062-L1108",
+          "version": "repo-lines-v1:sha256:5ffc83dae70c4a40fd1ab66e26493f5e690c0e5d428f79239a1e82fd9549977f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_data_router.py#L1581-L1591",
+          "version": "repo-lines-v1:sha256:c620267420087383c79412360e2142d2b2a7629e75b8eec10b6399a91ae0c188:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYzg3ZWM5OGI5OWNiZTU3MTc3YTdmZTYzZTBiZDE3YTJjYmMwMzdiYmI4Y2NjYmNhNzFmZjBlMTBiYjk0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0Mzg3YjQ3MTdlZjY1ODcxMzdiYzgyMTBkZmIxMTgzZWUwMmZhOWVlZTU5OGQxZTllZGRjN2M0NThjMjBlMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_014fa755f3514abf9edb923ab03be259",
+      "statement": "The service secret is a single static value with no expiry, key id, per-caller identity, or rotation overlap window: `require_service_token` reads `settings.market_data_service_token` on every request from a settings object constructed once at import, so rotating it means updating `.env` and restarting both the backend and the gateway, and any attribution to a person must use the JWT path instead.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L133-L133",
+          "version": "repo-lines-v1:sha256:815ad0a2db70f0fa5c45952bc223d63e0edb10696898eaa4529d92db906878e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODE1YWQwYTJkYjcwZjBmYTVjNDU5NTJiYzIyM2Q2M2UwZWRiMTA2OTY4OThlYWE0NTI5ZDkyZGI5MDY4NzhlOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODE1YWQwYTJkYjcwZjBmYTVjNDU5NTJiYzIyM2Q2M2UwZWRiMTA2OTY4OThlYWE0NTI5ZDkyZGI5MDY4NzhlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjVjNDI2YzRlMjk3YjUyMGExNzRkYWU3NDIzYzk4MDBjMDhlYjk3MWI5NGY2ODljMGI2MzhhMThhNWYwNGQ0NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2ZlZjMwZThlN2ZlOTFkMDUwN2E4NDA3NDVmNDhiNTY2YWRlNWMyNzg2ZjlhOTIyOTEyNTM0YjE4ZmQzMzM5ZCJ9"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L311-L326",
+          "version": "repo-lines-v1:sha256:4f75b8d482248e82a5ade87f4b87bc6194b2651e8ac3cbf907a013a95d72fb10:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmMzBhN2MxOTRhYjM4MzlmZWI0ZWVjOGMxN2E2MGNkYzE1NWYwNTM0MTUxYjMxY2E3MTE4Y2Q1ZWVhZWM3NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZmJjY2ZjODVhMGEyZmM4Njc5NDU2MDBlMDAwYjkwODcwYTQ4YTRjOTIyODhjNjYwNDZlNDlkYTRmY2IxYTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5MWMwMDc1NWQ3MmUyZjg3ZjcwYmVmZWIzZDY1NTcyMDlhODcwYjY2MDlkMmUxZGFmYTM2NDAyNTNlOWRmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0NzQ4ZmZiOTY5ZWEzNDEwOTIxNTRkNzc0NDNmZDhmM2VlZmQ3ZTdjYjE2NTVhNTRkY2FkOTdiYjczYzg5ZjcifQ"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L156-L156",
+          "version": "repo-lines-v1:sha256:a8f4bf18761602d3b590b37d398fa99779730a77b68138fdd14073492e3766ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYThmNGJmMTg3NjE2MDJkM2I1OTBiMzdkMzk4ZmE5OTc3OTczMGE3N2I2ODEzOGZkZDE0MDczNDkyZTM3NjZlZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYThmNGJmMTg3NjE2MDJkM2I1OTBiMzdkMzk4ZmE5OTc3OTczMGE3N2I2ODEzOGZkZDE0MDczNDkyZTM3NjZlZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGI1MzBlZGU0ZjNlODgyZDZlODVlOWU2YTc3YmJhMjk1OTk5OTcxZTY1OTk0ZTRlMDQxYmMwMDNiMTU3OGQyZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-15T13:03:07.448Z"
   }
 }

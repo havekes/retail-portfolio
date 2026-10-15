@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:5b147ea7d03774a2c940758dd47aba630113c5b30cb62bd2a009c62c176e6d47",
+  "pageVersion": "sha256:f920e400a718293104aa641d63094890933b1b4f8407e7c35e5fed741fb3243e",
   "claims": [
     {
       "id": "claim_fc221626fd6b46c0894141fb25dcdb8a",
@@ -11,11 +11,11 @@
           "version": "repo-file-v1:sha256:9ceeb91f4415595c5c031e9205dc912d0dd856908a3fb6361973cceffa36ce5d"
         },
         {
-          "resource": "repo://src/account/model.py#L90-L142",
+          "resource": "repo://src/account/model.py#L95-L147",
           "version": "repo-lines-v1:sha256:0f82fef7fb540ba28cd5f86e10793af7c0e1c23d152dc84935c75f3068c4ae0e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4YWM5Zjg4Y2VhMDY2ZGUwNTc5MTFjOGU3NjEzYWRlYmMyMzIxMzJmZWU3NjA1NjhiNjg1NDUzODI5Y2VkYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjY2JlY2EzYzczMzVlMTk3OTNiOTQxYzVhMGQ3OGQ4MDdkMDkwYTQzNGY3NjMwNTVmNTg2NjA2ZmQ4Y2Y2YWMifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L402-L423",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L419-L440",
           "version": "repo-lines-v1:sha256:e469a2a571a73af100fe6f703d499fd243881eeb6f2185a5376a70141d5343f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiOGQ4MmY0ZWNhYWFlYTgxNmUyZWI4NTA5NjRjNTQyODE1MWYxN2JkOGIwNDIwN2Y4NTI0Y2MwYmRhMTFiNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NDAyZWMwMzYwNjUzZjQ1ZDdhMTg5NGEzMGIwMDBhNWZmMDM1OWYwNTc1MzYyYzA1MGExMTc1MzY2MjZkYzcifQ"
         }
       ]
@@ -29,11 +29,11 @@
           "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/repository.py#L105-L132",
+          "resource": "repo://src/account/repository.py#L111-L138",
           "version": "repo-lines-v1:sha256:d25196b3b191b133a1d061e1ea4c97e2b7cce10995c03f50125e7c99511aa252:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMjA1YWI3MGFhM2YzNjZiYmQ3M2JmNzU3MDM5YzNmMjViNTk0ZTc4ZWQ5ODlmNzE0ZWQ1NDA0NDRjMDExM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L308-L390",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L325-L407",
           "version": "repo-lines-v1:sha256:34c9440b0ffbfd450d404d8c8e252e0e2b33452ec44ec9fdec7c6c4a3c2165b3:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYzg4Y2M1OGEyZmRiNDUxODQ0NDZhY2ViMjlhMDdjYzBmOThmMWRiNzAxMjI2NjY0MWExYmI0ZjJkZTRhMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2MWI3ZTI3MTA1ODBjODJiYTgwY2M2ZjA2MmI4YzNiZGMzM2U1NTNlNzM1MDMxMGI4OGFkYzIxN2NjNmE3MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NzhhMjQyMDA1ODY3ZTkzYmU4ZDhjNzY0NmUzZjZhNWY2YzBlYTc2OTM1MDgzZDdhZTQzZDNkNDE3MjNkNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NTNlOGU0Yzg3MGFiNTEyNThiYTkzM2U2NzEyM2M3NzMxZGQ4MzZhMjViNDY4NTVjNGQxMGVjMzM3MTg4ZTYifQ"
         }
       ]
@@ -61,15 +61,15 @@
       "statement": "`portfolio_router` (prefix `/portfolios`, mounted under `/api/v1`) exposes exactly five handlers — `GET /` (list for the current user), `POST /` (`{ name, accounts }` create), `PUT /{portfolio_id}/accounts` (full membership replacement), `PATCH /{portfolio_id}` (rename), `DELETE /{portfolio_id}` (hard delete returning a bare 204) — with no single-portfolio GET and no endpoint that changes name and membership together.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L67-L67",
+          "resource": "repo://src/account/router.py#L69-L69",
           "version": "repo-lines-v1:sha256:3403763960328493c209508ed24d3390c4fa4c9502f157895213227ce2408e30:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWViZDA2Yjc3MWIyNTY3OTQ4MWVhNjhkN2VjMmM4OGUwZmNjNzNhNGNjMWRhYWUyMzRiNjU1MDU4ZGMwMmY3NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZjMWNlZTdlZjBiOTEwNzViMDcyYmUxZmUxZDQwZTI4ZGNiOGI1NDU3NjRmOTUxNTA0ZTQ0Nzg2MzcyNTNjNiJ9"
         },
         {
-          "resource": "repo://src/account/router.py#L70-L163",
+          "resource": "repo://src/account/router.py#L72-L165",
           "version": "repo-lines-v1:sha256:19dc56e53812fab64e0b40cc4506073f8e9ca0290a9a93ccf694df83956f9768:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZGFhNTM5NDZkODhiNDMzMjA1NjlkYTA0OTYxZDE1OTQ5YTY4OGIwYzdiZDU3YjMxZGE2MWJhMmJiOWJjOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyYzY0ZWE3NWJmMTRkYmVmNzFkZDAyMGRlNjYyMjQ1ZWM0YTJkYzQ0YWUwZDQ4MTQ5MmIzNTI4ZWYzMzBiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMTNiYWRkOTc3ZjY4N2Y3YjkxNDk0MWRiZjE1OWY4NWJhNjI0NThlMjkzMDVkY2YwZjViN2YzMjk0NmQ5YjMifQ"
         },
         {
-          "resource": "repo://src/account/schema.py#L205-L219",
+          "resource": "repo://src/account/schema.py#L217-L231",
           "version": "repo-lines-v1:sha256:ac62b937c90821dc20af5bc15cc017cbe160a261663ab4ba6822796d0aed85d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjFmMDk0ODU0ZGU2MWVhYTI2YmE0N2Y0OWQzNGRlMjM1MzgxOThiYjQ0ZThiNDZhYjNiNTE2OGIzMTBiNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MmE5MjFjODNhMjEyMzc1NmM5ODFiN2Q2ZDdhYWJmMTI5NGRlN2FhMzk2MWNmYTI0NjI5N2ViYWFjODk3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MzJkZjI0YjMyYTE2MjZmMThiYjc2MjcxZTI0YTZiMDMyZGI1NmZiY2FkZjUxYjA1NDBiMDZjZjY4MDdjZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -79,11 +79,11 @@
       "statement": "The three id-addressed portfolio routes each run `AuthorizationApi.check_entity_owned_by_user(user, portfolio)` in the router in addition to the service's own checks; that helper raises `HTTPException(404, \"Entity does not exist\")` for both a missing entity and one owned by another user, so a foreign portfolio is indistinguishable from an absent one and `test_portfolio_{update,delete,accounts_update}_not_owned` assert 404 exactly like their `*_not_found` siblings. `portfolio_accounts_sync` additionally repeats the account-ownership check at the router level before delegating, so no membership `DELETE` is issued until existence, portfolio ownership and account ownership have all passed.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L95-L163",
+          "resource": "repo://src/account/router.py#L97-L165",
           "version": "repo-lines-v1:sha256:d51a3eded0d0a0428efee7ec466759393610e6eb84669b24a9ede4ca3474c35a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MDgwYmFmOGIyNWM2OGI5ZjY4NzM0NGM4ODRmZTBlYTM0MmRiYjEzM2IxZjYzZTc2YWJkNWNkYzRiYTJhYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYmYwZTliZWYwYjEyM2UzZTA2ZDIyOTg1NDExNmYwY2Q0ODM0M2Y2ODkwMDgyMTdjMTRmN2Y4NDBjMmMzMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMTNiYWRkOTc3ZjY4N2Y3YjkxNDk0MWRiZjE1OWY4NWJhNjI0NThlMjkzMDVkY2YwZjViN2YzMjk0NmQ5YjMifQ"
         },
         {
-          "resource": "repo://src/auth/api.py#L274-L280",
+          "resource": "repo://src/auth/api.py#L284-L290",
           "version": "repo-lines-v1:sha256:6437c188908448b78d4fad57a3e658708ece4af1023d605d927aceb9221070cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJmNzdiNWIwMjBlNDMxYmYyMjYyOWY5ZmM3ZTRhZDBkNjllMGNhMzgyNzNiOWM2NjM3YzY4M2VhYmFjMzY1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmY1OWE1ZjgzYmEwZDYzMGJlYTg4NGJmNjM5ZDk5N2QwMGM1Mzk4YjJlZDA1MWRlZmEzZTM1MzE3Y2E5ZDMzMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTRiZDRkMzM2NDI1NjcxYjVkMWM3M2EyOTQ2ZDM4MjQzZmYwNGU5N2IyNmQ2ZWE0NThmMDU2MWNlNzM3MzQ0NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjZkYWIyYWZlMTU5MmYxNjg3MDNkYThmMjIxYWNiNjA0Mzg4NTk2N2RiNDFmN2I4ZjFkNTBlODAyZjUzNjY3NCJ9"
         },
         {
@@ -97,15 +97,15 @@
       "statement": "Deleting a portfolio cascades through `PortfolioModel.portfolio_accounts` (`all, delete-orphan`) and removes its `portfolio_accounts` rows but never touches the accounts or their positions; symmetrically, `SqlAlchemyAccountRepository.delete` explicitly deletes the account's `PortfolioAccountModel` rows (and `PositionModel` rows) before the account row, so no dangling membership survives an account deletion.",
       "evidence": [
         {
-          "resource": "repo://src/account/model.py#L112-L117",
+          "resource": "repo://src/account/model.py#L117-L122",
           "version": "repo-lines-v1:sha256:7722602aa1bc7d640358fae63e4fc67776399858f1e30d2c0aa16fa8fd1cfeeb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIyZGJiYWE0YzE5OWJhYTk2MTUwZThhMjMxZWZmNTk1Njg5ZDgyN2FiYmFlOTRhNGVmZjY2YzZhMjUzY2M5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ2OTI3OTQ2OTM1MTYyNGZmYWQ2NWE0YzJkYjIxYWRjZjY0YTFjMjlhMzg2OWY3ZjRhYjA5NjdkZjg4NzZkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzllNjQ1ODQ5MzU5YmQwOTkwNGU2MjNkNjFkMjMzN2Q4N2M2MWQzNDMzMzYyMjE4NDAzOWY0OTIyZDNjN2EwYyJ9"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L140-L153",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L141-L154",
           "version": "repo-lines-v1:sha256:1dc2e58c89399b02af854e67629a898caf495ac2836f3d0e1ee8ec624a363379:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjMzQxZjM0MWZlMGFlM2YxMjQ5M2I4Njg5ZGM4NDVlZDNmZGIyZGUzM2RhZWNlN2I0OGMzMDQxMDRhYjMxOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NTlhZmMwYTUxMWFkZTMzOGEyZjc0ZTM3ZDg1M2UwY2UxNGM2YWEyZjc1NTUwNzdhOGQ5YjU1Y2VhOWRlNmMifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L402-L407",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L419-L424",
           "version": "repo-lines-v1:sha256:748af3394ced361d242633390b3bfc07dfdd74d8df946451913196e8e194245d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ2MTU4OTY5NTk2YWFmYjlmOWJlMDk1MTQwYzBlYTEzMGFkNjkzYmJkZmZkYmZkYjc2MjQ1YmY2NGI2NjIzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2I4ZDgyZjRlY2FhYWVhODE2ZTJlYjg1MDk2NGM1NDI4MTUxZjE3YmQ4YjA0MjA3Zjg1MjRjYzBiZGExMWI2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRmZWZmNmIzYWU4OTZiYWZjOTdmYjdhMjY5MWRiZTI0YjRiZWFkODAxYzI3NDRlMTEwMDM0OTEyZWU2NDEyYSJ9"
         }
       ]
@@ -115,7 +115,7 @@
       "statement": "Portfolio request validation and failure semantics: `PortfolioCreate` requires both `name` and `accounts` and `PortfolioUpdateRequest` declares `name: str = Field(..., min_length=1)`, so malformed bodies are 422; unknown portfolio ids are 404; foreign or nonexistent account ids raise `AccountsDoNotBelongToUserError` (an `AuthorizationError`, not a 404); and a duplicate `(user_id, name)` surfaces as a raw database `IntegrityError` because no uniqueness pre-check exists in `PortfolioService`.",
       "evidence": [
         {
-          "resource": "repo://src/account/schema.py#L205-L219",
+          "resource": "repo://src/account/schema.py#L217-L231",
           "version": "repo-lines-v1:sha256:ac62b937c90821dc20af5bc15cc017cbe160a261663ab4ba6822796d0aed85d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjFmMDk0ODU0ZGU2MWVhYTI2YmE0N2Y0OWQzNGRlMjM1MzgxOThiYjQ0ZThiNDZhYjNiNTE2OGIzMTBiNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MmE5MjFjODNhMjEyMzc1NmM5ODFiN2Q2ZDdhYWJmMTI5NGRlN2FhMzk2MWNmYTI0NjI5N2ViYWFjODk3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MzJkZjI0YjMyYTE2MjZmMThiYjc2MjcxZTI0YTZiMDMyZGI1NmZiY2FkZjUxYjA1NDBiMDZjZjY4MDdjZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -155,12 +155,16 @@
           "version": "repo-lines-v1:sha256:6342b0f20f00a5a0e169e02d15396ff291ead6fb80411863b9b0f129ff808426:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMzEwYzY0ZWUyZTg0YjczM2U4NTAyM2FiNDNjZmJiNDcyYjhmMDZiMjhmNDkyMDRkNjNhMGVkY2M0NDViYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2NGRmZTNmOGY2MGNkMzVmN2I0NjkzNTg4MmM5NjcwODE0ZWE4Y2JjNGMwZDZhYzU3ZTAwYjVkZGM5MmZkYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MGEyN2EyYjI1YzUyOTc0YWE2NGY4OGRmZTk4YTMxZmViMzIwODNiNGMzYzdmNTZiZTVkYmEzZjIyMjhlYjYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L118-L219",
-          "version": "repo-lines-v1:sha256:b5c07af02491774a415ac793def36cd245927871c2821c35a1b636730f91b094:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwNDNjYzMwNmNmNGU5MTg4Zjk0NDZmZmMxOWE4ZjczNDAxNzkyYmJhYzI1OWQ4OGRlZmZmMDc3ZjVlOTc0ODMzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiOTNhNWM1YmFiN2QzN2NkMGQxMjgyZDhlYjM0OTE0ODA4YTUyMzFiZDY0N2RlMTI0ZjNhZmQ5MzRmNzU1YmM1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L116-L245",
+          "version": "repo-lines-v1:sha256:abb4dace3fd3b95f76f390e03832fa0161981906b992b34fdb2f7262707031bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwOGRmNmQxNjliNGZlZGUxZjRlNzUwNzI2MjliMzFhYTBhZGQ0NjllY2RiOTFiNjhmMjY5NDVlZTI0YTk4OTQwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2MGQ5ZTljY2M2MzFiMzVlZTdjYTM4YjczYzgyM2QxYmI4YWMwYTdlMjI5OTMyZmYxOWVjNzM2MjI3ZmMwZGU2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJjZDU5MzMxYjM0NjU3NTg5MzkwYjU1NTk4NWRhOGVmMWRlMTczYjI2MjQ1MjMzOGRjYzQzMzJkNjFmNDBiZGUxIn0"
         },
         {
-          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L33-L99",
-          "version": "repo-lines-v1:sha256:d1844a07b9db82131c71cd457d384d9a0548727279e6f302c7df9ff1da8d084f:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2FhZjkyZGEwZTZkYjZiZjEyN2E4MjM2MTBjNGJkMTEwYjdiODYxMzA5ZmQzMWNkMTI3NTg5ZTY0YWM3MzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1NTQ4MDkxNjc4MDI2OTA2NjI1YzBmNTAxOWEwMWM5Njg5MTYyNmUwN2VhMzU1NTQ0NzJhZTRhZjFlY2JiOWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L21-L32",
+          "version": "repo-lines-v1:sha256:c7b298d2069fa59dbb68f1821c7d9b9e86b30ca43bf443dbb876f9738bd4ce66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNmM0MDRjZTE5NDVjMmE4ZGVmMWRkNjY4ZTdiM2Q2YTU2ODIxZDFmM2ZhOWZkNmQxZmNlOTNhNTVkZDJjZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMDk3MzY4ZmE3NWZmOTJiOTNmZjQzNTcwNzQ3MDEwNDIzODg4NWFiMDA1NTMxM2IxY2E3YTQxOWIxYjI5MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYWZkNjI4OTA5YTdjMDk4YzY1ZjIzNTZhNDFiYmM5YjE1N2JjOTA3ZDMzZDQ3NjJhZTJjZmFlMTY4YzYzYmMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L96-L152",
+          "version": "repo-lines-v1:sha256:2f88c268c4f09643dc3690b26ae830d488fcaf078bb578fc7772d400237ea207:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmZjA2N2M3YWI0ZWU5N2UyYzNhMTU3NzdmYmU3ZTc2NjQwZGU1ODEyNmNiNjc2OGQ4MmNiNzExMWFhN2NlNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYzdmZGUyZjBhOWM0NzM4ZGJiNDIxYjdlZTc4M2U0Zjc2MzZmNGViZTg3MmMxOWY0N2YyZDBkM2E4MGY4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -195,7 +199,7 @@
           "version": "repo-file-v1:sha256:62bc988c81a2ddc880337a7706ba2003e79c4e8bfdd104ce3a967573bbc87044"
         },
         {
-          "resource": "repo://src/account/router.py#L95-L121",
+          "resource": "repo://src/account/router.py#L97-L123",
           "version": "repo-lines-v1:sha256:3840025d370b1353c21251749b13e9b15f3a3ffb5bfb7ed2979a18da077497d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MDgwYmFmOGIyNWM2OGI5ZjY4NzM0NGM4ODRmZTBlYTM0MmRiYjEzM2IxZjYzZTc2YWJkNWNkYzRiYTJhYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYmYwZTliZWYwYjEyM2UzZTA2ZDIyOTg1NDExNmYwY2Q0ODM0M2Y2ODkwMDgyMTdjMTRmN2Y4NDBjMmMzMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwZWE1ZGNmNzZiMDg1MDk4MmU5MzQzNWVkN2YyNjY4ZGMyMmU4ZjEyOWNlYTA0NGM5OTUzMjg2NDUxMmZmNDYifQ"
         }
       ]
@@ -231,26 +235,34 @@
           "version": "repo-lines-v1:sha256:c931956f609941416bc480cfd058e9a7c4686c0eceec9e693d569d060c7f7513:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L103-L128",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L117-L142",
           "version": "repo-lines-v1:sha256:b2be1fe9d8230cbaea8f3438b277157597b26f1591bce0405a243a2a6bc4f665:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZjUyZDEwNGIzMTAxOGNmNTQzOTNiN2NiMDQ5YzFhOWIxMWZmNzgzN2ExY2NmZWMwOTEzN2EyMjJkMzY4ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2YTdlNzdmMWU3OTdhZDIzMmYyNzhhNjE2MDhkNTZhNWM4MWM2MGY5OGYwYjNjMTZjY2FlMjc3NGI2NzVlOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L37-L48",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L57-L68",
           "version": "repo-lines-v1:sha256:b0227e3b3b4e579011e7c278914deb5d6f3de6216c5cc09090cfdab707426505:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3MWFjMzY2ZTJjMDVhYzkwMWRlMGM4MzI3M2U0NmNkY2JiNmNjZDRjNjRiZmVkMDA5NmU1NTNlY2I2YzhlODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjVhNTQzOGZlOGJlMzcxMDFjYTY3OTgwMjA5NGQ4Yjc0ZmUxMmJmNWEzYmFiZDIwNGYzMzlkYTFkMTY1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyODU4Y2EyYmI1NzMwZGNlZDI2NjIzNDE4YjM3N2VjMWM2YWJkN2E0NjYwZGQ5NjhhZTI2ZjFjY2E3MGFlYjAifQ"
         }
       ]
     },
     {
       "id": "claim_d0baca94ae9542348099e10f23417fac",
-      "statement": "`HoldingsService.filterByPortfolio(portfolioId, accountIds)` stores the `{ type: 'portfolio', portfolioId, accountIds }` variant and the `rows` getter keeps only rows whose `account_id` is in `accountIds`, so a portfolio narrows holdings by an account-id membership test rather than a query parameter on `getUserHoldings`, and the page derives its subtitle and empty message from that filter state.",
+      "statement": "`HoldingsService.filterByPortfolio(portfolioId, accountIds)` stores the `{ type: 'portfolio', portfolioId, accountIds }` variant and the `rows` getter keeps only rows whose `account_id` is in `accountIds`, so a portfolio narrows holdings by an account-id membership test rather than a query parameter on `getUserHoldings`; the page renders the portfolio name in a breadcrumb instead of a subtitle (a subtitle exists only in the unfiltered state) and keys the \"No holdings match the selected filter.\" empty message off that filter state.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L20-L71",
-          "version": "repo-lines-v1:sha256:19686ad62827d83513898c1203dd9c7f62d9f5573a595d65c9e797ee5de95d5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNDc5NmM2ZTY3N2ZhMDQ3ZmEzNWNlOWVmMDUzMWM1OGQ4YTc5NmEzZmM3OTY5ZDI3OTY1YjcyMWMwYWZlY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjY2Y1YzhiNjQ0ZDliNDQ1ZThmNDVlZTVjNGIwOWMwMTczYjdlODAzODllYmIyZjQ0MjJlOTllMzIwNGFlN2UifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L21-L44",
+          "version": "repo-lines-v1:sha256:1b9da23228f2c29c8f27a21067f0f55481b8398fc4ea53dc295684c08c0a76bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNDc5NmM2ZTY3N2ZhMDQ3ZmEzNWNlOWVmMDUzMWM1OGQ4YTc5NmEzZmM3OTY5ZDI3OTY1YjcyMWMwYWZlY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YzYzYjNkZmI1ODNhMjdjYWQ0MDc5MTg4NjU2ZDVjNjU2N2YzMTM2Mzk2YzcyZTcyNmQyNWU3OTg2ZGEzNzUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L63-L101",
-          "version": "repo-lines-v1:sha256:9577f645d301d0e93bd9e06e72bbfcfb87b2abc33318d349ef0b09ec5fe56bd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiOTE1YWFlYjFhODMwM2U4ODg1OTc1MGY2ZmJiNTNjMGU4ZGE1Mjg3OWZkZjk0YzBkNmQxNWVlYTk3MzgyZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhMDhjYjM1ODczZjk0NTAyMmNlN2VkYjFhNzhmMDU3ZjUxNjAxNDY5YzI4NjNmYTI5ZTg0MTQ3MGFjMjZkN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NThlYWFmMzRkZGIyMTY4MjUzMDMxY2NkYjljODA3NmFiZjVjMjM5NjQ3YjRjZjA4YTQ1NzRkNTk1MzJiYjUifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L65-L67",
+          "version": "repo-lines-v1:sha256:8a1ee9a3ce7d9de8e05f2cc76745f8fdde2f31259df8514b9eedc7ab917b4742:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAxOTMxYzliYzYyZDk4NTMyNGEwOTg2ZTMyNjhkM2FlZmUwZjI3MTM2ZGViYWNkMzVkZTZjMzk5YzcwOWZmNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDY2OTBkNjIzNGRiNDkwZjY0NDQ4MWE3OTgzYTk2ZjVmNGY3MGM0NTBiN2I3OTVkNzgzODY3MmVlNDg0ODg4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRhNGY2OTc4NGE0Y2NlYWJkZDUzMWVkY2Q3M2E4ODEwMDA2NzBlZmE4ODEyMzkxMDQ5ZTU5NGI3YTAxODkzOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L111-L115",
+          "version": "repo-lines-v1:sha256:58166871207ef5c1325ef6a0bee9f7bdab20fe942766a336a208132d50ea990d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc2YWQwNTE0MjBhMTgyZWE0NTJhOTk4ZGY5NzNjYTJhZGYyZWVhNGUxZWNjZjgyODI1NTE3OTZhMzU0YTdhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWEwYzhiZDQ4MDMxNTE0MTRkMjdhMGQ2MDYwMTc3ODMwNGZlZWZmNjAzZWYxZTMxY2EyYTRhNDIwMmE4MjBhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUzYjQyOWEwZDIzOTNmMzdmMTE4MDY2NmU1NTQ5MmIwNjU3MWE1YTYzN2IyM2M1OGFhZDk5NjdiMTJmMDdiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjU1OGVhYWYzNGRkYjIxNjgyNTMwMzFjY2RiOWM4MDc2YWJmNWMyMzk2NDdiNGNmMDhhNDU3NGQ1OTUzMmJiNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L199-L221",
+          "version": "repo-lines-v1:sha256:9068b86d9aa5b54e690b2845d7e10bce9c0bec5638e5eb5a390679eb66b8602f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MDc3MzQzYmFkNWMzNGE2OWNlNzM1MDlhOTY4ZjkxYTU5NjEwYzhlODVhNjY5ZGFkMDg4MTdjMGFlMjQwN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwMzAwOTE3MmJmM2E1MDBiMmNkYjdlZWZiN2RlN2U0MWM0MDYwZDRmNWE5MWFlZjdiMTdhMWRlYjlmNWVmMjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2Y2FhYTRlZWFkM2E1ZDFjYjViYjY5OTZlMDMwMDYwMTg1ODUzNDBjNjI1NmQ3YTdkZTMzNzk2MTk5Yzk4YmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwYzA3NmZlNGNhMWUwM2Y4OTc4MDY0ZWFjODRjYzZjMDQ1MDMwY2QyZWJkNzNjNWEzMWFmN2U5ZTZkMzdmMjIifQ"
         }
       ]
     },
@@ -267,10 +279,86 @@
           "version": "repo-lines-v1:sha256:d228c381b4ac0a3a782dae317bf678bc6699d2ccdc42ed8813d3821cf5cfb133:eyJzZWxlY3RlZExpbmVDb3VudCI6MzA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzODA3NTdiODM2YjYxMmViYWY2M2UwZjM5MzViYmRhYWJlOWJhYzY0MTQwMDQ1MDA5NzE3ZTgwYmNiNzYyMTc3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkOTdkNTNiYTZjMTMwMTA3ZmE4OWQ5N2NhNDUxODY1NjVlNDBjMzM2MDFjZGVmMzZhNDc5ZGRkOTY1Zjg5MjYwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIn0"
         }
       ]
+    },
+    {
+      "id": "claim_3187f88c2f6f42498ac7908d45f49308",
+      "statement": "`PortfolioListItem` takes only `portfolio`, an optional `onRename(newName)` and an optional `onDelete()`, and its action surface is three affordances: the `EditableTitle` title link to `/holdings?portfolio_id={portfolio.id}` (`showEditButton={false}`, `isEditing` bound to the component's local `isEditingTitle`), a `Rename` dropdown item that sets `isEditingTitle = true`, and a destructive `Delete portfolio` item that opens a `ConfirmationModal` whose confirm calls `onDelete?.()`. The card exposes no membership action, matching the absent `PortfolioClient` method for `PUT /portfolios/{id}/accounts`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L147-L152",
+          "version": "repo-lines-v1:sha256:e2a22c32af9eb11afae6270f096ab9d873e3e7a66bf5bdea8947b64988308079:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmZhODc2MDQzYjBlMzkyYmM5N2RjMWU0NGQ0MDkxNTU3OTQ4ZTRmMjdiN2M3MWViMjJjYjUwODZlYWVhMjhlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzA5ODk3ODRiOTEwNzgwZTI0MzdjNmU3YTllNTA4NjUzM2E4NDhjZTExNTJjMDgxNzE5MmM3NTkzZmI2MzI2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWY2MGMwZTVhYzBlNWY4MGRhZDMyZDQ3YmM2YzhhYjk0ZmQ0ZjI4YjFiZmVjZTY3ODczNjM0MzZiNzYzZDFlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L21-L32",
+          "version": "repo-lines-v1:sha256:c7b298d2069fa59dbb68f1821c7d9b9e86b30ca43bf443dbb876f9738bd4ce66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNmM0MDRjZTE5NDVjMmE4ZGVmMWRkNjY4ZTdiM2Q2YTU2ODIxZDFmM2ZhOWZkNmQxZmNlOTNhNTVkZDJjZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMDk3MzY4ZmE3NWZmOTJiOTNmZjQzNTcwNzQ3MDEwNDIzODg4NWFiMDA1NTMxM2IxY2E3YTQxOWIxYjI5MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYWZkNjI4OTA5YTdjMDk4YzY1ZjIzNTZhNDFiYmM5YjE1N2JjOTA3ZDMzZDQ3NjJhZTJjZmFlMTY4YzYzYmMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L71-L78",
+          "version": "repo-lines-v1:sha256:76213c85b5ce58b7fa30eae8d40fe165486026acbc4eeb2afa16085fa3e8957a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJjYWFmOTJkYTBlNmRiNmJmMTI3YTgyMzYxMGM0YmQxMTBiN2I4NjEzMDlmZDMxY2QxMjc1ODllNjRhYzczMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIxNTdiNDkxYzM1YzY5MzI4MzZiODkzODBlOGE1NzYwZTQ5ZTJmM2I0OTEzOTRlODg3NGZhOTQwODNlYmI4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTU1NDgwOTE2NzgwMjY5MDY2MjVjMGY1MDE5YTAxYzk2ODkxNjI2ZTA3ZWEzNTU1NDQ3MmFlNGFmMWVjYmI5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmIyMThkMzBiZTQyMmUwMGEwMDA2ZDYyZWIzNDUwNThhOWU0ZjYwMzc4ZDE3MTI3N2FmZGI5ODMzZjM0YzkyNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L96-L129",
+          "version": "repo-lines-v1:sha256:98501c007c0809829e777df16b5d64da80f5606062d55ad350484019445a5124:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmZjA2N2M3YWI0ZWU5N2UyYzNhMTU3NzdmYmU3ZTc2NjQwZGU1ODEyNmNiNjc2OGQ4MmNiNzExMWFhN2NlNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMzk4ZWVhNGVkYmEyYzE1YWFhOGM5NGU1ZjNlZmY0MzUxZGYxZmRmZmUwZGMwMzIyODhkMTVmYTRhY2I0NTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYzdmZGUyZjBhOWM0NzM4ZGJiNDIxYjdlZTc4M2U0Zjc2MzZmNGViZTg3MmMxOWY0N2YyZDBkM2E4MGY4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YzkxM2QxY2Q5ZTcwMGIyNmEwODI1ZGFkODRmNWM2MGQwMjA2ZTc2YWFlOTk2MWZjN2I3M2M5M2FlZWFlM2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3180b313a3c643e9aa7fd5d42d920775",
+      "statement": "The card's rename path is `EditableTitle`, whose `save` handler calls `onSave` only when the edited value differs from the current value and treats Escape as a cancel, so an unmodified title issues no `updatePortfolio` request.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L54-L73",
+          "version": "repo-lines-v1:sha256:b42de9fa243587fa800d6dbbe7c1a95f22b998ef07a8995bcf35b6cdab039495:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwNTA1NTE1Zjc5MWVmYjNlNGU0ZjU4ZjFjY2E1YjJkMzEyMzMzYmZiZDBiMTEzZWZhZDc3NjA4NTg3NTczNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllZDAxNGM0YzVlYTg2MDhmNWM2NDBkZjk0MmI5ZGFkODJhODZhODE3ZmZlYTVkY2IxMTlmYjY2YzYxOTdiZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3ZjMyYzljMTliYTQ4ODU3YTA3MmNmY2Y1ZjljNzRmNGU4YzAzNTUwODgzOGM0ODdkYTk2NmZiNzQ2Y2ZmOTcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L71-L78",
+          "version": "repo-lines-v1:sha256:76213c85b5ce58b7fa30eae8d40fe165486026acbc4eeb2afa16085fa3e8957a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJjYWFmOTJkYTBlNmRiNmJmMTI3YTgyMzYxMGM0YmQxMTBiN2I4NjEzMDlmZDMxY2QxMjc1ODllNjRhYzczMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIxNTdiNDkxYzM1YzY5MzI4MzZiODkzODBlOGE1NzYwZTQ5ZTJmM2I0OTEzOTRlODg3NGZhOTQwODNlYmI4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTU1NDgwOTE2NzgwMjY5MDY2MjVjMGY1MDE5YTAxYzk2ODkxNjI2ZTA3ZWEzNTU1NDQ3MmFlNGFmMWVjYmI5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmIyMThkMzBiZTQyMmUwMGEwMDA2ZDYyZWIzNDUwNThhOWU0ZjYwMzc4ZDE3MTI3N2FmZGI5ODMzZjM0YzkyNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_604e8b128ade48ed818397eb4fea0122",
+      "statement": "Each portfolio card's headline figures come from member accounts' server-computed totals rather than from holdings rows: `loadTotals` fans `accountClient.getAccountTotals` out over `portfolio.accounts` with `Promise.allSettled`, dropping any rejected account, and `aggregateAccountTotals` folds the survivors into one bucket per currency rendered by `TotalProfitLossButtons` with `testIdPrefix` `portfolio-{id}-{currency}` and never summed across currencies. The fetch is wrapped in a `browser`-guarded `$derived.by` so nothing is requested during SSR and the card shows a `Skeleton` while pending; `page.svelte.test.ts` pins that a CAD and a USD member account produce two distinct buckets.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L247-L301",
+          "version": "repo-lines-v1:sha256:372fa5eb8998c32784a4cec9846c732452d470fa4c84ae9697bb4d3a0e428ac3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNDdjNDU0NGViYzNkNGE4YmQ3NjczNGNkMjM0NjYxOTIxMWNkMzdkMzE4MDE3OTk5YTEyNzQ4ZWRhZTU1MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlNGE5MDRkNWFmOWMxMWQzNzA2NTgzMGMxZjhjZjM3ZTQwMjJiODdmOWZjYjYyYjBiODg3NjZhMzY3Nzk0NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L34-L61",
+          "version": "repo-lines-v1:sha256:f4d0a30916437fb9363c54a8b8552eef509580caa5074be563f8eff1ac9b7df6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZGU2NDU3ZDBjNjEwOTJjNDc5ZmEyYTQ1MTQxMTUxNWU4MTc3OTFmMTEzM2QwOWVjZjcyNjQzZWZlZDM0MDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNTM0MTE0M2ZiMWQ5Yzc4NTI3NmUxZWNkNTQ0ZjI5OGJjNDc5NTE2Y2QyOTg0NGFjZWI5ODIzNGVkZWJhOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyNWNlY2Q3M2ZhNTEyMzVkYTY5N2U5ZTViZGQ1N2NhZDZjNTk3ZjQ5ZWI0NmNjZWQ1ZTYxOTRjNmRmODFkNjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L81-L95",
+          "version": "repo-lines-v1:sha256:9589e3709b356494835105f15428276845151cb984c6efcc564ba2a9aac6d656:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwNDc5NWZmMzE1MGI3YjVlMjhjNjEwYTRkM2Q4N2FhMzJhZTc5MmNhOTkxM2MyODcyN2Y4NzRlOWIyYTJiZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMmJkNTNkNDY5NWQ5ZmIzNTYwZmY3OGFkZDAzNmMzMTk3NjQ4OTFhMDVjOGUzYjI4NGRlZTI4ZTk1NGI0NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzOGU3ZDBkODBkNzcyZjZkYjM4NzNlYmI0NjE2ZWE2Zjc3ZDUyNmUzM2ZjMzY1M2QyYjY1Y2MyZDI1ZGVmYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzNGE0NzgxNmNjNjY1MWFiNjlhOTNhYzk4M2ZjNjVhN2U4MDg2N2FjMWU1NGVlNTc5MTFmMDI0MzU2OWU3YTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8e614f14fe564a838a172e7fa8955cdc",
+      "statement": "Because `portfolio-list-item.svelte` imports the `accountClient` module singleton to load member-account totals, `frontend/src/routes/portfolios/page.svelte.test.ts` mocks both `$lib/api/portfolioClient` and `$lib/api/accountClient` and stubs `accountClient.getAccountTotals` for every test, whereas the `/holdings` suites mock the `getAccountClient` factory instead.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L27-L29",
+          "version": "repo-lines-v1:sha256:bdedb520bbafe42a15bbf0d641308114a1f77154f5a010f4810d5434473abc95:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc0NTdmMjE2NDQ4YjNmODJkOGFiZDViZjRmNTlmZWIwYTRkZTg3Nzc3NTQzY2MyNGQzNTJjMjRjODNkMDViYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI3NDFkMmMwOGU2ZjUxMGI3ZTlhMjY0ZjM3OGY5Y2UwMDQ5YTUwNGUwZTdlZjVkNjdjZDNlYTgxM2Y4NTQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGI1YWRkNDk1Y2MzNzQ1NWRkMjRjNGY5NTMyOWE1NjdjODk4OTY2MTU3YmYyM2EwZGZkNWY4OTQ2MmRjYzU1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzIzZjdlOGU5ODdkMGY5MjNhNWM0YTRkZjg0YzBiMWNjNDIwMTIxYjkwZWEyZTJjNmEyNmYwNjlhMTBhMWMzMiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L13-L27",
+          "version": "repo-lines-v1:sha256:14fd2604e350f99be322cf242350101aae87f9fa6b7f6afd75dc3b7435b5db57:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyZDZmYjM4N2NhYWMyNzk2OWM0YWM4ZDdmYWQ0MzBiZGVhNTJjZjdkMjlhZGNiZjI4Y2JmYTM4MjAwYjA1NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5YWVjNWY1ZTcxOTVhYjhiMTMwNjEzNjRiZGZjYTIxMzdlYmIwZDM2ZWVjM2JkOTM1MmE2NTNiMmIzOGJjYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlYmI3YmZkNjVmN2RiYjk1NDg4YzA5MTM2MmE4MTY1MTI0YWU3YWZkYmQ2Y2E2NzI1MDczOTk3ZjIwZDg4YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxY2RjMDViYTFlMWE1OTU3OGNhNGU0YTZhMzE4OTdkYjk5NTI2YTNkOGU4ZTliYmI1YzE3MDM4NGI1ZjQ4OWQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L47-L50",
+          "version": "repo-lines-v1:sha256:d19a9f0d1fe9b66986f20a53a4886bbf2781bfa82e9a51ef81754840b4b7603e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWUzMTg2MzI3NGM5NzdkNDU1N2Y5MTUzOGIxYmQ1OTJkZWY4NDRiODEzYWVmNWRkN2YzY2MxYTEwNDhiNTExMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2ZiZGEwMGQ3ZGQwZTlhMTBkYmJjMmRmYjk1NDQ3NzI5NmE4NmVlYjk3NzczMmJlMjE2MGUzMzJkNjE3NTM0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjhmMzI0NGU1NWY5OTk0MjgzNDVmMmJhZjEwN2ZkZDE0NDVkZGFkZTg5YzNhN2JjZDhlMDY5MzM4MDliNGMyYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L10-L15",
+          "version": "repo-lines-v1:sha256:35c5f3e2154de389af1c8bdd09e2fd948cc3365f1d8649aa28e0f83368238955:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJhMDUyNTkwNGY2NTZiMzY4YWI2Mzg0YTI5ZDEwMzdiMDcwMzY5MmE4ZDljMTE0NjJhN2M4MDI3NDA3ZGIzOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdhM2JjYTZlNjgxOGExNTQwYzhmZjQ1YzJiZjUzZjM3YTdkOThiYmE5OGVhZjZiNjIzYmFiYjAxMzViZmVlZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjU2MDI4YTM4NDZjOGUxZDg1NDcwMGZmMTk5YWFiYzA5ZDI0NDYzYzVlOGE4ZDVjYmE4NDhhNzljYjUyZmIzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTMwMGM0ZGJiZTM3MmFiNGY2YzEwMzU1ZmQ3YmVlYmY5OTYwNjI5MDA1NDA5MWZhZmFmNTRkZGU3ZWI5YTRjZiJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-15T13:03:07.448Z"
   }
 }

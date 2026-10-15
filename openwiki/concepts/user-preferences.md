@@ -1,8 +1,8 @@
 ---
 type: concept
 title: User Preferences
-description: The cross-cutting per-user preferences contract — one permissive JSON column on auth_users, the GET/PUT/PATCH /accounts/me/preferences surface with exclude_none and top-level JSONB merge semantics, the complete read/write ownership matrix for every preference key, and the fire-and-forget versus surfaced failure split.
-tags: [preferences, persistence, api-contract, sveltekit, ssr, jsonb, layout, holdings, charting]
+description: "The per-user preference contract — the GET/PUT/PATCH `/accounts/me/preferences` endpoints and their Pydantic payload model, which key is owned by which surface (chart, holdings table, grouping, sidebar, watchlist, indicators, display currency), the `exclude_none` and top-level JSONB merge semantics, and how the frontend preference service reads and patches single keys without clobbering others."
+tags: [preferences, persistence, api-contract, sveltekit, ssr, jsonb, currency, layout, holdings, charting]
 sources:
   - id: openwiki-source-95a24be7f44e810285a4bb5e
     resource: repo://frontend/src/lib/api/userPreferencesService.test.ts
@@ -34,6 +34,8 @@ sources:
     resource: repo://frontend/src/lib/components/holdings/holdings-table-prefs.test.ts
   - id: openwiki-source-331ab8ac56d9afa53a0703c1
     resource: repo://frontend/src/lib/components/holdings/holdings-table-prefs.ts
+  - id: openwiki-source-cdfa8151ab28d1748828368b
+    resource: repo://frontend/src/lib/components/layout/app-sidebar-profile.svelte
   - id: openwiki-source-d57b417669cd777cd7bd205b
     resource: repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte
   - id: openwiki-source-40e144f67058b9a0dccf7453
@@ -58,6 +60,10 @@ sources:
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte
   - id: openwiki-source-ddd6d556671e35d3baea7163
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts
+  - id: openwiki-source-694dbeb0a0c74c217d888b5a
+    resource: repo://frontend/src/routes/settings/preferences/%2Bpage.server.ts
+  - id: openwiki-source-e4c683fc85c4cfe376c0d6b0
+    resource: repo://frontend/src/routes/settings/preferences/%2Bpage.svelte
   - id: openwiki-source-a680cc2053312375d46bcfe4
     resource: repo://frontend/src/routes/watchlists/%2Bpage.server.ts
   - id: openwiki-source-68c192b8e5d3899c314276cf
@@ -68,6 +74,10 @@ sources:
     resource: repo://src/account/api_types.py
   - id: openwiki-source-30de42522595a37de333f4dd
     resource: repo://src/account/router.py
+  - id: openwiki-source-602f3dc708670c5e868cfb55
+    resource: repo://src/account/schema.py
+  - id: openwiki-source-92dacc39dc7b0f24b1f6b1aa
+    resource: repo://src/auth/api.py
   - id: openwiki-source-0fc95643a33a61845b4e45e3
     resource: repo://src/auth/model.py
   - id: openwiki-source-418c8247c1466f4549b7a05f
@@ -82,10 +92,10 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 # User Preferences
@@ -97,14 +107,16 @@ endpoints and their write semantics, the read/write matrix for every key, and th
 rules that differ per surface.
 
 It is a **broadcast document read by several independent consumers**, not a single
-settings screen. Four different owners read it at four different times:
+settings screen. The readers now span browser components and the backend itself:
 
 | Reader | When | Keys it uses |
 | --- | --- | --- |
 | Root layout load (`frontend/src/routes/+layout.server.ts`) | every authenticated SSR request | `sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order`, `expanded_account_ids` |
+| `/settings/preferences` load (`frontend/src/routes/settings/preferences/+page.server.ts`) | on that route's own SSR load | `display_currency` |
 | `/holdings` route load (`frontend/src/routes/holdings/+page.server.ts`) | on `/holdings` navigation | `holdings_table`, `holdings_group`, `elliott_waves` |
 | Security page (`frontend/src/routes/security/[security_id]/+page.svelte`) and `IndicatorsGroup` | browser-side, after navigation, once per security | `timeframe`, `chart_style`, `indicators`, `chart_hide_labels`, `chart_auto_scale`, `chart_log_scale`, `show_valuation_band`, `wave_settings`, `indicator_pane_heights`, and (through `ChartDrawingsService`) `elliott_waves`, `fibonacci_tools`, `drawings` |
 | On-open component fetches (`holdings-modal.svelte`, `holding-group.svelte`) | each modal/panel open | `elliott_waves`, `holdings_period`, `indicators` |
+| Backend holdings handlers (`GET /accounts/holdings`, `GET /accounts/holdings/{security_id}`) | every holdings request, server-side | `display_currency` |
 
 The chart-side details of *how* the values are applied are owned elsewhere — see
 [Charting](./../architecture/charting.md) for timeframe, chart style, indicators and pane
@@ -114,7 +126,11 @@ heights, and
 `holdings_table` and `holdings_group` are covered by
 [Accounts & Holdings Views](./../workflows/accounts-and-holdings-views.md); the security
 page's read path is covered by
-[Security Detail Page](./../workflows/security-detail-page.md).
+[Security Detail Page](./../workflows/security-detail-page.md); the conversion and
+formatting that `display_currency` drives are covered by
+[Money & Currency Handling](./money-and-currency.md); and the layout-level subset of the
+matrix plus the `$page.data` preference seam are covered by
+[Frontend Architecture](./../architecture/frontend.md).
 
 ## Storage
 
@@ -135,8 +151,8 @@ There is exactly one document per user; nothing is keyed by security, route, or 
 
 ## HTTP contract
 
-The three endpoints live on `account_router` (prefix `/accounts`, mounted under `/api/v1`
-in `src/main.py`) and are implemented in `src/account/router.py`:
+The three endpoints live on `account_router` (prefix `/accounts`, included in the
+`/api/v1` router in `src/main.py`) and are implemented in `src/account/router.py`:
 
 | Method | Path | Behaviour | Response |
 | --- | --- | --- | --- |
@@ -158,13 +174,14 @@ and declares only a subset of the keys the frontend actually uses. Consequences:
   frontend adds without touching the backend round-trips unchanged. Declared fields are
   still typed, so a malformed *declared* field (for example a non-list `watchlist_order`)
   is rejected with a 422 before it reaches the column.
-- **The declared list is advisory and drift-prone.** The authoritative key list is the
-  `UserPreferences` interface in `frontend/src/lib/api/userPreferencesService.ts` plus the
-  components that write each key plus `src/account/api_types.py` for the keys only the
-  backend knows about. Treat any other inventory (including planning drafts such as
-  `.opencode/features/user-chart-preferences.md`) as stale.
+- **The declared list is advisory and drift-prone.** Both declarations must be read
+  together to inventory the keys: the `UserPreferences` interface in
+  `frontend/src/lib/api/userPreferencesService.ts`, `src/account/api_types.py` for the keys
+  only the backend knows about, and the components that write each key. Treat any other
+  inventory (including planning drafts such as `.opencode/features/user-chart-preferences.md`)
+  as stale.
 
-The two declarations already disagree, which is the practical consequence of
+The two declarations disagree in both directions, which is the practical consequence of
 `extra = "allow"`:
 
 | Declared only on the backend `UserPreferences` model | Declared only in the frontend interface |
@@ -173,6 +190,50 @@ The two declarations already disagree, which is the practical consequence of
 
 Neither dataset is enforced against the other: backend-only keys are validated as typed
 fields when present, frontend-only keys arrive through `extra = "allow"` unvalidated.
+`display_currency` is the one key declared on **both** sides — and the only one with
+behaviour beyond storage.
+
+### `display_currency` is validated, not passed through
+
+`display_currency` is the single preference with a real server-side rule attached:
+
+- **A `field_validator(mode="before")` normalizes and rejects.** Any string is stripped and
+  upper-cased; a value outside `SUPPORTED_DISPLAY_CURRENCIES` (`("CAD", "USD", "EUR",
+  "GBP")`, `src/account/api_types.py`) raises, so both `PUT` and `PATCH` return 422 and
+  store nothing — pinned by `test_preferences_display_currency_put_normalizes`,
+  `..._patch_normalizes`, `..._put_invalid_rejected` and `..._patch_invalid_rejected`.
+  Lower-cased input (`"usd"`) is stored as `"USD"`; a non-string value falls through to
+  pydantic's own type validation and also 422s.
+- **The supported set is declared twice.** The Python tuple above and
+  `SUPPORTED_DISPLAY_CURRENCIES` in `frontend/src/lib/api/userPreferencesService.ts` are
+  independent literals; the frontend constant is what renders the
+  `/settings/preferences` `<select>` options, while the backend constant is what the
+  validator and `GET /accounts/{account_id}/totals?currency=` reject against. Adding a
+  currency is therefore a two-file (plus, if it should convert, FX-provider) change, and
+  the frontend interface types the key as plain `string | null` rather than a union of the
+  four codes, so nothing type-checks the two lists against each other.
+- **The stored value is consumed server-side, not by the browser.** `UserApi.get_display_currency`
+  re-reads the document, returns the stored string when it is a non-empty string, and
+  otherwise defaults to `"CAD"`. `GET /accounts/holdings` and
+  `GET /accounts/holdings/{security_id}` call it and pass the result into
+  `PositionService.get_user_holdings` / `get_holdings_by_security` as the conversion target
+  for each row's `display_total_value` / `display_currency` fields. A preferences outage, a
+  missing key or a hand-written junk value therefore degrades to `CAD` rather than failing
+  the request. The conversion and rounding rules are owned by
+  [Money & Currency Handling](./money-and-currency.md).
+
+```mermaid
+flowchart TD
+  sel["settings preferences select"] --> patch["PATCH display_currency"]
+  patch --> val{"validator in UserPreferences"}
+  val -- unsupported --> err["422 and nothing stored"]
+  val -- supported or lower case --> norm["upper-cased code stored in auth_users preferences"]
+  norm --> reader["UserApi get_display_currency defaults to CAD"]
+  reader --> holdings["holdings handlers convert display_total_value"]
+  reader --> screen["settings load returns data display_currency"]
+```
+
+*Write-to-read path for the one validated preference key.*
 
 ### `exclude_none` and delete semantics
 
@@ -210,8 +271,8 @@ for every writer:
    replaced entirely by the JSONB `||` merge"), and the writers say the same in comments
    ("PATCH replaces the whole `indicator_pane_heights` key — always send the full object").
 2. **One key per write is the race-safe shape.** Because unrelated keys are untouched by a
-   single-key patch, independently mounted components (layout, sidebar, chart page,
-   holdings page) can patch concurrently without clobbering each other. The
+   single-key patch, independently mounted components (layout, sidebar, chart page, holdings
+   page, settings page) can patch concurrently without clobbering each other. The
    `holdings-table-prefs.ts` and `holdings-group-prefs.ts` helpers both note that they
    persist "under a single `holdings_table` / `holdings_group` key so the backend's
    top-level JSONB merge can't race with other preference writes", and
@@ -254,7 +315,9 @@ sequenceDiagram
 ```
 
 One read at load time seeds the UI; every later change is a single-key PATCH from the
-component that owns the interaction.
+component that owns the interaction. Route loads that need their own keys
+(`/holdings`, `/settings/preferences`) read the document separately instead of borrowing
+the root layout's copy.
 
 ## Read/write ownership matrix
 
@@ -275,7 +338,8 @@ Keys every loaded document declares, grouped by owner:
 | `sidebar_open` | root `+layout.server.ts` → `sidebarOpen` seed | root `+layout.svelte` `handleSidebarOpenChange` | fire-and-forget (`.catch(console.error)`) |
 | `collapsed_watchlist_ids` | root `+layout.server.ts` → `$page.data` → `AppSidebarWatchlist` | `AppSidebarWatchlist.toggleCollapsed` (whole array) | fire-and-forget (`.catch(console.error)`) |
 | `expanded_account_ids` | root `+layout.server.ts` → `$page.data` → `AccountsList` / `AccountsListItem` | `AccountsListItem.toggleExpanded` (whole array) | fire-and-forget (`.catch(console.error)`) |
-| `watchlist_order` | root `+layout.server.ts` → `AppSidebarWatchlist` (`sortWatchlistsByOrder`) and `/watchlists` via `$page.data` | `/watchlists` `moveWatchlist` (drag-and-drop and keyboard share it) | surfaced: the optimistic order is rolled back and `watchlistService.error` is set, rendered in the page's alert |
+| `watchlist_order` | root `+layout.server.ts` → `AppSidebarWatchlist` (`sortWatchlistsByOrder`) and `/watchlists` via `$page.data` | `/watchlists` `moveWatchlist` (drag-and-drop and keyboard share it) | surfaced with rollback: the optimistic order is restored and `watchlistService.error` is set, rendered in the page's alert |
+| `display_currency` | `/settings/preferences` `+page.server.ts` → `data.display_currency` (default `CAD`); also `UserApi.get_display_currency` for the two user-level holdings endpoints | `/settings/preferences` currency select → `patchPreferences({ display_currency })` | surfaced with rollback: the select snaps back to the stored value and the message renders in a destructive alert |
 | `holdings_table` | `/holdings` `+page.server.ts` → `holdings_table_config` → page `tableConfig` | `/holdings` `handleToggleColumn` / `handleConfigChange` → `saveHoldingsTableConfig` | surfaced: page-level `persistError` (see the `errorMessage` derived) |
 | `holdings_group` | `/holdings` `+page.server.ts` → `group_mode` → `HoldingsService.setGroupBy` | `/holdings` `handleGroupToggle` → `saveHoldingsGroupMode` | surfaced: same `persistError` |
 | `elliott_waves` | `/holdings` load (EW columns), `holdings-modal.svelte` `loadPreferences` on each open, `ChartDrawingsService` via `setPreferences` | `ChartDrawingsService` (`handleWaveChange`, undo/redo restore, drag-end flush) | logged only |
@@ -331,6 +395,14 @@ while browser-side readers use the singleton:
   `Array.isArray(prefs.watchlist_order)`, `Array.isArray(prefs.expanded_account_ids)`)
   with defaults `true`, `[]`, `null` and `[]`. The read sits in a `try/catch` that silently
   falls back, and the request is skipped entirely when `locals.user` is unset.
+- **`/settings/preferences` load** (`frontend/src/routes/settings/preferences/+page.server.ts`) —
+  the only route load that reads a single key for its own screen. It redirects to
+  `/auth/login?clear_session=true` when the `auth_token` cookie is missing, resolves
+  `display_currency` with a `?? 'CAD'` default, and on failure deletes the auth cookie and
+  throws a 303 for a 401 (any other `ApiError` becomes `error(status, message)`, other
+  throwables a 500). The route is reached from the sidebar's profile menu, and
+  `display_currency` is deliberately kept off the root load — only this screen needs the
+  value, so every other page's `data` stays free of it.
 - **`/holdings` load** (`frontend/src/routes/holdings/+page.server.ts`) — reads
   `holdings_table`, `holdings_group` and `elliott_waves` as one of three parallel
   `Promise.allSettled` requests (with portfolios and accounts). It deliberately awaits only
@@ -347,6 +419,16 @@ while browser-side readers use the singleton:
   returns only `security_id`; the page fetches preferences client-side after navigation
   (either through `IndicatorsGroup.loadPreferences` → `onPreferencesLoaded`, or through its
   own `getPreferences` in the post-navigation init), so the chart shell paints first.
+
+**The `/holdings` filter is URL state, not a preference.** The holdings load reads
+`portfolio_id` and `account_id` from `url.searchParams` and returns them as route data; the
+page maps them onto `HoldingsService.filterByPortfolio` / `filterByAccount`, and
+`handleSelectFilter` writes the selection back with `goto(resolve('/holdings?portfolio_id=…'))`
+using `replaceState`. No preference key records the selected portfolio or account, so a
+reload or a shared link reproduces the filter while a fresh navigation to `/holdings`
+resets it. Only `holdings_table`, `holdings_group` and `elliott_waves` are persisted from
+this screen; the grid-side behaviour is covered by
+[Accounts & Holdings Views](./../workflows/accounts-and-holdings-views.md).
 
 Components resolve a layout-read key from the most local source available.
 `AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses, then
@@ -367,12 +449,16 @@ surfaces:
   `collapsed_watchlist_ids` that way, and `AccountsListItem.toggleExpanded` patches
   `expanded_account_ids` that way. A failed write never blocks the interaction that
   triggered it; the local UI state stays changed and the preference simply is not saved.
-- **Surfaced in-page**: the `/holdings` page's `persist(promise, fallback)` helper clears
-  `persistError`, captures the rejection message (or the fallback string) and renders it in
-  a destructive alert above the table — `errorMessage` is `persistError ?? service.errorMessage`,
-  so preference-save failures and holdings-load failures share one alert slot. The
-  `/watchlists` reorder path rolls the optimistic reorder back before surfacing the error
-  through `watchlistService.error`.
+- **Surfaced in-page**: the `/holdings` page's `persist(promise, fallbackMessage)` helper
+  clears `persistError`, captures the rejection message (or the fallback string) and renders
+  it in a destructive alert above the table — `errorMessage` is
+  `persistError ?? service.errorMessage`, so preference-save failures and holdings-load
+  failures share one alert slot. The optimistic group/column change is *not* reverted.
+- **Surfaced with rollback**: two writes restore their previous state before reporting. The
+  `/watchlists` reorder restores both the order snapshot and `watchlistService.watchlists`
+  and then sets `watchlistService.error`; the `/settings/preferences` select restores
+  `displayCurrency` (and rewrites the `<select>` value) and renders the message in a
+  destructive `Alert`.
 - **Logged only**: every security-page, `IndicatorsGroup`, `holding-group`,
   `holdings-modal` and `ChartDrawingsService` write (`timeframe`, `chart_style`,
   `indicators`, `chart_hide_labels`, `chart_auto_scale`, `chart_log_scale`,
@@ -384,17 +470,26 @@ surfaces:
 A read failure is never fatal. The root load and the `/holdings` load fall back to
 defaults; `IndicatorsGroup.loadPreferences` falls back to `{ indicators: {} }`; the
 holdings helpers return their normalized defaults; `holdings-modal.loadPreferences` falls
-back to `ALL`. The security page leaves `userPreferences` as the `null` sentinel on a
-fetch failure, and the initial wave-alert reconcile is gated on `userPreferences !== null`
-precisely so a preferences outage cannot mass-delete wave alerts (the reconcile compares
-`desired` against stored alerts and deletes the difference).
+back to `ALL`; `UserApi.get_display_currency` falls back to `CAD`; and the
+`/settings/preferences` load is the exception that makes a preferences failure a visible
+error (or a login redirect) rather than a silent default. The security page leaves
+`userPreferences` as the `null` sentinel on a fetch failure, and the initial wave-alert
+reconcile is gated on `userPreferences !== null` precisely so a preferences outage cannot
+mass-delete wave alerts (the reconcile compares `desired` against stored alerts and deletes
+the difference).
 
 ## Invariants when extending
 
 - **Add the key to the frontend interface and to the backend `UserPreferences` model.**
   `extra="allow"` means a new key persists without touching `src/account/api_types.py`, but
   the backend declaration is the only validation the stored value ever gets — skipping it
-  (as the frontend-only keys above show) leaves the value unchecked on the way in.
+  (as the frontend-only keys above show) leaves the value unchecked on the way in. Any
+  value that a backend handler will read (the way `get_display_currency` does) must be
+  declared, or it will be read unvalidated.
+- **Keep the two supported-value lists in sync.** `display_currency` is enforced by
+  `SUPPORTED_DISPLAY_CURRENCIES` in `src/account/api_types.py` and offered by the separate
+  TS constant in `userPreferencesService.ts`; there is no generated shared list, so a new
+  currency added to only one side either becomes unselectable or 422s.
 - **Patch one key at a time.** Multi-key patches widen the window in which a concurrent
   component write can be lost, and nested writes must send the complete value because the
   merge is shallow.
@@ -405,20 +500,23 @@ precisely so a preferences outage cannot mass-delete wave alerts (the reconcile 
   `stock`/`company` to `'none'`, and `holdings-modal.svelte` rejects a stored
   `holdings_period` outside `PERIODS` in favour of `ALL`.
 - **Keep the layout read cheap.** The root load runs on every authenticated request; the
-  pattern for heavier keys is the `/holdings` route load, which reads its own keys and lets
-  the page fetch rows after navigation.
+  pattern for heavier or screen-specific keys is the `/holdings` and `/settings/preferences`
+  route load, which read their own keys and let the page fetch rows after navigation.
 
 ## Focused tests
 
 | Test | Covers |
 | --- | --- |
-| `tests/routers/test_accounts.py` | `test_preferences_empty` (`{}` when nothing saved), `test_preferences_roundtrip`, `test_preferences_partial_update` (no fabricated defaults), `test_preferences_isolated`, `test_preferences_patch_from_empty`, `test_preferences_patch_partial_merge`, `test_preferences_patch_cross_component_isolation`, `test_preferences_patch_isolated_across_users`, plus per-key round-trips for `sidebar_open`, `holdings_period`, `elliott_waves`, `fibonacci_tools`, `wave_settings` and `watchlist_order`/`watchlist_sort` |
+| `tests/routers/test_accounts.py` | `test_preferences_empty` (`{}` when nothing saved), `test_preferences_roundtrip`, `test_preferences_partial_update` (no fabricated defaults), `test_preferences_isolated`, `test_preferences_patch_from_empty`, `test_preferences_patch_partial_merge`, `test_preferences_patch_cross_component_isolation`, `test_preferences_patch_isolated_across_users`, the four `display_currency` tests (lower-case normalizes through PUT and PATCH, unsupported codes 422 and store nothing), the security-holdings `display_total_value`/`display_currency` assertion, plus per-key round-trips for `sidebar_open`, `holdings_period`, `elliott_waves`, `fibonacci_tools`, `wave_settings` and `watchlist_order`/`watchlist_sort` |
 | `tests/routers/test_account_unauth.py` | 401 for `GET`, `PUT` and `PATCH` without a token |
+| `tests/services/test_position_service.py` | `test_get_user_holdings_converts_to_display_currency` and `test_get_holdings_by_security_converts_to_display_currency`: native value stays in the account/security currency, `display_total_value` follows the passed display currency, and the default is the account currency |
 | `frontend/src/lib/api/userPreferencesService.test.ts` | GET/PUT/PATCH verbs, paths and bodies, `tokenOverride` headers, an empty `{}` response resolving without throwing, `wave_settings` nested bodies, `chart_auto_scale`/`chart_log_scale` serialization, `mergeChartPreferences` |
+| `frontend/src/routes/settings/preferences/page.svelte.test.ts` | the select defaulting to `CAD`, rendering the stored value, patching exactly `{ display_currency }`, and reverting to the stored value while showing the error when the patch fails |
 | `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaults to `[]` / `null` / `[]` when absent, and rejects a non-array `expanded_account_ids` |
 | `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | expansion state restored on load, and a toggle patching the whole `expanded_account_ids` array (removing the id again on collapse) |
 | `frontend/src/lib/components/layout/app-sidebar.test.ts` | `collapsed_watchlist_ids` patched with exactly the collapsed id set, then emptied on re-expand |
-| `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves` (plus portfolios/accounts/filters); a rejected preferences request yields defaults while the load still returns; holdings are never fetched in the server load; a 401 from any of the three services redirects to login |
+| `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves` (plus portfolios/accounts/filters), passes `portfolio_id`/`account_id` through from the query string, tolerates a rejected preferences request with defaults, never fetches holdings server-side, and redirects to login on a 401 from any of the three services |
+| `frontend/src/routes/holdings/page.svelte.test.ts` | a rejected preference write showing the alert while the optimistic toggle stays applied, and a `portfolio_id` in route data narrowing the rendered rows |
 | `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts`, `holdings-group-prefs.test.ts` | normalization and single-key PATCH payloads, tolerated rejections, no write on load |
 | `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and a reset sent as `indicator_pane_heights: null` without clobbering other keys; general chart settings batched into one patch; `show_valuation_band` applied on load |
 | `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` | the overlay toggle patching `show_valuation_band` |

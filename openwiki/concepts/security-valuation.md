@@ -1,8 +1,8 @@
 ---
 type: concept
 title: Security Valuations (Fair-Value Ranges)
-description: The per-user fair-value range feature end to end — the market_security_valuations and market_security_valuation_history tables and their constraints, the router-only SecurityValuationRepository contract (single read, upsert with history append, history read, batch read), the four market routes, ValuationClient versus MarketService batch reads, the fundamentals sidebar group and its modal validation, the chart valuation band and its rewind snapshot interaction, and the holdings/watchlist valuation columns.
-tags: [valuation, fair-value, market-domain, repository, api-contract, audit-history, svelte, charting, user-preferences, lightweight-charts]
+description: The per-user fair-value range feature end to end — the market_security_valuations and market_security_valuation_history tables and their constraints, the router-only SecurityValuationRepository contract (single read, upsert with history append, history read, batch read), the four market routes (per-security read/update plus two bulk-read forms for list pages), ValuationClient versus MarketService batch reads, the two-block Fundamentals sidebar group (fair-value range plus institutional-ownership card) with its asymmetric failure handling and modal validation, the chart valuation band and its rewind snapshot interaction, and the holdings/watchlist valuation columns.
+tags: [valuation, fair-value, market-domain, repository, api-contract, audit-history, svelte, charting, user-preferences, lightweight-charts, institutional-ownership]
 sources:
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
@@ -26,8 +26,6 @@ sources:
     resource: repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts
   - id: openwiki-source-277415f21fdc20b26619d18d
     resource: repo://frontend/src/lib/components/charts/security-chart.svelte
-  - id: openwiki-source-c3b7cc10403cbc15934d0991
-    resource: repo://frontend/src/lib/components/charts/security-chart.test.ts
   - id: openwiki-source-09dad1559edc73c5b154a081
     resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-3baf7c99151dc31c3331675e
@@ -66,10 +64,10 @@ sources:
     resource: repo://tests/market/test_security_valuation_repository.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 # Security Valuations (Fair-Value Ranges)
@@ -83,8 +81,10 @@ is filtered by the requesting `user_id`.
 The concept lives entirely inside the market domain. Its storage is two tables — a
 current-value table plus an append-only revision log — its API is four routes that call
 a router-only repository (there is no valuation service), and its frontend surface is a
-sidebar group with a modal on the security detail page, a shaded band on that page's
-chart, and bulk read columns on the holdings and watchlist tables. The chart band's
+sidebar group with a modal on the security detail page (one of the seven groups that page
+composes — see [Security Detail Page & Actions Sidebar](../workflows/security-detail-page.md)),
+a shaded band on that page's chart, and bulk read columns on the holdings and watchlist
+tables. The chart band's
 *rendering* mechanics are documented on [Charting](../architecture/charting.md); the
 preference key that gates it is inventoried on [User Preferences](./user-preferences.md);
 the tables' place in the market model catalog is on
@@ -146,10 +146,13 @@ changes in this repository must ship their revision together and follow the
 `SecurityValuationHistoryModel` maps to `market_security_valuation_history` and is the
 same shape as the current-value table minus the update semantics: `id`, `user_id`, a
 cascading `security_id` FK, the two `DECIMAL(16, 8)` bounds, and a single `created_at`.
-It has **no unique constraint** — every write adds a row — and one index,
+It has **no unique constraint** — every write adds a row — no foreign key to the
+current-value table, and one index,
 `ix_market_security_valuation_history_user_security_created`, over
 `(user_id, security_id, created_at)`, which is exactly the filter-plus-order the history
-read uses.
+read uses. With no reference to a valuation row, a revision is correlated to the range it
+describes **only by the shared `(user_id, security_id)` pair** — that pair is the history
+table's entire identity.
 
 The log arrived in a second, later revision:
 `migrations/versions/b291707f24ca_add_market_security_valuation_history.py`
@@ -199,23 +202,51 @@ which is what lets the router resolve it with `services.aget(SecurityValuationRe
 ## Routes
 
 `market_router` (prefix `/market`, mounted under `/api/v1` in `src/main.py`) exposes
-four valuation routes in `src/market/router.py`. All four depend on `current_user` and
-pass `user.id` down; none of them inspects another user's data or checks that the
-security exists.
+four valuation routes in `src/market/router.py`. **There is no valuation service**: each
+handler resolves the repository itself with `services.aget(SecurityValuationRepository)`,
+reads `user.id` off the `current_user` dependency and passes it straight through, so the
+routes contain no scoping or ownership logic of their own. This is the market domain's
+router-only repository pattern, whose shared rules — the repository must itself carry the
+ownership and error rules a service would otherwise hold, and its factory is registered in
+`register_*_services` — are documented on [Backend Domains](../architecture/domains.md).
+None of the four routes checks that the security exists.
 
 | Method | Path | Behaviour |
 | --- | --- | --- |
 | `GET` | `/market/securities/{security_id}/valuation` | returns the caller's range; `404` with `detail: "Valuation not found"` when the repository returns `None` |
 | `PUT` | `/market/securities/{security_id}/valuation` | `SecurityValuationWrite` in, upsert out (`200`) |
 | `GET` | `/market/securities/valuation/batch` | repeated `security_ids` query parameters, `None` treated as `[]`; returns the subset of the caller's ranges that exist |
-| `POST` | `/market/securities/valuation/batch` | body `SecurityValuationBatchRequest` (`{ security_ids: [...] }`), same repository call and same subset semantics |
+| `POST` | `/market/securities/valuation/batch` | body `SecurityValuationBatchRequest` (`{ security_ids: [...] }`), same repository call and same subset semantics — the `POST` verb carries the id list, it does not write |
 
 The two batch routes are declared above the single-security valuation routes at the end
 of the file, following this router's convention (the same ordering rule applies to
 `/securities/search` and `/securities/{security_id}`) so a literal path segment is
-never shadowed by a `{security_id}` matcher. They are the only valuation paths that
-serve more than one security per request; the single-security routes take a `SecurityId`
-path parameter and, for the `PUT`, never verify that the security exists.
+never shadowed by a `{security_id}` matcher.
+
+### Why the two batch reads exist
+
+The per-security pair is enough for the security detail page, where exactly one range is in
+play: the page's init-wave `loadValuation` and `FundamentalsGroup`'s own fetch both call the
+single `GET`. The batch routes exist for **bulk page loads** — the surfaces that render a
+whole list of securities at once and want each row's range. Reading those one security at a
+time would turn a single page load into one request per row, so both consumers collect
+their distinct `security_id`s and issue one call:
+
+- `HoldingsService.load` gathers the distinct ids of the loaded holdings rows and calls
+  `MarketService.getValuationsBatch(ids, token)` once.
+- The `/watchlists` page does the same for the union of the securities across its loaded
+  watchlists, inside an `$effect` that sets a `cancelled` flag so a stale response cannot
+  overwrite newer state.
+
+Both routes are that one read exposed two ways: the `GET` takes repeated `security_ids`
+query parameters (`None` coalesced to `[]`), the `POST` takes `{ security_ids: [...] }` in
+the request body. Neither writes anything — there is no batch *write* endpoint, so every
+mutation stays on the per-security `PUT` — and both frontend clients use the `POST` form
+(no frontend caller uses the `GET` form), because the id list travels in a body rather than
+in a URL. Because both delegate to `get_batch_by_user_and_securities`, the response contains
+only the ranges the caller actually has: a requested security with no range is simply absent
+from the array, which is why every batch consumer must treat a missing key as "not set" and
+fall back to `—` rather than to a fabricated range.
 
 The payload schemas are deliberately minimal (`src/market/schema.py`):
 `SecurityValuationWrite` carries only `lower_bound` and `upper_bound`;
@@ -320,30 +351,81 @@ which is exactly where it happens, differently in each:
   `MarketService.getValuationsBatch(securityIds, token?)` is the same POST with the same
   empty-list short-circuit; only its return type differs.
 
-## Sidebar surface: fundamentals group and modal
+## Sidebar surface: the Fundamentals group
 
 `FundamentalsGroup`
 (`frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte`)
-is the editing surface. It receives `securityId`, `currency` and the two-way
-`valuation` / `showOverlay` bindings from the security page, plus an `onSaved` callback,
-and:
+is the security page's editing surface for the range. It receives `securityId`, `currency`,
+an optional `symbol`, the two-way `valuation` / `showOverlay` bindings and an `onSaved`
+callback; the page composes it beside six sibling groups and mirrors a save into the chart
+and a rewind snapshot — page composition and the cross-group bindings are documented on
+[Security Detail Page & Actions Sidebar](../workflows/security-detail-page.md). Under one
+"Fundamentals" `GroupTitle` the component renders **two independent blocks**, fed by two
+separate requests:
 
-- Fetches on an untracked `$effect` whenever it is `expanded` and `securityId` is set,
-  assigning `valuation = await valuationClient.getValuation(securityId)`. A genuine
-  failure sets the local `error` ("Failed to load valuation") and renders a
-  `SidebarError` with a retry bound to `fetchValuation`; a `404`/`null` is not an error.
-- Renders a skeleton while loading, "Fair value range not set." plus a **Set Valuation
-  Range** button when `valuation` is `null`, and otherwise the two bounds formatted with
+- `fetchValuation()` → `valuationClient.getValuation(securityId)`, feeding the fair-value
+  range block.
+- `fetchOwnership()` → `marketService.getInstitutionalOwnership(securityId)`, feeding the
+  institutional-ownership card — the provider-fundamentals half. That endpoint reads the
+  market data plane and degrades a provider 404 or provider error to an all-null payload
+  with an empty history (see [Backend Domains](../architecture/domains.md)).
+
+One untracked `$effect` gated on `expanded && securityId` fires both, so expanding the group
+warms them together and unrelated state changes do not re-issue them.
+
+### The fair-value range block
+
+- A skeleton renders while `isLoading`; a genuine fetch failure sets the local `error`
+  ("Failed to load valuation") and renders `SidebarError` with a Retry bound to
+  `fetchValuation`; a `404`/`null` is not an error.
+- `valuation === null` renders the "Fair value range not set." empty state with a **Set
+  Valuation Range** button.
+- Otherwise the card shows both bounds formatted with
   `Intl.NumberFormat('en-US', { style: 'currency', currency })` joined by an en dash, an
-  **Edit** affordance, the "Show on chart" checkbox, and — when `updated_at` or
-  `created_at` is present — a short `formatDate` line in the
+  **Edit** affordance, the "Show on chart" checkbox bound to `showOverlay`, and — when
+  `updated_at` or `created_at` is present — a short `formatDate` line in the
   `data-testid="valuation-updated-at"` slot.
-- Puts the `Plus` / `Pencil` icon on the group title depending on whether a range
-  exists, and opens `ValuationModal` through a `ModalState` carrying `securityId` and the
-  current range.
-- Handles the modal's `onSaved` by assigning the returned row straight into the bound
-  `valuation` and forwarding it to its own `onSaved` prop, so the page state (and
-  therefore the chart) updates without a refetch.
+- The `GroupTitle` action icon switches between `Pencil` (a range exists, action title
+  "Edit valuation") and `Plus` ("Add valuation"), opening `ValuationModal` through a
+  `ModalState` carrying `securityId` and the current range.
+- The modal's `onSaved` assigns the returned row straight into the bound `valuation` and
+  forwards it to the component's own `onSaved` prop, so the page state (and therefore the
+  chart) updates without a refetch.
+
+### The institutional-ownership card
+
+- It is a **sibling** of the range branch inside the expanded content, so it always renders
+  — also when the valuation fetch failed, and vice versa.
+- `hasOwnershipData` is `institutionalOwnership != null && current_ownership_percent != null`.
+  When true the card renders the percentage through `toFixed(2)` as a clickable trigger plus
+  a **View** affordance, both opening `InstitutionalOwnershipModal`; while
+  `isOwnershipLoading` it renders its own skeleton.
+
+### How failures degrade — asymmetrically
+
+```mermaid
+flowchart TD
+    Effect["expanded and securityId"] --> FetchVal["fetchValuation"]
+    Effect --> FetchOwn["fetchOwnership"]
+    FetchVal -->|"null, a mapped 404"| RangeEmpty["Fair value range not set with Set Valuation Range"]
+    FetchVal -->|"row"| RangeRow["Range card with Edit and Show on chart"]
+    FetchVal -->|"thrown error"| RangeErr["SidebarError with Retry bound to fetchValuation"]
+    FetchOwn -->|"thrown error or null percent"| OwnNA["Disabled N/A ownership trigger"]
+    FetchOwn -->|"percent present"| OwnRow["Percentage trigger with View"]
+```
+
+Two feeds, two independent render branches, and two different failure behaviours.
+
+- A **valuation** failure is user-visible: the range block is replaced by `SidebarError`
+  carrying the message `fetchValuation` set, with a Retry that calls it again.
+- An **ownership** failure is deliberately silent: the rejection is caught, logged with
+  `console.error` and reduced to `institutionalOwnership = null`, so the card degrades to a
+  disabled `N/A` trigger with no message and no retry. A successful fetch whose payload
+  carries a null percentage produces the same disabled state.
+- "No range yet" is not a failure at all: the client maps the `404` to `null`, which is the
+  empty state rather than the error banner. The component suite covers the empty state, the
+  populated range card and the ownership card's populated and disabled states, but **no test
+  pins the group's `SidebarError`/Retry branch**.
 
 `ValuationModal` (`valuation-modal.svelte`) owns the only validation in the feature, and
 it rounds before it validates:
@@ -456,7 +538,8 @@ calls `snapshotsService.createSnapshot` with the valuation in `drawings`.
 ## Other readers: batch columns
 
 Two non-chart surfaces read ranges in bulk, both through
-`MarketService.getValuationsBatch` (the POST batch route) rather than `ValuationClient`:
+`MarketService.getValuationsBatch` (the POST form of the batch route, never the
+per-security `ValuationClient`):
 
 - `HoldingsService.load` collects the distinct `security_id`s from the loaded rows,
   fetches them in one call, coerces bounds with `Number(...)` and builds a
@@ -492,7 +575,13 @@ Two non-chart surfaces read ranges in bulk, both through
   "no range" and "error".
 - **Batch reads return only the rows that exist.** A security with no range is simply
   absent from the response array, so every consumer must treat a missing key as "not
-  set" and fall back to `—` rather than to a fabricated range.
+  set" and fall back to `—` rather than to a fabricated range. The two batch forms are
+  reads for list pages, not an upsert: a new multi-security write would be a new route,
+  not a reuse of `POST /market/securities/valuation/batch`.
+- **Keep the group's two blocks independent.** The ownership card is a sibling of the
+  range branch, so folding it into the valuation `{#if}` chain would let a valuation
+  failure hide provider fundamentals that loaded fine, and the ownership fetch must keep
+  swallowing its own errors so it can never turn into a range error.
 - **`lower_bound <= upper_bound` is a frontend-only rule.** A new server-side caller
   cannot assume stored ranges are ordered; add a validator to `SecurityValuationWrite`
   if that ever needs to change.
@@ -507,7 +596,7 @@ Two non-chart surfaces read ranges in bulk, both through
 | `tests/routers/test_market.py` | `test_get_valuation_not_found` (404 before any write), `test_put_and_get_valuation` (PUT then GET returns the same `id` and bounds), `test_batch_valuations_endpoint` (both GET-with-query-params and POST-with-body forms), `test_chart_snapshot_with_valuation_in_drawings` (a snapshot round-trips `drawings.valuation`) |
 | `frontend/src/lib/api/valuationClient.test.ts` | success read, 404 → `null`, PUT method/body/path, batch POST |
 | `frontend/src/lib/api/marketService.test.ts` | `getValuationsBatch` returning `[]` without a fetch for an empty list, and otherwise POSTing `security_ids` with the bearer token and returning the parsed (string-bounded) valuations |
-| `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` | "Fair value range not set." empty state, currency-formatted range with the checkbox, `patchPreferences({ show_valuation_band: false })` on toggle, short date of last update |
+| `frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts` | mocks `valuationClient`, `marketService.getInstitutionalOwnership` (defaulting to `null` in `beforeEach`) and `userPreferencesService`; covers "Fair value range not set." plus the Set Valuation Range button, the currency-formatted `$100.00 – $150.00` range with the checkbox in the same flex row and checked by default, `patchPreferences({ show_valuation_band: false })` on toggle, the short date of last update, the ownership card rendering `60.12%` and opening its modal, and the disabled `N/A` state; it does **not** cover the valuation `SidebarError`/Retry branch |
 | `frontend/src/lib/components/actions-sidebar/fundamentals/valuation-modal.test.ts` | prefilled bounds, `lower > upper` rejected without calling the client, successful save calling `setValuation` and `onSaved` and closing, `step="0.01"` with prefill rounded to two decimals, user input rounded on save |
 | `frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.test.ts` | attach/`requestUpdate`, `zOrder === 'bottom'`, fill + dashed stroke draw calls, no draw when hidden or bounds are `null`, clean detach |
 | `frontend/src/lib/components/charts/security-chart.test.ts` | the primitive is attached with the passed range and survives a rerender with new bounds |
@@ -526,6 +615,7 @@ services — the repository test uses the ephemeral Postgres session fixture, no
 or Redis. Frontend checks run in the frontend service (`npm run lint`, `npm run check`,
 `npm run test:run`) or `./scripts/agent-test frontend/src/...`, and every frontend test
 must mock the API clients it exercises: the fundamentals group mocks
-`valuationClient` and `userPreferencesService`, the security page suite mocks
+`valuationClient`, `marketService.getInstitutionalOwnership` and
+`userPreferencesService`, the security page suite mocks
 `valuationClient` (keeping `getValuationClient` alongside the singleton) plus its other
 clients, and `security-chart.test.ts` mocks `lightweight-charts`.

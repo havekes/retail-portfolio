@@ -3,9 +3,6 @@ type: workflow
 title: Watchlists, Sidebar & Global Search
 description: The watchlist subsystem end to end — the market_watchlists and membership tables with their position/added_at metadata, the router-only WatchlistRepository contract and its ownership, duplicate-name and exact-permutation order rules, the ten watchlist routes with their price-enriched reads, the layout-owned WatchlistService that is the single client-side owner of watchlist state, the sidebar watchlist groups and ticker shortcuts, the /watchlists page with create/rename/delete, sort modes and manual reordering, and the global-search dialog that resolves or creates securities and toggles membership.
 tags: [watchlists, global-search, sidebar, market-domain, repository, svelte, preferences, ordering, workflow]
-verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
 sources:
   - id: openwiki-source-9d52d426ef92ca9022ff29fa
     resource: repo://frontend/src/lib/api/marketService.ts
@@ -13,6 +10,10 @@ sources:
     resource: repo://frontend/src/lib/components/global-search.svelte
   - id: openwiki-source-d57b417669cd777cd7bd205b
     resource: repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte
+  - id: openwiki-source-40e144f67058b9a0dccf7453
+    resource: repo://frontend/src/lib/components/layout/app-sidebar.test.ts
+  - id: openwiki-source-3e32ffec9af536643a180dfd
+    resource: repo://frontend/src/lib/components/stock-logo.svelte
   - id: openwiki-source-e778f26f995b58e74570ef6f
     resource: repo://frontend/src/lib/components/watchlist/watchlist-utils.ts
   - id: openwiki-source-04059ae9c861b675fbebe0d7
@@ -25,10 +26,22 @@ sources:
     resource: repo://frontend/src/routes/watchlists/%2Bpage.svelte
   - id: openwiki-source-07e78ebb43c13654a939c9b4
     resource: repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py
+  - id: openwiki-source-e75564c85cb976d0b3e62b26
+    resource: repo://services/mcp-gateway/internal/backend/market.go
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-336c8d4ea788e2c5f7cddd73
+    resource: repo://src/market/__init__.py
+  - id: openwiki-source-01883905c6624d1aafed4cfd
+    resource: repo://src/market/api.py
   - id: openwiki-source-8a10008d9bf8365255edbb33
     resource: repo://src/market/cache.py
+  - id: openwiki-source-c606a6f066e1a0d331b3781d
+    resource: repo://src/market/composite.py
+  - id: openwiki-source-d70f78b70446e1ce1912c7c5
+    resource: repo://src/market/data_router.py
   - id: openwiki-source-519cedd3ce6282336c277ff0
     resource: repo://src/market/enum.py
   - id: openwiki-source-0759916706da37d0d3bef090
@@ -49,7 +62,10 @@ sources:
     resource: repo://tests/repositories/test_repository_sqlalchemy.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 # Watchlists, Sidebar & Global Search
@@ -421,8 +437,14 @@ collapsible group — not just the default one.
   preference contract and its read/write ownership matrix.
 - When the sidebar collapses to icon size only the default watchlist's group stays visible; every
   other group carries `group-data-[collapsible=icon]:hidden!`.
-- Each security is a link to `/security/{id}`, with the symbol plus name when expanded and a
-  scaled symbol only (font size keyed to symbol length) in the collapsed rail.
+- Each security is a link to `/security/{id}` rendered through the shared `StockLogo`. Expanded, the
+  row shows the small logo (`xs`, `size-6`) plus the symbol, the name in muted type and — for the
+  default list — the `Kbd` shortcut hint; in the collapsed rail the branch renders the larger `md`
+  logo (`size-8`) and nothing else, so a symbol without an image falls back to the logo's monogram.
+  The hint also feeds the row tooltip as `{symbol} - {name} ({shortcut})`.
+- Each group's collapse toggle is a `Sidebar.GroupAction` with `aria-label`/`title`
+  `Toggle {watchlist.name}` that swaps `ChevronDown` for `ChevronRight` from the same
+  `collapsedIds` set.
 - `getTickerShortcut(index)` maps indices 0–9 to the hints `1`–`9` then `0`, and the hint is only
   passed for the default watchlist's securities. The layout's document-level `handleKeydown`
   mirrors that mapping: for a bare digit it computes `index = e.key === '0' ? 9 : Number(e.key) - 1`,
@@ -518,6 +540,16 @@ order from the *sorted* securities via `moveItem` and calls
 `watchlistService.reorderSecurities(watchlist.id, securityIds)`, which applies the optimistic
 update described above.
 
+That payload is a **full replacement, not a from/to pair**: it lists every id of that list in its
+new row order, and `set_security_order` independently re-checks it as an exact permutation of the
+current membership. A client whose copy of the list is stale — a membership added or removed
+elsewhere — therefore gets a 422 instead of silently reordering a subset, and the service resyncs
+the list from the server before recording the error.
+
+The persisted `sort` mode is what gates the whole feature: switching a list away from `custom`
+(the `Sort` dropdown calls `watchlistService.setSort`) removes the reorder toggle and re-renders the
+rows through `sortSecurities`, so the manual `position`s stay stored but stop being displayed.
+
 Row selection is focus-driven and remembered per watchlist id, keyed by security id rather than row
 index so the highlight follows the same security through a reorder or a sort change.
 
@@ -531,9 +563,10 @@ buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
 - **Search** is a `debounce(..., 300)` wrapper around `marketService.search(query)`, driven by an
   `$effect` on `query`. An empty query clears the results without a request. The endpoint is
   `GET /market/search?q=...` (aliased at `/market/securities/search`), with `q` constrained to
-  1–100 characters, and it reads a `SecuritySearchCache` first and only calls the EODHD gateway on
-  a miss — a hit skips the gateway entirely and no second `set` happens. The cache key is the
-  normalized (trimmed, lowercased, whitespace-collapsed) query and the default TTL is 30 days.
+  1–100 characters, and it reads a `SecuritySearchCache` first and only calls the gateway behind
+  `services.get(MarketGateway)` on a miss — a hit skips the gateway entirely and no second `set`
+  happens. The cache key is the normalized (trimmed, lowercased, whitespace-collapsed) query and the
+  default TTL is 30 days.
 - **Grouping** reduces the flat result array into `Record<security_type, results>`, defaulting the
   group key to `'other'` when the field is empty, and renders one `Command.Group` per type. The
   dialog is `shouldFilter={false}` because the server already searched; items are keyed and valued
@@ -557,6 +590,20 @@ buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
 - **Closing resets** `query`, `searchResults` and `targetWatchlist` through a second `$effect`, so
   reopening never shows the previous session's results or target.
 
+### Where the search provider sits
+
+The dialog's search path is the *legacy* gateway binding, not the provider-agnostic data plane:
+`market_search` resolves the `MarketGateway` svcs key, which both registries bind to
+`eodhd_gateway_factory`, and `SecurityApi` (the resolve-or-create path the star and `onSelect` use)
+is constructed with the same key. The FMP-backed symbol lookup is a different surface — the
+service-token data-plane route `GET /api/v1/market/data/symbols/search`, which resolves
+`DataPlaneMarketGateway` (the `CompositeMarketGateway` over FMP + Polygon) and serves through the
+`EndpointResponseCache` rather than `SecuritySearchCache`. The frontend never calls it; the Go MCP
+gateway does. Provider routing, cache layering and the error taxonomy are documented in
+[Market Data Providers & the Service-to-Service Data Plane](../architecture/market-data-providers.md);
+what matters here is that changing the search vendor for the UI means changing the `MarketGateway`
+binding, while the symbol lookup follows the composite independently.
+
 ## Tests that pin this surface
 
 | Suite | What it fixes in place |
@@ -565,10 +612,10 @@ buttons call `openGlobalSearch(watchlist)` to open it pre-targeted.
 | `tests/routers/test_market.py` | the ten routes: empty and populated lists, `sort` in the payload, cross-user invisibility, idempotent add, no-op remove, 404 for unknown security and foreign watchlist, create 201, rename 409 and 404, sort 200 / invalid 422 storing nothing / combined / empty payload, reorder 200 with persisted positions and four rejected payloads at 422, delete 204, and 401 for all CRUD without auth |
 | `tests/market/test_search_router.py` | the search cache hit skipping the gateway and the miss querying it once then caching |
 | `frontend/src/lib/components/watchlist/watchlistService.test.ts` | load and its returned error, `replaceWatchlist` isolation, the resync-then-record behaviour of the three resync methods, `reorderSecurities`' optimistic order and rewritten positions before the PUT settles plus server-payload reconciliation and failure rollback, the default-list-only `hasSecurity`/`toggleSecurity` pair, `addSecurity`'s dedupe / id-reuse / resolve paths, and that every mutator clears a stale error |
-| `frontend/src/routes/watchlists/page.svelte.test.ts` | the shell-first skeleton with exactly one `getWatchlists` call, order from the preference applied to asynchronously loaded sections, create/rename/delete, the six sort options and each mode's persisted call, the reorder toggle restricted to custom lists, drag and arrow-key moves with focus restoration across a direction switch, boundary no-ops, and the preference-failure rollback of both order snapshots |
+| `frontend/src/routes/watchlists/page.svelte.test.ts` | the shell-first skeleton with exactly one `getWatchlists` call, order from the preference applied to asynchronously loaded sections, create/rename/delete, the six sort options and each mode's persisted call, the reorder toggle restricted to custom lists, drag and arrow-key moves persisting the full id order with focus restoration across a direction switch, boundary no-ops, and the preference-failure rollback of both order snapshots |
 | `frontend/src/lib/components/global-search.test.ts` | the targeted versus generic placeholder, the star's membership state, add-to-target versus toggle-default behaviour, remove-from-target, and the reset of query/results/target on close |
 | `frontend/src/routes/layout.test.ts` | the 401 branch through `redirectOn401`, the `/`, `p`, `w`, `h` and digit shortcuts with their typing/modifier guards, the prefetch order and one-shot dedupe, and the `collapsed_watchlist_ids` / `watchlist_order` / `expanded_account_ids` shape checks |
-| `frontend/src/lib/components/layout/app-sidebar.test.ts` | one group per watchlist, `1`–`9`/`0` hints on the default list only, the `No securities` empty state, and the collapsed-rail visibility rule |
+| `frontend/src/lib/components/layout/app-sidebar.test.ts` | one group per watchlist, `1`–`9`/`0` hints on the default list only, the `No securities` empty state, the logo-based row and rail rendering, and the collapsed-rail visibility rule |
 
 ## Changing this surface
 

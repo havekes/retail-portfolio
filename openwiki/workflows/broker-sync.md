@@ -1,8 +1,8 @@
 ---
 type: workflow
 title: Broker Connect, Import & Position Sync
-description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
-tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring]
+description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities, replaces positions per account and refreshes free cash, broker value and last_sync_at, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
+tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring, account-reconciliation]
 sources:
   - id: openwiki-source-b263e02920f61e43137888d6
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
@@ -24,6 +24,8 @@ sources:
     resource: repo://src/account/router.py
   - id: openwiki-source-3f52b6a4e0898f1abe448990
     resource: repo://src/account/service/position.py
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
   - id: openwiki-source-6a6a2e379c607f943e74eba0
@@ -44,6 +46,8 @@ sources:
     resource: repo://src/integration/task.py
   - id: openwiki-source-01883905c6624d1aafed4cfd
     resource: repo://src/market/api.py
+  - id: openwiki-source-49a515c9449d205d8513d8a6
+    resource: repo://src/stubs/wealthsimple.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
   - id: openwiki-source-fabd6161da6a6b733306f7ce
@@ -64,18 +68,19 @@ sources:
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-d1793d747b8abce8c0959943
     resource: repo://tests/tasks/test_integration.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 # Broker Connect, Import & Position Sync
 
 This page follows the broker path end to end: from the "connect an institution" click in the
 frontend, through the FastAPI routers under `/api/v1/external`, into the Wealthsimple gateway,
-onto the Huey worker that actually writes positions, and back out through Redis and WebSockets to
-the accounts list. The domain catalog is in [Backend Domains](../architecture/domains.md), the
+onto the Huey worker that actually writes positions and account attributes, and back out through
+Redis and WebSockets to the accounts list. The domain catalog is in
+[Backend Domains](../architecture/domains.md), the
 vendor boundary and stub switch in [External Services & Adapters](../integrations/external-services.md),
 the state-class conventions in [Frontend Architecture](../architecture/frontend.md), and the
 mock-only testing rule in [Testing & Verification](../operations/testing.md). Money handling in
@@ -94,6 +99,15 @@ Three invariants govern the whole flow and should be treated as contracts:
    written against a raw broker symbol; every `BrokerPosition` is mapped to a `Security` id by
    `SecurityApi.get_or_create_from_broker` first.
 
+Two further rules describe the non-position side of an account:
+
+4. **Cash is an account attribute, not a position.** `free_cash` is written only by a gateway that
+   overrides the base `get_cash_balances` no-op, so a gateway that cannot report cash never clears
+   a `free_cash` that came from a CSV import.
+5. **The broker's account `value` is stored next to our own valuation.** The worker persists
+   `broker_value` and logs — but does not fail — when our computed present value drifts more than
+   1% from it.
+
 ## Participants and surfaces
 
 | Layer | Entrypoint | Responsibility |
@@ -101,11 +115,11 @@ Three invariants govern the whole flow and should be treated as contracts:
 | Frontend client | `frontend/src/lib/api/brokerClient.ts` | `/integration/institutions`, `/external/users`, `/external/users/{id}/accounts`, `/external/{institution}/login`, `/external/accounts/import` |
 | Frontend state | `brokers-list.svelte.ts`, `brokerService.svelte.ts`, `connect-broker-modal.svelte.ts`, `broker-login-modal.svelte.ts`, `sync-accounts-modal.svelte.ts` | institution list, login form incl. OTP step, account selection/unsync |
 | FastAPI routers | `src/integration/router.py` (`integration_router` = `/external`, `institutions_router` = `/integration`), `src/account/router.py` | HTTP surface, auth, rate limiting, task enqueue |
-| Broker gateway | `src/integration/brokers/wealthsimple.py` | `ws-api` login/session handling, account and position parsing |
+| Broker gateway | `src/integration/brokers/wealthsimple.py` (live), `src/stubs/wealthsimple.py` (`StubWealthsimpleApiGateway`, when `STUB_EXTERNAL_API=true`) | `ws-api` login/session handling, account, position and cash parsing |
 | Task | `src/integration/task.py` | `sync_account_positions_task` Huey task, sync events, error mapping, failure email |
 | Sync bookkeeping | `src/integration/sync_status.py` | Redis active-sync set |
-| Market | `src/market/api.py` (`SecurityApi`) | broker symbol → security resolution |
-| Persistence | `src/account/api/position.py`, `src/account/repository_sqlalchemy.py` | replace-per-account position write |
+| Market | `src/market/api.py` (`SecurityApi`), `src/market/fx.py` (`FxRateProvider`) | broker symbol → security resolution, cash currency conversion |
+| Persistence | `src/account/api/position.py`, `src/account/api/account.py`, `src/account/repository_sqlalchemy.py` | replace-per-account position write plus `free_cash` / `net_deposits` / `broker_value` / `last_sync_at` updates |
 | Fan-out | `src/ws/manager.py`, `src/ws/api_types.py` | Redis pub/sub → per-user WebSocket delivery |
 | Consumer | `frontend/src/lib/components/accounts/accounts-list.svelte.ts` | ticket handshake, sync badges, reconnect, totals refresh |
 
@@ -131,6 +145,7 @@ sequenceDiagram
     participant Q as Huey worker
     participant API as SecurityApi
     participant P as PositionApi
+    participant AA as AccountApi
     participant X as Redis
 
     UI->>BC: getAvailableInstitutions
@@ -168,15 +183,22 @@ sequenceDiagram
     end
     Q->>P: create positions
     P->>P: sync_by_account, delete then insert
-    Q->>GW: get_accounts for net_deposits and last_sync_at
+    opt gateway overrides get_cash_balances
+        Q->>GW: get_cash_balances
+        Q->>Q: convert and sum in account currency
+        Q->>AA: update_free_cash
+    end
+    Q->>GW: get_accounts for net_deposits, value, last_sync_at
+    Q->>AA: update_net_deposits, update_broker_value, update_last_sync_at
+    Q->>Q: reconcile computed value against broker value
     Q->>X: publish sync_finished
     X-->>UI: sync_finished
     Q->>X: mark_sync_finished user, account
 ```
 
 Caption: the connect → import → sync path. Login is synchronous and request-scoped; every
-position write happens inside the Huey worker, never in the request that triggers it, and each
-task event reaches the browser only after Redis pub/sub fan-out.
+position *and* account-attribute write happens inside the Huey worker, never in the request that
+triggers it, and each task event reaches the browser only after Redis pub/sub fan-out.
 
 ### Login and OTP
 
@@ -201,6 +223,16 @@ A missing cached session is normal (first login), and `SessionDoesNotExistError`
 `ExternalAPIError`'s subclass — but note that `login` *catches* it internally: it is the signal to
 perform a real credential login, not a user-facing failure.
 
+**Stub mode.** With `STUB_EXTERNAL_API=true`, `src/config/services.py::register_integration_stub_services`
+binds the `WealthsimpleApiGateway` registry key to `StubWealthsimpleApiGateway`
+(`src/stubs/wealthsimple.py`) instead of the live class, so every code path above keeps its shape
+while `login` ignores password and OTP and always returns `True` — a stub run can never produce
+`OTP_REQUIRED` or `INVALID_CREDENTIALS`, and the two HTTP mappings are exercised only by tests that
+mock the gateway. The stub also parses its own fixed payloads and does **not** override
+`get_cash_balances`. The boundary catalogue, the registry switch and the vendor-exception →
+`ExternalAPIError` mapping table live in
+[External Services & Adapters](../integrations/external-services.md).
+
 ### Import: accounts then positions
 
 `POST /external/accounts/import` (rate-limited `3/minute`) is the single write path. It:
@@ -219,10 +251,11 @@ perform a real credential login, not a user-facing failure.
 that does the position work *inline* in the request instead of on the worker: it loads the account
 and its broker id, calls `broker.get_positions_by_account`, resolves each symbol via
 `SecurityApi.get_or_create_from_broker`, and writes through `PositionApi.create`. It is the
-synchronous twin of the worker body and is not the path the UI drives for broker accounts; the
-account list's sync button and the import flow both go through the Huey task. Treat it as a
-synchronous variant that shares the same invariants (including replace-per-account) but runs under
-the request's own `svcs` container and request id.
+synchronous twin of the position half of the worker body — it does **not** touch `free_cash`,
+`net_deposits`, `broker_value` or `last_sync_at`, and emits no sync events — and it is not the path
+the UI drives for broker accounts; the account list's sync button and the import flow both go through
+the Huey task. Treat it as a synchronous variant that shares the position invariants (including
+replace-per-account) but runs under the request's own `svcs` container and request id.
 
 Importing is also how *un*-syncing is expressed: `sync-accounts-modal.svelte.ts` diffs the checked
 set against the user's internal accounts and calls `accountClient.deleteAccount` for every account
@@ -246,13 +279,46 @@ Inside the container, `_do_sync_positions` is strictly ordered:
 3. resolve every `BrokerPosition` to a `Security` via `SecurityApi.get_or_create_from_broker`
    (institution, broker symbol, broker exchange, broker name) and build `Position` records with
    `broker_position.to_position(account_id, security_id)`;
-4. write them with `PositionApi.create`;
-5. re-list broker accounts, find the matching one, and update `net_deposits` (as `float`, `None`
-   when the broker omits it) plus `last_sync_at`.
+4. write them with `PositionApi.create` — the replace-per-account step;
+5. if the gateway reports cash, refresh `free_cash` (see below);
+6. re-list broker accounts, find the matching one, and update `net_deposits` (as `float`, `None`
+   when the broker omits it — and `0.0`, not `NULL`, when the broker reports zero),
+   `broker_value` (as `float`), the reconciliation check described below, and `last_sync_at`.
 
-The `net_deposits` and `last_sync_at` updates are inside the same `try` as the position write, and
-they are skipped entirely when the broker no longer reports that account — position replacement
-happens either way.
+The `net_deposits` / `broker_value` / `last_sync_at` updates are inside the same `try` as the
+position write, and they are skipped entirely when the broker no longer reports that account —
+position replacement happens either way. Because positions are written *before* the account
+attributes, a failure in step 5 or 6 (an FX provider error while converting cash, say) leaves a
+freshly replaced position set with a stale `free_cash` / `net_deposits` / `last_sync_at`; the task
+still fails observably, with `sync_failed` and an email carrying the generic unexpected-error
+sentence, since FX errors are not in the error-mapping table.
+
+### Cash balances and broker-value reconciliation
+
+Cash is deliberately not modelled as a security position. `WealthsimpleApiGateway.get_positions_by_account`
+skips any `sec-c-<currency>` id, and `get_cash_balances` re-reads `get_account_balances` to fold
+those ids into a `{currency: Decimal}` map. Two helpers decide what the sync does with them:
+
+- `_broker_reports_cash_balances(broker)` compares the *instance's class* against
+  `BrokerApiGateway.get_cash_balances`. Only a gateway that overrides the base no-op takes the
+  cash path, so a gateway that cannot report cash leaves `free_cash` untouched — it may still hold
+  a value imported from CSV. Note that `StubWealthsimpleApiGateway` does **not** override it, so
+  stub-mode syncs never write `free_cash` even though the stub payload contains a `sec-c-cad`
+  balance.
+- `_sum_cash_in_account_currency` converts every non-account currency through
+  `FxRateProvider.converter()` (the converters return floats, so the sum accumulates in float),
+  rounds to 2 decimals, and `AccountApi.update_free_cash` stores it. A gateway that reports cash
+  with an empty map writes `0.0` — "reported no cash" and "cannot report cash" are different
+  states by design.
+
+`broker_value` is the vendor's `netLiquidationValue`, stored as a float via
+`AccountApi.update_broker_value`. `_reconcile_broker_value` then asks
+`PositionService.get_total_for_account(account.id, account.currency)` for our own computed present
+value and logs a `Broker value mismatch for account …` warning when
+`abs(computed - broker) > 0.01 * abs(broker)`. The threshold is strictly greater than 1%, and the
+check only logs: a mismatch usually means a valuation gap (missing cash, a stale price, a bad FX
+rate), never a sync failure. `PositionService` is imported inside the function to break an import
+cycle with `src/integration.api`.
 
 ### Symbol resolution
 
@@ -267,7 +333,7 @@ raw search results. Zero search results raise `ValueError` — which is not in
 `_SYNC_ERROR_MESSAGE_MAPPING`, so it surfaces to the user as the generic unexpected-error message.
 
 The `SecurityBroker` row is the durable cache: once a broker symbol resolves, later syncs are a
-single indexed lookups. Two mapping functions exist for the same transformation —
+single indexed lookup. Two mapping functions exist for the same transformation —
 `SecurityApi._map_eodhd_exchange` uses `.get(...)` and passes unknown exchanges through, while
 `WealthsimpleApiGateway._map_eodhd_exchange` indexes the dict directly and raises `KeyError`. They
 are not interchangeable; see [External Services & Adapters](../integrations/external-services.md).
@@ -277,7 +343,7 @@ are not interchangeable; see [External Services & Adapters](../integrations/exte
 ```mermaid
 stateDiagram-v2
     [*] --> Started: mark_sync_started + sync_started event
-    Started --> Finished: positions written, net_deposits and last_sync_at updated
+    Started --> Finished: positions replaced, account attributes refreshed
     Started --> Failed: gateway, resolution or persistence error
     Failed --> [*]: sync_failed event, error email, mark_sync_finished
     Finished --> [*]: sync_finished event, mark_sync_finished
@@ -460,10 +526,15 @@ Representative focused tests:
 
 - `tests/tasks/test_integration.py` — the sync task's full success path (asserts the resolved
   security, `update_net_deposits(account.id, 5000.0)`, `update_last_sync_at`, and exactly two
-  `send_personal_message` calls with `sync_started` then `sync_finished`), the
-  `RuntimeError` for an uninitialized registry, the two `_do_sync_positions` guards, and one test
-  per error-mapping entry asserting the exact email body and `frontend_url` deeplink — including
-  `sync_failed` as the last socket call when the email itself throws.
+  `send_personal_message` calls with `sync_started` then `sync_finished`), the `RuntimeError` for
+  an uninitialized registry, the two `_do_sync_positions` guards, the sync-status
+  `mark_sync_started`/`mark_sync_finished` pairing on success and on failure, the cash wiring
+  (converted-and-rounded `update_free_cash`, `0.0` when no cash keys, untouched for a gateway that
+  inherits the base no-op, driven by the test-local `_SyncTestGateway` /
+  `_NoCashGateway` doubles), broker-value persistence plus the mismatch warning and its 1%
+  tolerance, and one test per error-mapping entry asserting the exact email body and `frontend_url`
+  deeplink — including `sync_failed` as the last socket call when the email itself throws, and the
+  no-email short circuit.
 - `tests/account/test_models_and_sync.py` — `PositionService.sync_account_positions` raising
   `ApiSyncDisabledError` for a CSV account, and the `api_sync_enabled` default of `True`.
 - `tests/services/test_position_api.py` — `PositionApi.create` (via `sync_by_account`) replacing
@@ -482,7 +553,10 @@ Representative focused tests:
 Adding a broker means: a `BrokerApiGateway` subclass with its own `_keyring_prefix` and
 `InstitutionEnum`; an entry in `get_broker_gateway_class` (which currently raises `KeyError` for any
 id other than `WEALTHSIMPLE`); vendor-error translation onto `ExternalAPIError` subclasses; a stub
-under `src/stubs/`; and a registration in `src/integration/registry.py`. If the new broker
-introduces a failure mode with actionable user guidance, it also needs a sentence in
-`_SYNC_ERROR_MESSAGE_MAPPING`. The seed data requirement — an `account_institutions` row with
-`integration_enabled = true` — is what makes the institution appear at all.
+under `src/stubs/`; a registration in `src/integration/registry.py` plus the stub-path counterpart
+in `src/config/services.py::register_integration_stub_services`; and, only if the vendor can report
+cash, an override of `get_cash_balances` — a gateway that inherits the base no-op leaves `free_cash`
+untouched rather than clearing it. If the new broker introduces a failure mode with actionable user
+guidance, it also needs a sentence in `_SYNC_ERROR_MESSAGE_MAPPING`. The seed data requirement — an
+`account_institutions` row with `integration_enabled = true` — is what makes the institution appear
+at all.

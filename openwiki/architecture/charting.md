@@ -1,9 +1,15 @@
 ---
 type: architecture
 title: "Charting: Chart Surface, Panes & Indicators"
-description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the indicator pipeline through the Go sidecar with its Redis result cache and out-of-order guard, chart settings, the price-alert primitive and the rewind-aware valuation band."
+description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, price-scale zoom/auto-scale interaction, timeframe and chart-style preferences, the indicator pipeline through the Go sidecar with its validation bounds, Redis result cache and out-of-order guard, chart settings, the price-alert primitive and the rewind-aware valuation band."
 tags: [charting, lightweight-charts, indicators, panes, price-alerts, valuation-band, chart-preferences, svelte]
 sources:
+  - id: openwiki-source-5f5b95b3d6a215fa02ceb945
+    resource: repo://.env.example
+  - id: openwiki-source-11ef2d56dffda152beeb9f84
+    resource: repo://docker-compose.prod.yml
+  - id: openwiki-source-b79fbbd921df689b4bbdc82f
+    resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
   - id: openwiki-source-31c465e6b7d0d36afe3ffe00
@@ -62,12 +68,34 @@ sources:
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts
   - id: openwiki-source-ddd6d556671e35d3baea7163
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts
-  - id: openwiki-source-95aa045141f9e53c82a0bc2b
-    resource: repo://services/indicator-service/handlers.go
+  - id: openwiki-source-7dd9acec632134dbf7c4e792
+    resource: repo://services/indicator-service/cmd/indicator-service/main.go
+  - id: openwiki-source-a369f6fbcff45974eb041245
+    resource: repo://services/indicator-service/internal/config/config.go
+  - id: openwiki-source-8d6cfffd8e90c00a57c559d8
+    resource: repo://services/indicator-service/internal/httpapi/dto.go
+  - id: openwiki-source-1f20cd90eabc625721481d92
+    resource: repo://services/indicator-service/internal/httpapi/handlers_test.go
+  - id: openwiki-source-0989b05d6a997ac317b55a71
+    resource: repo://services/indicator-service/internal/httpapi/handlers.go
+  - id: openwiki-source-b5b0d93fcf9b63fd0786bf37
+    resource: repo://services/indicator-service/internal/httpapi/middleware_test.go
+  - id: openwiki-source-e60702892916eccfcde44ee9
+    resource: repo://services/indicator-service/internal/httpapi/middleware.go
+  - id: openwiki-source-9e744972fabdd8b4cf6187c6
+    resource: repo://services/indicator-service/internal/httpapi/router.go
+  - id: openwiki-source-55b7d5881accc0a2691c2b7a
+    resource: repo://services/indicator-service/internal/indicators/calculator_test.go
+  - id: openwiki-source-b85f2baf1cd2b53e92cc997a
+    resource: repo://services/indicator-service/internal/indicators/calculator.go
+  - id: openwiki-source-a87880c597d9aec36b5eed0c
+    resource: repo://services/indicator-service/internal/indicators/timeframe_test.go
+  - id: openwiki-source-a1e108b68bb88454f20cde15
+    resource: repo://services/indicator-service/internal/indicators/timeframe.go
+  - id: openwiki-source-bb31048f50055fae118c40c1
+    resource: repo://services/indicator-service/internal/indicators/types.go
   - id: openwiki-source-692344b8dd5d47fcc6f9bfe0
     resource: repo://services/indicator-service/README.md
-  - id: openwiki-source-112661f7a5dd097320a9b5a8
-    resource: repo://services/indicator-service/timeframe.go
   - id: openwiki-source-8a10008d9bf8365255edbb33
     resource: repo://src/market/cache.py
   - id: openwiki-source-d8383d22d61483b00080a280
@@ -78,10 +106,10 @@ sources:
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-d5f24b3551e2c9a796e0c850
     resource: repo://tests/market/test_indicator_compute_api.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
+generated: { by: "openwiki/0.7.2", at: "2026-10-15T13:03:07.448Z" }
 verified:
-  - by: openwiki/0.7.0
-    at: 2026-10-06T14:42:34.222Z
+  - by: openwiki/0.7.2
+    at: 2026-10-15T13:03:07.448Z
 ---
 
 This page covers the chart *surface*: the `lightweight-charts` wrapper, its data and pane lifecycle, chart preferences, the indicator pipeline, the price-alert primitive and the valuation band. Drawing tools, their series-primitive plugins, drawing persistence and the snapshot/rewind pipeline are documented on [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — this page only points at them. The fair-value range concept itself (model, routes, client, sidebar modal) lives on [Security Valuations](../concepts/security-valuation.md), the price/candle side of the indicator pipeline on [Market Data & Indicators](../workflows/market-data-and-indicators.md), and the sidecar as an outbound dependency on [External Services & Adapters](../integrations/external-services.md).
@@ -102,8 +130,8 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 
 - **Commands run inside Docker.** Frontend work is executed in the `frontend` service (`docker compose exec frontend ...`); the agent harness wraps that (`./scripts/agent-test frontend/src/...`).
 - **Frontend tests must mock every API client and `lightweight-charts`.** CI has no backend and no real canvas, so an unmocked client or a real chart import is a broken test by definition (see `frontend/AGENTS.md`).
-- **A new indicator type belongs in the Go sidecar, not in Python.** The chart's compute route forwards specs to `services/indicator-service`; adding a type means a new case in its `ComputeIndicator` switch plus README documentation, not new Python math.
-- **Nothing in a test dials a real dependency.** Frontend tests mock every API client and `lightweight-charts`; backend indicator tests use `httpx.MockTransport` for the sidecar and patch the cache, so no test reaches the sidecar, Redis or EODHD for real.
+- **A new indicator type belongs in the Go sidecar, not in Python.** The chart's compute route forwards specs to `services/indicator-service`; adding a type means a new `case` in its `indicators.Compute` switch (`internal/indicators/calculator.go`) plus a row in the service README, not new Python math.
+- **Nothing in a test dials a real dependency.** Frontend tests mock every API client and `lightweight-charts`; backend indicator tests use `httpx.MockTransport` for the sidecar and patch the cache, so no test reaches the sidecar, Redis or EODHD for real; the sidecar's own Go suite drives handlers in-process with `httptest`, so it needs no network either.
 
 ## Entry points
 
@@ -118,6 +146,8 @@ This page covers the chart *surface*: the `lightweight-charts` wrapper, its data
 | Chart preference helpers | `frontend/src/lib/chart-preferences.ts` |
 | Time helpers | `frontend/src/lib/utils/date.ts`, `frontend/src/lib/utils/finance/candle.ts` |
 | Indicator API client | `frontend/src/lib/api/indicatorsService.ts` |
+| Indicator sidecar (Go) | `services/indicator-service/cmd/indicator-service`, `internal/httpapi/`, `internal/indicators/` |
+| Indicator result cache | `src/market/cache.py`, `src/market/service.py` (`IndicatorServiceClient`) |
 | Chart settings modal | `frontend/src/lib/components/charts/chart-settings-modal.svelte` |
 | Price-alert primitive | `frontend/src/lib/components/charts/plugins/user-price-alerts/` |
 | Valuation band primitive | `frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts` |
@@ -159,7 +189,7 @@ Prop→primitive syncing happens in guarded `$effect`s that compare the primitiv
 
 1. Subscribes `timeScale().subscribeVisibleLogicalRangeChange` for two duties: pagination and future-whitespace expansion.
 2. Adds the main `CandlestickSeries` (`#26a69a` up / `#ef5350` down, borders and border colors set, wicks colored).
-3. Creates the `ValuationBandPrimitive` from the `valuation`/`showValuationBand` props and attaches it to that series, then calls `updatePanes()`.
+3. Creates the `ValuationBandPrimitive` from the `valuation` prop gated by `isValuationBandVisible` (the `showValuationBand`/`showValuation` pair) and attaches it to that series, then calls `updatePanes()`.
 4. Attaches six more primitives to the same series: `UserPriceAlerts` (with `setSymbolName('Price')`), `ElliottWavesPrimitive`, `FibonacciPrimitive`, `MeasurePrimitive`, `HorizontalLinePrimitive`, `FreeFormLinePrimitive`.
 5. Subscribes each primitive's delegates and re-emits them as page callbacks — `alertAdded`/`alertRemoved`, `wavePointsChanged`, `drawingModeChanged`, `degreeChanged`, `waveTypeChanged`, `selectionChanged`, `doubleClicked`, `toolChanged`, `drawingsChanged`, `dragStarted`/`dragEnded`.
 6. Installs a capture-phase, non-passive `wheel` listener that zooms the **price scale** (not the time scale) over the price-scale strip, plus mouse/pointer down-move-up listeners that detect a vertical price-scale drag and report `onAutoScaleChange(false)`, and a `ResizeObserver` that resizes the chart to the container and re-runs `checkAndExpandWhitespace`.
@@ -344,11 +374,24 @@ The route validates the window (`from_date > to_date` → 422, after normalizing
 - calls the external indicator service through `IndicatorServiceClient.compute`, which POSTs `{ interval, candles, indicators }` to `<indicator_service_url>/compute` (timeouts become 504 `Indicator service timed out`, connection errors and 5xx become 503 `Indicator service unavailable`, a sidecar 400 is surfaced as 400 with the sidecar's `error` text);
 - **consults and populates `IndicatorCache` only when `request.candles` is absent**. That is the point of the caller-supplied path: the rewind payload (`getRewoundCandlesPayload()`, which slices `rawCandles` at the timeline position) must never be served from, or written to, the cache, because the cache key is `indicators:<security>:<interval>:<chart_style>:<sha256 digest>` — the digest covering the canonicalized specs plus the normalized date window — and cannot describe the caller's candle set. Entries are written with `setex` and the cache's default TTL (3600 s / 1 hour).
 
-The chart's own defaults to `ma*` indicators are period-scaled in the sidecar: `ma50`/`ma200` (day unit) multiply by `7` on `1h`, `2` on `4h`, stay put on `1d` and divide by 5 / 21 on `1w` / `1m`; the `ma*w` variants use `35`, `10`, `5`, `1` and `round(period * 12 / 52)`. The page's `IndicatorsService` still exposes the older `getIndicatorData` / `getAllIndicatorData` GET methods backed by the in-Python `GET /securities/{security_id}/indicators` route, but the security route computes through `computeIndicators` only.
+The chart's own defaults to `ma*` indicators are period-scaled in the sidecar (`ScalePeriod` in `internal/indicators/timeframe.go`): `ma50`/`ma200` (day unit) multiply by `7` on `1h`, `2` on `4h`, stay put on `1d` and divide by 5 / 21 on `1w` / `1m`; the `ma*w` variants use `35`, `10`, `5`, `1` and `round(period * 12 / 52)`. The two divisions have a floor of `1`, and an unrecognised interval is left unscaled. The page's `IndicatorsService` still exposes the older `getIndicatorData` / `getAllIndicatorData` GET methods backed by the in-Python `GET /securities/{security_id}/indicators` route, but the security route computes through `computeIndicators` only.
 
 ### The sidecar contract (`services/indicator-service`)
 
-The Go sidecar is a stateless calculator: `POST /compute` takes `{ interval, candles, indicators }`, where `interval` **defaults to `"1d"`** when omitted or empty (the backend always sends the resolved enum), and answers `{ "indicators": { ... } }` with one series per spec keyed by `ResultKey()` — the spec `id` when set, otherwise `type`. `type` is matched case-insensitively after trimming, the `ma*` aliases are accepted (`ma_50`, `ma_50_day`, `50ma`, …), parameter resolution is top-level field (`> 0`) → `settings` map entry → built-in default, and output points drop `NaN`/`Inf`. When there are too few candles to compute an indicator (or the period scales to `0`), that spec's series is an **empty array, not an error** — the circuit returns 200, which is why a newly enabled indicator can legitimately render nothing. Errors are limited to 400 (`invalid json body: ...` or `unsupported indicator type: <type>`), a 405 for any method other than POST, and the 10 MB body cap (`http.MaxBytesReader`).
+The Go sidecar is a stateless calculator — it owns no data and no state between requests — and the FastAPI backend is its only intended client. It is **internal-only with no authentication and no rate limiting**: never expose it publicly. The backend reaches it through `settings.indicator_service_url`, set from `INDICATOR_SERVICE_URL` (`.env.example` sets `http://indicator-service:8080`, the Compose service name; the setting defaults to `http://localhost:8080`). Dev compose publishes it on `127.0.0.1:${INDICATOR_SERVICE_PORT:-8004}` → container `8080`; prod compose publishes no host port at all. Inside the service, HTTP concerns live in `internal/httpapi` (`router.go` registers the two routes, `handlers.go`, `dto.go`, request-id/logging middleware), the math in `internal/indicators` (`calculator.go` holds the type switch, `types.go` the spec and parameter resolution, `timeframe.go` `ScalePeriod`), config in `internal/config`, and the binary in `cmd/indicator-service`.
+
+The wire contract is small and explicit:
+
+```text
+POST /compute
+  { "interval": "1d", "candles": [ { "time", "open", "high", "low", "close", "volume" } ],
+    "indicators": [ { "id", "type", "period", "fast", "slow", "signal", "stdDev", "settings" } ] }
+→ 200 { "indicators": { "<ResultKey>": [ { "time", "value" } ] } }
+```
+
+`interval` defaults to `"1d"` when omitted or empty, and each series is keyed by `ResultKey()` — the spec `id` when set, otherwise `type`. `type` is matched case-insensitively after trimming, the `ma*` aliases are accepted (`ma_50`, `ma_50_day`, `50ma`, …), parameter resolution is top-level field (`> 0`) → `settings` map entry → built-in default (numbers in `settings` may be JSON numbers or numeric strings), candle `time` values are echoed back untouched (a date string stays a string, an intraday epoch second stays a number), output points drop `NaN`/`Inf`, and when there are too few candles (or a scaled period is `0`) that spec's series is an **empty array in a 200 response**, not an error — which is why a newly enabled indicator can legitimately render nothing.
+
+`validateComputeRequest` plus `IndicatorSpec.Validate()` reject a request with `400` before any computation when it carries more than **32 indicators** or more than **50,000 candles**, or when a resolved `period` / `fast` / `slow` / `signal` falls outside `[1, 1000]` or a resolved `stdDev` outside `(0, 10]`; the error text names the offending parameter and the spec's result key. The bound check resolves each parameter with a fallback of `1`, so an omitted parameter always passes, and the interval-scaled period (`ma200w` on `1h` becomes 7000 bars) is never re-checked. The remaining error answers are unchanged: an invalid JSON body (`invalid json body: ...`), an unsupported type (`unsupported indicator type: <type>`), a `405` with an `Allow: POST` header for any method other than `POST` (as does `GET /health` for a non-GET method), and a 10 MB body cap via `http.MaxBytesReader`. Specs are computed in the order given and the first failure aborts the whole batch, so one out-of-bounds or unsupported spec fails every series in that request; the frontend catches it and logs (`Failed to compute indicator <id>` on the single-toggle path, `Failed to refresh indicators` on the bulk path), leaving the chart with no new series — the same degradation as a sidecar outage.
 
 ### Round trip and the out-of-order guard
 
@@ -357,30 +400,37 @@ sequenceDiagram
     participant Page as Security page
     participant Api as IndicatorsService
     participant Router as Market router
+    participant Client as IndicatorServiceClient
+    participant Sidecar as Go indicator service
     participant Cache as IndicatorCache
-    participant Engine as Indicator sidecar
 
     Page->>Page: refreshActiveIndicators bumps sequenceCounter and stamps indicatorSeq
-    Page->>Api: computeIndicators with interval, chart style and specs
-    alt rewound
-        Page->>Page: getRewoundCandlesPayload slices the candles at the playhead
-        Page->>Api: the request carries the caller-supplied candles
+    Page->>Api: computeIndicators with interval, chart style, specs and optional candles
+    opt rewound
+        Page->>Page: getRewoundCandlesPayload slices the raw candles at the playhead
     end
     Api->>Router: POST to the security indicators compute route
-    alt no caller candles
-        Router->>Cache: look up security, interval, chart style and spec digest
+    Router->>Router: 422 when from_date is later than to_date
+    opt server-resolved candles
+        Router->>Cache: get keyed by security, interval, chart style and spec digest
         Cache-->>Router: cached indicators or a miss
     end
-    Router->>Engine: POST interval, candles and specs to /compute
-    Engine-->>Router: series keyed by spec id or type
-    Router->>Cache: store the result only when no caller candles were sent
-    Router-->>Api: indicators map
+    Router->>Router: build candles from the price repositories, or use the supplied ones
+    Router->>Router: convert to Heikin-Ashi when chart_style is heikin_ashi
+    Router->>Client: compute with interval, candles and specs
+    Client->>Sidecar: POST /compute with interval, candles and indicators
+    Sidecar-->>Client: 200 with one series per spec result key
+    Client-->>Router: indicators map
+    opt server-resolved candles
+        Router->>Cache: setex under the same key with the default TTL
+    end
+    Router-->>Api: IndicatorComputeResponse carrying the indicators map
     Api-->>Page: indicators map
-    Page->>Page: discard the response when indicatorSeq no longer matches
-    Page->>Api: removeIndicator then addIndicator per accepted spec
+    Page->>Page: discard the response when indicatorSeq no longer matches the stamp
+    Page->>Page: removeIndicator then addIndicator for every accepted key
 ```
 
-Indicator compute round trip: the page stamps a monotonic sequence per request, the backend caches only cache-eligible requests, and a response whose sequence is stale is discarded.
+Indicator compute round trip: `IndicatorsService` is the frontend's only entry point, `IndicatorServiceClient` is the backend's only caller of the Go sidecar, the result cache is touched only for server-resolved candles, and the page stamps a monotonic sequence per request so a stale response is discarded rather than applied.
 
 Two request paths share one guard:
 
@@ -459,6 +509,7 @@ Chart tests are colocated with their subject and follow the repository rules in 
 - `indicator-pane-layout.test.ts` pins the pure math: the legacy margins for 0/1/2/3 oscillators and the volume variants, custom-height normalization, min/max clamping, and the water-filling allocator. `indicator-defaults.test.ts` pins the frozen table, key order and copy independence. `valuation-band.test.ts` pins the renderer's fill/dash behaviour and its no-draw cases.
 - Page-level suites live in `routes/security/[security_id]/page.svelte.test.ts` (`Security Page - Asynchronous Indicator Integration`, `Security Page - Indicator Pane Heights`, `Security Page - Instant Shell with Async Chart Data`, `Security Page - Top Toolbar`, `Security Page - Viewport Containment & Scrolling Layout`, …), and `page.server.test.ts` asserts the load returns only `security_id` and never calls the market service.
 - The backend side of the pipeline never dials a real sidecar or Redis in tests either: `tests/market/test_indicator_client.py` drives `IndicatorServiceClient` through `httpx.MockTransport` handlers (asserting the `/compute` path and the 504/503/400 mappings), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` and `IndicatorCache.get`/`set` to cover the date-window 422, the cache hit/miss and read-write window symmetry, and the caller-supplied-candle path.
+- The sidecar carries its own Go suite (`go test ./...` from `services/indicator-service`): `internal/indicators/calculator_test.go` pins each indicator's math, the `settings`-map parameter fallback and the unsupported-type error, `internal/indicators/timeframe_test.go` pins `ScalePeriod`, `internal/httpapi/handlers_test.go` covers the handler contract (405s, invalid JSON, unknown type, timestamp preservation for both string and epoch times, empty candles, every validation bound and an at-limit success case), and `internal/httpapi/middleware_test.go` covers the request-id and logging middleware.
 
 Run the chart suites with `./scripts/agent-test frontend/src/lib/components/charts/...` while iterating and `./scripts/agent-test frontend` before finishing.
 
@@ -471,7 +522,7 @@ Run the chart suites with `./scripts/agent-test frontend/src/lib/components/char
 - **Any manual price-scale interaction disables auto-scale.** Wheel zoom and price-scale drag both call `onAutoScaleChange(false)`, which is persisted as `chart_auto_scale`; a new scale-manipulating affordance must report the same way or the chart will fight the user on the next data update.
 - **Stale-response guards are per indicator.** New indicator work must thread `sequenceCounter` / `indicatorSeq` (bulk) or the per-id sequence (single toggle), or a slow response can overwrite newer data or re-enable a disabled indicator.
 - **Caller-supplied candles bypass the backend cache.** The cache key cannot describe a client-side candle set, so any new caller-candle path must keep the `if not request.candles` guard on both the read and the write.
-- **A new indicator type is a sidecar change.** Add the type in `services/indicator-service` (`ComputeIndicator` plus the README table) and expose it through `INDICATOR_DEFAULTS`; do not add Python math for the compute path. Remember that too-few candles legitimately returns an empty series, so the UI must treat "no points yet" as normal rather than an error.
+- **A new indicator type is a sidecar change.** Add the type in `services/indicator-service` (a `case` in `indicators.Compute` plus the README table) and expose it through `INDICATOR_DEFAULTS`; do not add Python math for the compute path — the in-Python `GET /securities/{security_id}/indicators` route only serves the legacy frontend wrappers and would be invisible to the chart. Remember that too-few candles legitimately returns an empty series, that the sidecar validates explicit parameters but not the interval-scaled period, and that the UI must treat "no points yet" as normal rather than an error.
 - **Chart code is browser-only.** The component is dynamically imported after navigation; anything that assumes `window`, `ResizeObserver` or a DOM container must stay inside that import (and inside `onMount`) so SSR never executes it.
 - **Frontend tests never touch a real API or a real chart.** Mock every client module a subject calls and mock `lightweight-charts`; a `fetch` or canvas that actually runs is a broken test.
 - **Preferences are additive.** New chart preferences belong in `UserPreferences` and must be persisted with a partial `patchPreferences` call; keep the key inventory authoritative on [User Preferences](../concepts/user-preferences.md).
