@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// NewRouter constructs the http.ServeMux with registered handlers wrapped with LoggingMiddleware.
+// NewRouter constructs the http.ServeMux with registered handlers wrapped with TraceMiddleware and LoggingMiddleware.
 func NewRouter(logger *slog.Logger) http.Handler {
 	if logger == nil {
 		logger = slog.Default()
@@ -14,5 +14,5 @@ func NewRouter(logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", HealthHandler)
 	mux.HandleFunc("/compute", ComputeHandler)
-	return LoggingMiddleware(logger)(mux)
+	return TraceMiddleware(LoggingMiddleware(logger)(mux))
 }

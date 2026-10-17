@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "name": "Wide events - sync health",
+  "description": "Minimal wide-event dashboard (F-OBS-T20): the p95 sync duration definition-of-done query, sync error rate, and a signpost for the infra queue-depth gauge. Import via Dashboards -> Import Dashboard; see docker/observability/hyperdx/README.md.",
+  "tags": ["wide-events", "observability"],
+  "tiles": [
+    {
+      "id": "000000000000000000000001",
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 5,
+      "config": {
+        "configType": "sql",
+        "displayType": "bar",
+        "name": "p95 sync duration by broker (positions > 100)",
+        "connection": "<clickhouse-connection-name>",
+        "sqlTemplate": "SELECT\n    SpanAttributes['broker'] AS broker,\n    quantile(0.95)(toFloat64OrZero(SpanAttributes['duration_ms'])) AS p95_duration_ms,\n    count() AS sampled_syncs\nFROM default.otel_traces\nWHERE SpanAttributes['event.name'] = 'portfolio.sync.completed'\n  AND toInt64OrZero(SpanAttributes['positions_seen']) > 100\n  AND $__timeFilter(Timestamp)\nGROUP BY broker\nORDER BY p95_duration_ms DESC"
+      }
+    },
+    {
+      "id": "000000000000000000000002",
+      "x": 12,
+      "y": 0,
+      "w": 12,
+      "h": 5,
+      "config": {
+        "configType": "sql",
+        "displayType": "line",
+        "name": "Sync error rate (failed / completed, plus HTTP 500)",
+        "connection": "<clickhouse-connection-name>",
+        "sqlTemplate": "SELECT\n    toStartOfInterval(Timestamp, INTERVAL $__interval_s second) AS hour,\n    countIf(SpanAttributes['event.name'] = 'portfolio.sync.failed') AS failed_syncs,\n    countIf(SpanAttributes['event.name'] = 'portfolio.sync.completed') AS completed_syncs,\n    round(countIf(SpanAttributes['event.name'] = 'portfolio.sync.failed') / nullIf(countIf(SpanAttributes['event.name'] = 'portfolio.sync.completed'), 0), 4) AS failed_per_completed,\n    countIf(SpanAttributes['event.name'] = 'http.request' AND SpanAttributes['status'] = '500') AS http_500s\nFROM default.otel_traces\nWHERE SpanAttributes['event.name'] IN ('portfolio.sync.failed', 'portfolio.sync.completed', 'http.request')\n  AND $__timeFilter(Timestamp)\nGROUP BY hour\nORDER BY hour"
+      }
+    },
+    {
+      "id": "000000000000000000000003",
+      "x": 0,
+      "y": 5,
+      "w": 24,
+      "h": 3,
+      "config": {
+        "configType": "sql",
+        "displayType": "table",
+        "name": "Queue depth (infra gauge - not a wide event)",
+        "connection": "<clickhouse-connection-name>",
+        "sqlTemplate": "SELECT\n    'queue depth' AS signal,\n    'Prometheus gauge queue_depth (worker /metrics, README section 4)' AS source,\n    'Huey dashboard /worker/api' AS where_to_look,\n    'not a wide event - nothing to query in ClickHouse by design' AS note"
+      }
+    }
+  ]
+}

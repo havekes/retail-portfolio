@@ -439,7 +439,16 @@ def run_tests(
 
     result = parse_junit(host_report) if ecosystem == BACKEND else parse_vitest(host_report)
     result.mode = mode
-    if proc.returncode not in (0, 1) and result.total == 0:
+    # The process exit code is the reliable signal: vitest writes its JSON report
+    # independently of unhandled errors, so a clean report plus a non-zero exit
+    # means the runner failed outside the parsed test cases. Only stay quiet when
+    # the report already accounts for the failure, to avoid double-reporting.
+    if (
+        proc.returncode != 0
+        and result.failed == 0
+        and result.errors == 0
+        and len(result.failures) == 0
+    ):
         result.command_failed = True
         tail = sanitize(proc.stdout + "\n" + proc.stderr, ecosystem)[-800:]
         result.note = result.note or f"runner exited {proc.returncode}\n{tail}"

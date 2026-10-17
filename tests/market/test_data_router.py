@@ -9,7 +9,7 @@ byte-comparison path end to end.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 import threading
@@ -18,11 +18,18 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from asgi_lifespan import LifespanManager
 from fastapi import HTTPException
+import httpx
 from httpx import ASGITransport, AsyncClient
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
 from pydantic import BaseModel
 
-from src.config.settings import settings
+from src.config.settings import Settings, settings
 from src.main import app
+from src.observability import bootstrap_observability, reset_observability
+from src.market.fmp import FmpGateway
 from src.market.service import IndicatorServiceClient
 from src.market.api_types import (
     BalanceSheet,
@@ -1960,4 +1967,100 @@ async def test_indicator_unknown_symbol_404_and_empty_points_404(
     )
     assert resp2.status_code == 404
     assert "EMPTY" in resp2.json()["detail"]
+
+
+# --------------------------------------------------------------------------- #
+# Telemetry: single cache event and single gateway event per routed fetch.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture
+def span_exporter() -> Iterator[InMemorySpanExporter]:
+    reset_observability()
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    try:
+        yield exporter
+    finally:
+        reset_observability()
+
+
+@pytest.mark.anyio
+async def test_routed_request_emits_one_cache_event_and_one_gateway_event(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:  # noqa: ARG001
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "symbol": "AAPL",
+                    "name": "Apple Inc.",
+                    "currency": "USD",
+                    "exchange": "NASDAQ",
+                    "exchangeShortName": "NASDAQ",
+                    "type": "stock",
+                    "country": "US",
+                }
+            ],
+        )
+
+    fmp_client = httpx.Client(transport=httpx.MockTransport(handler))
+    fmp_gateway = FmpGateway(api_key="test", client=fmp_client)
+    mock_gateway.lookup_symbol.side_effect = fmp_gateway.lookup_symbol
+
+    resp = await client.get(
+        "/api/v1/market/data/symbols/search?q=AAPL", headers=_headers()
+    )
+    assert resp.status_code == 200
+
+    spans = span_exporter.get_finished_spans()
+    fetch_spans = [s for s in spans if s.name == "market.data.fetched"]
+    cache_spans = [s for s in spans if s.name == "market.cache.accessed"]
+    miss_cache_spans = [
+        s for s in cache_spans if (s.attributes or {}).get("outcome") == "miss"
+    ]
+
+    # Exactly one gateway fetch event was emitted (no duplicate from data_router).
+    assert len(fetch_spans) == 1
+    fetch_attrs = fetch_spans[0].attributes or {}
+    assert fetch_attrs["provider"] == "fmp"
+    assert fetch_attrs["dataset"] == "search"
+    assert fetch_attrs["symbol"] == "AAPL"
+    assert fetch_attrs["outcome"] == "success"
+
+    # Exactly one cache miss was emitted.
+    assert len(miss_cache_spans) == 1
+    miss_attrs = miss_cache_spans[0].attributes or {}
+    assert miss_attrs["cache_kind"] == "endpoint"
+    assert miss_attrs["key_class"] == "search"
+    assert miss_attrs["outcome"] == "miss"
+
+    # On repeat, served from cache: exactly 0 new gateway fetch events.
+    span_exporter.clear()
+    resp2 = await client.get(
+        "/api/v1/market/data/symbols/search?q=AAPL", headers=_headers()
+    )
+    assert resp2.status_code == 200
+
+    spans2 = span_exporter.get_finished_spans()
+    fetch_spans2 = [s for s in spans2 if s.name == "market.data.fetched"]
+    hit_cache_spans2 = [
+        s
+        for s in spans2
+        if s.name == "market.cache.accessed"
+        and (s.attributes or {}).get("outcome") == "hit"
+    ]
+    assert len(fetch_spans2) == 0
+    assert len(hit_cache_spans2) == 1
 

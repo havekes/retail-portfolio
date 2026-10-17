@@ -1,7 +1,8 @@
 import { AuthService } from '$lib/api/authService';
+import { extractTraceparent } from '$lib/api/traceContext';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ url, fetch }) => {
+export const load: PageServerLoad = async ({ url, fetch, request }) => {
 	const token = url.searchParams.get('token');
 
 	if (!token) {
@@ -11,7 +12,7 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
 		};
 	}
 
-	const authService = new AuthService(fetch);
+	const authService = new AuthService(fetch, extractTraceparent(request.headers));
 
 	try {
 		const response = await authService.verifyEmail(token);

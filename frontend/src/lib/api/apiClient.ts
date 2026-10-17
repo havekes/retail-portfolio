@@ -1,10 +1,18 @@
 import { browser } from '$app/environment';
+import {
+	deriveChildTraceparent,
+	generateTraceparent,
+	rememberCurrentTraceId,
+	traceIdFromTraceparent
+} from './traceContext';
 
 export class ApiError extends Error {
 	constructor(
 		public status: number,
 		public message: string,
-		public response?: Response
+		public response?: Response,
+		/** Correlation id from the response `X-Request-ID` header, when present. */
+		public requestId?: string
 	) {
 		super(message);
 		this.name = 'ApiError';
@@ -14,13 +22,54 @@ export class ApiError extends Error {
 export abstract class ApiClient {
 	protected baseUrl: string;
 	protected fetch: typeof fetch;
+	/** Inbound page-request `traceparent` to continue from (SSR only). */
+	protected inboundTraceparent?: string;
 
-	constructor(customFetch?: typeof fetch) {
+	constructor(customFetch?: typeof fetch, inboundTraceparent?: string | null) {
 		const base = browser
 			? import.meta.env.VITE_API_BASE_URL || ''
 			: (import.meta.env.VITE_INTERNAL_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? '');
 		this.baseUrl = (base.endsWith('/') ? base.slice(0, -1) : base) + '/api/v1';
 		this.fetch = customFetch || fetch;
+		this.inboundTraceparent = inboundTraceparent ?? undefined;
+	}
+
+	/**
+	 * Merges default, auth, and trace-context headers for one outgoing request.
+	 *
+	 * Every request carries a valid W3C `traceparent` plus an `X-Request-ID`
+	 * holding the same trace id, so the backend ties its request id to the trace
+	 * (`src/core/middleware.py` prefers the inbound request id over the active
+	 * trace id). SSR clients continue the inbound page-request trace by deriving
+	 * a child span per call; browser requests start a fresh trace. Explicit
+	 * caller-supplied `headers` win over the defaults.
+	 *
+	 * Browser requests also register their trace id as the "current" one so
+	 * non-API errors can be correlated to the request that preceded them. The
+	 * write is gated on `browser` because module state must not carry across
+	 * SSR requests.
+	 */
+	protected buildHeaders(
+		headers?: Record<string, string>,
+		tokenOverride?: string | null,
+		options?: { json?: boolean }
+	): Record<string, string> {
+		const traceparent = this.inboundTraceparent
+			? deriveChildTraceparent(this.inboundTraceparent)
+			: generateTraceparent();
+
+		const traceId = traceIdFromTraceparent(traceparent);
+		if (browser) {
+			rememberCurrentTraceId(traceId);
+		}
+
+		return {
+			...(options?.json ? { 'Content-Type': 'application/json' } : {}),
+			...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
+			traceparent,
+			'X-Request-ID': traceId ?? traceparent,
+			...headers
+		};
 	}
 
 	private async extractErrorMessage(response: Response): Promise<string> {
@@ -39,7 +88,8 @@ export abstract class ApiClient {
 	private async handleResponse(response: Response): Promise<void> {
 		if (!response.ok) {
 			const message = await this.extractErrorMessage(response);
-			throw new ApiError(response.status, message, response);
+			const requestId = response.headers?.get('X-Request-ID')?.trim() || undefined;
+			throw new ApiError(response.status, message, response, requestId);
 		}
 	}
 
@@ -51,11 +101,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'GET',
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			}
+			headers: this.buildHeaders(headers, tokenOverride, { json: true })
 		});
 
 		await this.handleResponse(response);
@@ -72,11 +118,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'POST',
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			},
+			headers: this.buildHeaders(headers, tokenOverride, { json: true }),
 			body: JSON.stringify(payload)
 		});
 
@@ -94,11 +136,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'PATCH',
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			},
+			headers: this.buildHeaders(headers, tokenOverride, { json: true }),
 			body: JSON.stringify(payload)
 		});
 
@@ -116,11 +154,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'PUT',
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			},
+			headers: this.buildHeaders(headers, tokenOverride, { json: true }),
 			body: JSON.stringify(payload)
 		});
 
@@ -137,11 +171,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'DELETE',
 			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			}
+			headers: this.buildHeaders(headers, tokenOverride, { json: true })
 		});
 
 		await this.handleResponse(response);
@@ -160,10 +190,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'POST',
 			credentials: 'include',
-			headers: {
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			},
+			headers: this.buildHeaders(headers, tokenOverride),
 			body: formData
 		});
 
@@ -180,10 +207,7 @@ export abstract class ApiClient {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'GET',
 			credentials: 'include',
-			headers: {
-				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
-				...headers
-			}
+			headers: this.buildHeaders(headers, tokenOverride)
 		});
 
 		await this.handleResponse(response);

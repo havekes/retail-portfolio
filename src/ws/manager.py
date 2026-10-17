@@ -3,16 +3,57 @@ import contextlib
 import json
 import logging
 import threading
+import time
 from typing import Any
 from uuid import UUID
 
 import redis.asyncio as aioredis
 from fastapi import WebSocket
+from opentelemetry import context, propagate
+from opentelemetry.context import Context
 from starlette.websockets import WebSocketState
 
 from src.auth.api_types import UserId
+from src.observability import emit_event
 
 logger = logging.getLogger(__name__)
+
+#: Message type recorded when a payload carries no ``type`` key.
+_UNKNOWN_MESSAGE_TYPE = "unknown"
+
+#: ``user_id`` recorded when a delivery fails before one could be resolved.
+_UNKNOWN_USER_ID = "unknown"
+
+
+def _elapsed_ms(started: float) -> float:
+    """Return milliseconds elapsed since a ``time.monotonic()`` reading."""
+    return round((time.monotonic() - started) * 1000, 3)
+
+
+def _message_type(message: Any) -> str:
+    """Return the message's ``type`` field without touching the payload body."""
+    if isinstance(message, dict):
+        return str(message.get("type", _UNKNOWN_MESSAGE_TYPE))
+    return _UNKNOWN_MESSAGE_TYPE
+
+
+def extract_trace_context(carrier: Any) -> Context | None:
+    """Extract a W3C trace context from a pub/sub envelope carrier.
+
+    Returns ``None`` when the carrier is absent, not a mapping, or cannot be
+    parsed, so callers always fall back to delivering without a remote context.
+    """
+    if not isinstance(carrier, dict) or not carrier:
+        return None
+    try:
+        return propagate.extract(carrier)
+    except Exception:
+        logger.warning(
+            "Malformed trace carrier in pub/sub envelope; delivering without "
+            "remote trace context",
+            exc_info=True,
+        )
+        return None
 
 
 class ConnectionManager:
@@ -104,6 +145,9 @@ class ConnectionManager:
         try:
             async for message in pubsub.listen():
                 if message["type"] == "message":
+                    user_id: UUID | None = None
+                    msg_payload: dict[str, Any] = {}
+                    started = time.monotonic()
                     try:
                         data = json.loads(message["data"])
                         user_id = UUID(data["user_id"])
@@ -113,8 +157,50 @@ class ConnectionManager:
                             user_id,
                             msg_payload,
                         )
-                        await self._send_to_local_connections(user_id, msg_payload)
+                        remote_ctx = extract_trace_context(
+                            data.get("carrier") or data.get("trace_carrier")
+                        )
+                        token = (
+                            context.attach(remote_ctx)
+                            if remote_ctx is not None
+                            else None
+                        )
+                        try:
+                            await self._send_to_local_connections(user_id, msg_payload)
+                            # Emitted inside the attached-context window so the
+                            # delivery shares the producer's trace id.
+                            emit_event(
+                                "ws.delivery",
+                                user_id=str(user_id),
+                                message_type=_message_type(msg_payload),
+                                connection_count=len(
+                                    self.active_connections.get(user_id, [])
+                                ),
+                                outcome="delivered",
+                                duration_ms=_elapsed_ms(started),
+                            )
+                        finally:
+                            # The listener outlives any single message: never let
+                            # one message's context leak into the next delivery.
+                            if token is not None:
+                                context.detach(token)
                     except Exception:
+                        emit_event(
+                            "ws.delivery",
+                            user_id=(
+                                str(user_id)
+                                if user_id is not None
+                                else _UNKNOWN_USER_ID
+                            ),
+                            message_type=_message_type(msg_payload),
+                            connection_count=(
+                                len(self.active_connections.get(user_id, []))
+                                if user_id is not None
+                                else 0
+                            ),
+                            outcome="delivery_failed",
+                            duration_ms=_elapsed_ms(started),
+                        )
                         logger.exception("Failed to process message from Redis")
         except asyncio.CancelledError:
             logger.debug("Redis Pub/Sub listener cancelled")
@@ -171,6 +257,8 @@ class ConnectionManager:
 
     async def send_personal_message(self, message: dict[str, Any], user_id: UserId):
         """Publish a message to Redis Pub/Sub to be delivered by any process."""
+        message_type = _message_type(message)
+        started = time.monotonic()
         redis = self.get_redis_client()
         if redis is None:
             try:
@@ -182,23 +270,63 @@ class ConnectionManager:
                 logger.exception(
                     "Failed to lazily initialize Redis in send_personal_message"
                 )
+                emit_event(
+                    "ws.delivery",
+                    user_id=str(user_id),
+                    message_type=message_type,
+                    connection_count=len(self.active_connections.get(user_id, [])),
+                    outcome="publish_failed",
+                    duration_ms=_elapsed_ms(started),
+                )
                 await self._send_to_local_connections(user_id, message)
                 return
 
-        payload = {
+        payload: dict[str, Any] = {
             "user_id": str(user_id),
             "message": message,
         }
 
+        # Carry the producing trace context across the process boundary so the
+        # consumer-side delivery is traced within the same trace.
+        carrier: dict[str, str] = {}
+        propagate.inject(carrier)
+        if carrier:
+            payload["carrier"] = carrier
+
         if redis is None:
+            emit_event(
+                "ws.delivery",
+                user_id=str(user_id),
+                message_type=message_type,
+                connection_count=len(self.active_connections.get(user_id, [])),
+                outcome="publish_failed",
+                duration_ms=_elapsed_ms(started),
+            )
             await self._send_to_local_connections(user_id, message)
             return
 
         try:
             logger.debug("Publishing to Redis 'ws_messages': payload=%s", payload)
+            publish_started = time.monotonic()
             await redis.publish("ws_messages", json.dumps(payload))
+            emit_event(
+                "ws.delivery",
+                user_id=str(user_id),
+                message_type=message_type,
+                connection_count=len(self.active_connections.get(user_id, [])),
+                outcome="published",
+                duration_ms=_elapsed_ms(publish_started),
+            )
         except Exception:
             logger.exception("Failed to publish message to Redis: payload=%s", payload)
+            emit_event(
+                "ws.delivery",
+                user_id=str(user_id),
+                message_type=message_type,
+                connection_count=len(self.active_connections.get(user_id, [])),
+                outcome="publish_failed",
+                duration_ms=_elapsed_ms(started),
+            )
             await self._send_to_local_connections(user_id, message)
 
     def send_personal_message_sync(self, message: dict[str, Any], user_id: UserId):

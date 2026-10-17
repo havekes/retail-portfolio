@@ -55,6 +55,7 @@ function createMockEvent(
 		cookies,
 		fetch: vi.fn() as unknown as typeof fetch,
 		url,
+		request: new Request(url),
 		params: {},
 		route: { id: '/holdings' },
 		locals: {},

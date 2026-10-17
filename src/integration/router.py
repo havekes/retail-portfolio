@@ -10,7 +10,6 @@ from src.account.api_types import Institution, Position
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
-from src.core.context import get_request_id
 from src.core.enum import InstitutionEnum
 from src.integration.api import get_broker_gateway_class
 from src.integration.api_types import (
@@ -31,6 +30,7 @@ from src.integration.service import (
 )
 from src.integration.task import sync_account_positions_task
 from src.market.api import SecurityApi
+from src.observability import capture_task_context
 
 integration_router = APIRouter(prefix="/external")
 institutions_router = APIRouter(prefix="/integration")
@@ -203,7 +203,7 @@ async def integration_import_accounts(
             account,
             account.external_id,
             get_broker_gateway_class(integration_user.institution_id),
-            request_id=get_request_id(),
+            **capture_task_context(),
         )
 
     return IntegrationImportResponse(imported_count=len(imported_accounts))

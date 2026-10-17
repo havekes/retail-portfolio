@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // serviceTokenHeader is the shared-secret header expected by the backend
@@ -84,8 +86,11 @@ func NewTransport(opts Options) (*Transport, error) {
 	}
 
 	return &Transport{
-		baseURL:        parsed,
-		httpClient:     &http.Client{Timeout: timeout},
+		baseURL: parsed,
+		httpClient: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+			Timeout:   timeout,
+		},
 		maxConcurrency: opts.MaxConcurrency,
 		sem:            make(chan struct{}, opts.MaxConcurrency),
 		requestTimeout: timeout,

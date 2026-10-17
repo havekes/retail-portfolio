@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
@@ -45,10 +45,34 @@ from src.auth.service import PasskeyService, TotpService
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
+from src.observability import emit_event
 
 logger = logging.getLogger(__name__)
 
 auth_router = APIRouter(prefix="/auth")
+
+
+def _emit_auth_event(
+    outcome: str,
+    event_type: str,
+    user_id: str | None = None,
+    failure_reason: str | None = None,
+) -> None:
+    """
+    Emit one ``auth.event`` wide event for an authentication boundary outcome.
+
+    Only the outcome class is recorded — never an email address, password, OTP
+    code or token value. Telemetry failures must never break the auth flow.
+    """
+    fields: dict[str, Any] = {"outcome": outcome, "event_type": event_type}
+    if user_id:
+        fields["user_id"] = str(user_id)
+    if failure_reason:
+        fields["failure_reason"] = failure_reason
+    try:
+        emit_event("auth.event", **fields)
+    except Exception:
+        logger.debug("Failed to emit auth.event", exc_info=True)
 
 
 @auth_router.post("/signup")
@@ -93,6 +117,7 @@ async def auth_login(
             login_data.email,
             extra={"event": "auth.login_failure", "email": login_data.email},
         )
+        _emit_auth_event("failure", "login", failure_reason="invalid_credentials")
         raise HTTPException(401, "Invalid credentials") from e
     except AuthUserUnverifiedError as e:
         logger.warning(
@@ -100,9 +125,11 @@ async def auth_login(
             login_data.email,
             extra={"event": "auth.login_failure", "email": login_data.email},
         )
+        _emit_auth_event("failure", "login", failure_reason="email_unverified")
         raise HTTPException(403, "Email not verified") from e
     else:
         if isinstance(auth_data, LoginChallengeResponse):
+            _emit_auth_event("challenge", "login")
             return auth_data
         response.set_cookie(
             key="auth_token",
@@ -117,6 +144,7 @@ async def auth_login(
             "auth.login_success",
             extra={"user_id": str(auth_data.user.id)},
         )
+        _emit_auth_event("success", "login", user_id=str(auth_data.user.id))
         return auth_data
 
 
@@ -136,14 +164,17 @@ async def auth_2fa_login_verify(
     try:
         user_id = uuid.UUID(token_data.user_id)
     except ValueError as e:
+        _emit_auth_event("failure", "2fa_verify", failure_reason="token_invalid")
         raise HTTPException(401, "Token invalid") from e
 
     user = await user_service.get_user_by_id(user_id)
     if not user or not user.is_active:
+        _emit_auth_event("failure", "2fa_verify", failure_reason="user_inactive")
         raise HTTPException(401, "Token invalid")
 
     is_valid = await totp_service.verify_2fa_login(user.id, verify_data.code)
     if not is_valid:
+        _emit_auth_event("failure", "2fa_verify", failure_reason="code_invalid")
         raise HTTPException(401, "Invalid 2FA code")
 
     access_token = user_service.create_access_token(user.email, user.id)
@@ -160,6 +191,7 @@ async def auth_2fa_login_verify(
         "auth.2fa_verify_success",
         extra={"user_id": str(user.id)},
     )
+    _emit_auth_event("success", "2fa_verify", user_id=str(user.id))
     return AuthResponse(
         access_token=access_token,
         user=User(id=user.id, email=user.email),
@@ -384,7 +416,15 @@ async def auth_passkey_authenticate_verify(
     user_repo = await services.aget(UserRepository)
     passkey_service = await services.aget(PasskeyService)
 
-    user, _passkey = await passkey_service.verify_authentication(verify_data.credential)
+    try:
+        user, _passkey = await passkey_service.verify_authentication(
+            verify_data.credential
+        )
+    except Exception:
+        _emit_auth_event(
+            "failure", "passkey_login", failure_reason="verification_failed"
+        )
+        raise
 
     access_token = user_service.create_access_token(user.email, user.id)
     response.set_cookie(
@@ -400,6 +440,7 @@ async def auth_passkey_authenticate_verify(
         "auth.passkey_login_success",
         extra={"user_id": str(user.id)},
     )
+    _emit_auth_event("success", "passkey_login", user_id=str(user.id))
     return AuthResponse(
         access_token=access_token,
         user=User(id=user.id, email=user.email),

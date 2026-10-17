@@ -15,6 +15,11 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 func setSlogDefault(logger *slog.Logger) *slog.Logger {
@@ -594,5 +599,109 @@ func TestTransport_SaturatedSemaphoreTimeout(t *testing.T) {
 	close(blockCall1)
 	if err1 := <-call1Done; err1 != nil {
 		t.Errorf("call 1 failed: %v", err1)
+	}
+}
+
+func TestTransport_OTelPropagationAndRedaction(t *testing.T) {
+	const secretToken = "super-secret-service-token-12345"
+
+	recorder := tracetest.NewSpanRecorder()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+	prevTP := otel.GetTracerProvider()
+	prevProp := otel.GetTextMapPropagator()
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+	t.Cleanup(func() {
+		otel.SetTracerProvider(prevTP)
+		otel.SetTextMapPropagator(prevProp)
+		_ = tp.Shutdown(context.Background())
+	})
+
+	var receivedTraceparent string
+	var receivedToken string
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedTraceparent = r.Header.Get("Traceparent")
+		receivedToken = r.Header.Get("X-Service-Token")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"status":"ok"}`)
+	}))
+	defer srv.Close()
+
+	opts := Options{
+		BaseURL:        srv.URL,
+		MaxConcurrency: 5,
+	}
+	tr, err := NewTransport(opts)
+	if err != nil {
+		t.Fatalf("NewTransport: %v", err)
+	}
+	group := tr.NewRouteGroup("/api/test", secretToken)
+
+	tracer := tp.Tracer("test-tracer")
+	ctx, callerSpan := tracer.Start(context.Background(), "caller-operation")
+
+	var out json.RawMessage
+	if err := group.Get(ctx, "/data", nil, &out); err != nil {
+		t.Fatalf("Get error: %v", err)
+	}
+	callerSpan.End()
+
+	// 1. Verify outbound request received Traceparent header matching caller span
+	if receivedTraceparent == "" {
+		t.Fatal("expected Traceparent header on outbound request, got empty")
+	}
+	expectedTraceID := callerSpan.SpanContext().TraceID().String()
+	if !strings.Contains(receivedTraceparent, expectedTraceID) {
+		t.Errorf("Traceparent %q does not contain caller trace ID %q", receivedTraceparent, expectedTraceID)
+	}
+
+	// 2. Verify X-Service-Token header was received by server
+	if receivedToken != secretToken {
+		t.Errorf("X-Service-Token = %q, want %q", receivedToken, secretToken)
+	}
+
+	// 3. Verify in-memory exporter spans
+	spans := recorder.Ended()
+	if len(spans) < 2 {
+		t.Fatalf("expected at least 2 spans (caller + outbound HTTP), got %d", len(spans))
+	}
+
+	var httpSpan sdktrace.ReadOnlySpan
+	for _, s := range spans {
+		if s.SpanContext().SpanID() != callerSpan.SpanContext().SpanID() {
+			httpSpan = s
+			break
+		}
+	}
+	if httpSpan == nil {
+		t.Fatal("could not find outbound HTTP client span")
+	}
+
+	if httpSpan.Parent().SpanID() != callerSpan.SpanContext().SpanID() {
+		t.Errorf("HTTP client span parent = %s, want caller span ID %s",
+			httpSpan.Parent().SpanID(), callerSpan.SpanContext().SpanID())
+	}
+	if httpSpan.SpanContext().TraceID() != callerSpan.SpanContext().TraceID() {
+		t.Errorf("HTTP client span trace ID = %s, want caller trace ID %s",
+			httpSpan.SpanContext().TraceID(), callerSpan.SpanContext().TraceID())
+	}
+
+	// 4. Verify no secret token or header is exported into telemetry attributes across all spans
+	for _, s := range spans {
+		for _, attr := range s.Attributes() {
+			key := strings.ToLower(string(attr.Key))
+			val := attr.Value.AsString()
+			if strings.Contains(strings.ToLower(val), strings.ToLower(secretToken)) {
+				t.Errorf("span %q leaked secret token in attribute %s: %s", s.Name(), attr.Key, val)
+			}
+			if strings.Contains(key, "service-token") {
+				t.Errorf("span %q exported token header attribute: %s", s.Name(), attr.Key)
+			}
+		}
 	}
 }

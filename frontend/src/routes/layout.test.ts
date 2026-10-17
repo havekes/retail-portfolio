@@ -423,7 +423,8 @@ describe('Root +layout.svelte', () => {
 			return {
 				locals: { user: { id: 'u1', email: 'test@example.com' } },
 				fetch: vi.fn(),
-				cookies: { get: vi.fn().mockReturnValue('token') }
+				cookies: { get: vi.fn().mockReturnValue('token') },
+				request: new Request('http://localhost/')
 			} as unknown as Parameters<typeof load>[0];
 		};
 

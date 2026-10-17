@@ -10,9 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"retail-portfolio/services/mcp-gateway/internal/backend"
 	"retail-portfolio/services/mcp-gateway/internal/config"
 	"retail-portfolio/services/mcp-gateway/internal/logging"
+	"retail-portfolio/services/mcp-gateway/internal/observability"
 	"retail-portfolio/services/mcp-gateway/internal/server"
 )
 
@@ -47,8 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialise telemetry before the router is built so tracers resolve to
+	// the configured provider, and keep the shutdown handle to flush spans on exit.
+	shutdownOTel := observability.SetupOTel(context.Background(), cfg)
+
 	router := server.NewRouter(server.New(client), cfg)
-	handler := logging.Middleware(router, cfg.Environment)
+	handler := logging.Middleware(otelhttp.NewHandler(router, "mcp-gateway.http"), cfg.Environment)
 
 	httpServer := &http.Server{
 		Addr:    ":" + cfg.Port,
@@ -102,5 +109,13 @@ func main() {
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
+
+	// Flush pending spans before the process exits.
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer flushCancel()
+	if err := shutdownOTel(flushCtx); err != nil {
+		logger.Error("otel shutdown error", slog.Any("error", err))
+	}
+
 	logger.Info("mcp-gateway stopped")
 }

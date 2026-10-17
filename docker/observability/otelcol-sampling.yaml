@@ -1,0 +1,131 @@
+# Tail-sampling gateway for the wide-event pipeline (F-OBS-T16).
+#
+# Only the `traces` pipeline is configured here: the application SDKs export
+# traces (see `src/observability/bootstrap.py`), and OTLP logs/metrics posted to
+# this gateway are not forwarded.
+#
+# ClickStack's all-in-one collector only accepts *additive* custom config, so it
+# cannot rewire the built-in `traces` pipeline with a `tail_sampling` processor.
+# This gateway therefore owns the sampling policy: application SDKs export to
+# `otel-sampler:4318` (overlay-scoped `OTEL_EXPORTER_OTLP_ENDPOINT`) and the
+# retained traces are forwarded to ClickStack's own OTLP receiver.
+#
+# Policy set (tail sampling retains a trace if ANY policy matches; policy order
+# never makes one policy shadow another):
+#   1. `errors-all`         — every trace containing a span with status ERROR is
+#                             kept at 100%. `transform/error_marking` promotes
+#                             the wide-event failure signals (`error_slug`,
+#                             `outcome` in failure words, `http.request` with an
+#                             int `status` of 500) to span status ERROR first, so
+#                             this single policy retains all failure events.
+#   2. `error-slug-present` — belt-and-braces: any span carrying a non-empty
+#                             `error_slug` attribute is kept at 100%, even if a
+#                             future emitter ever forgets to set span status.
+#   3. `success-bulk`       — everything else is sampled probabilistically at
+#                             `${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7}` (default
+#                             7%, the configured 5-10% band).
+#
+# `transform/sampling_stamp` then stamps every span that survived sampling with
+# the applied decision: `event.sampled=true` and `event.sample_rate` (1.0 for
+# the error cohorts, the bulk percentage otherwise), so analyses can reason
+# about representativeness of the stored data.
+#
+# Tail sampling is *trace*-bound: everything that shares a trace shares its
+# decision. Wide events emitted while a parent span is active (for example an
+# `http.request` inside a request trace) inherit the parent trace's decision and
+# stamp; standalone events are single-span traces.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Promote the wide-event failure signals to span status ERROR before sampling.
+  # Mirrors `_error_reason()` in `src/observability/events.py` as defence in
+  # depth: the emitter itself already marks an int 5xx `status` (plus its
+  # `error_slug` and string `status`/`outcome` failure words).
+  transform/error_marking:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - set(span.status.code, STATUS_CODE_ERROR) where span.attributes["error_slug"] != nil
+          - set(span.status.code, STATUS_CODE_ERROR) where span.attributes["outcome"] == "failed" or span.attributes["outcome"] == "failure" or span.attributes["outcome"] == "error"
+          - set(span.status.code, STATUS_CODE_ERROR) where span.attributes["event.name"] == "http.request" and span.attributes["status"] == 500
+
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 50000
+    expected_new_traces_per_sec: 200
+    decision_cache:
+      sampled_cache_size: 50000
+      non_sampled_cache_size: 50000
+    policies:
+      - name: errors-all
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      # A non-empty `error_slug` is never written as an empty string, so the
+      # `.+` regex is an exact "error_slug present" test (absent attributes do
+      # not match).
+      - name: error-slug-present
+        type: string_attribute
+        string_attribute:
+          key: error_slug
+          values: [".+"]
+          enabled_regex_matching: true
+      - name: success-bulk
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: ${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7}
+
+  # Stamp the applied decision on every span that survived sampling. Both the
+  # `event.sampled` flag and the resolved `event.sample_rate` are queryable in
+  # ClickHouse/HyperDX.
+  transform/sampling_stamp:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - set(span.attributes["event.sampled"], true)
+          - set(span.attributes["event.sample_rate"], ${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7})
+          - set(span.attributes["event.sample_rate"], 1.0) where span.attributes["error_slug"] != nil or span.attributes["outcome"] == "failed" or span.attributes["outcome"] == "failure" or span.attributes["outcome"] == "error" or span.status.code == STATUS_CODE_ERROR
+
+  batch:
+    timeout: 5s
+    send_batch_size: 1000
+    send_batch_max_size: 2000
+
+exporters:
+  otlp_http/clickstack:
+    endpoint: http://clickstack:4318
+    headers:
+      authorization: "${env:HYPERDX_API_KEY}"
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      queue_size: 5000
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [transform/error_marking, tail_sampling, transform/sampling_stamp, batch]
+      exporters: [otlp_http/clickstack]
+  telemetry:
+    logs:
+      level: info
