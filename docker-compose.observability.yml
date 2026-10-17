@@ -33,7 +33,12 @@ services:
     restart: unless-stopped
     command: ["--config=/etc/otelcol/otelcol-sampling.yaml"]
     volumes:
-      - ./docker/observability/otelcol-sampling.yaml:/etc/otelcol/otelcol-sampling.yaml:ro
+      - type: bind
+        source: ./docker/observability/otelcol-sampling.yaml
+        target: /etc/otelcol/otelcol-sampling.yaml
+        read_only: true
+        bind:
+          create_host_path: false
     environment:
       # Team ingestion API key forwarded to ClickStack. Empty until the HyperDX
       # team is registered (README § 2): the sampler still starts, and inserts
@@ -52,7 +57,12 @@ services:
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
-      - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - type: bind
+        source: ./docker/observability/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       - clickstack
     healthcheck:
